@@ -1,0 +1,223 @@
+<div class="p-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Invoices</h2>
+      <p-button 
+        label="Create Invoice" 
+        icon="ri-add-line"
+        routerLink="create">
+      </p-button>
+    </div>
+
+    <!-- Filters -->
+    <p-card styleClass="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <p-dropdown 
+            [options]="statusOptions"
+            [(ngModel)]="filters.status"
+            (onChange)="applyFilters()"
+            [style]="{'width':'100%'}"
+            placeholder="All Statuses">
+          </p-dropdown>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Date Range
+          </label>
+          <div class="flex gap-2">
+            <p-calendar 
+              [(ngModel)]="filters.dateFrom"
+              (onSelect)="applyFilters()"
+              [showIcon]="true"
+              placeholder="From"
+              styleClass="w-full">
+            </p-calendar>
+            <p-calendar 
+              [(ngModel)]="filters.dateTo"
+              (onSelect)="applyFilters()"
+              [showIcon]="true"
+              placeholder="To"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Department
+          </label>
+          <p-dropdown 
+            [options]="departments"
+            [(ngModel)]="filters.department"
+            (onChange)="applyFilters()"
+            [style]="{'width':'100%'}"
+            placeholder="All Departments">
+          </p-dropdown>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Search
+          </label>
+          <span class="p-input-icon-left w-full">
+            <i class="ri-search-line"></i>
+            <input 
+              type="text" 
+              pInputText 
+              [(ngModel)]="filters.search"
+              (input)="applyFilters()"
+              placeholder="Search invoices..."
+              class="w-full" />
+          </span>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Invoices Table -->
+    <p-card>
+      <p-table 
+        #dt
+        [value]="invoices" 
+        [rows]="10" 
+        [paginator]="true"
+        [globalFilterFields]="['invoiceNumber', 'patientName', 'doctorName']"
+        [loading]="loading"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} invoices"
+        [tableStyle]="{'min-width': '75rem'}">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="invoiceNumber">
+              Invoice # <p-sortIcon field="invoiceNumber"></p-sortIcon>
+            </th>
+            <th pSortableColumn="patientName">
+              Patient <p-sortIcon field="patientName"></p-sortIcon>
+            </th>
+            <th pSortableColumn="dateIssued">
+              Date <p-sortIcon field="dateIssued"></p-sortIcon>
+            </th>
+            <th pSortableColumn="total">
+              Amount <p-sortIcon field="total"></p-sortIcon>
+            </th>
+            <th pSortableColumn="status">
+              Status <p-sortIcon field="status"></p-sortIcon>
+            </th>
+            <th>Insurance</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-invoice>
+          <tr>
+            <td>
+              <a [routerLink]="['view', invoice.id]" 
+                 class="text-blue-600 hover:text-blue-800">
+                {{invoice.invoiceNumber}}
+              </a>
+            </td>
+            <td>
+              <div>{{invoice.patientName}}</div>
+              <div class="text-sm text-gray-500">
+                Dr. {{invoice.doctorName}}
+              </div>
+            </td>
+            <td>
+              <div>{{invoice.dateIssued | date}}</div>
+              <div class="text-sm text-gray-500">
+                Due: {{invoice.dueDate | date}}
+              </div>
+            </td>
+            <td>
+              <div>${{invoice.total.toLocaleString()}}</div>
+              <div class="text-sm" [class]="getBalanceClass(invoice)">
+                Balance: ${{invoice.balance.toLocaleString()}}
+              </div>
+            </td>
+            <td>
+              <span [class]="getStatusClass(invoice.status)">
+                {{invoice.status}}
+              </span>
+            </td>
+            <td>
+              <div *ngIf="invoice.insuranceClaim">
+                <span [class]="getInsuranceStatusClass(invoice.insuranceClaim.status)">
+                  {{invoice.insuranceClaim.status}}
+                </span>
+                <div class="text-sm text-gray-500">
+                  ${{invoice.insuranceClaim.coverageAmount.toLocaleString()}}
+                </div>
+              </div>
+              <span *ngIf="!invoice.insuranceClaim" class="text-gray-500">
+                No claim
+              </span>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button 
+                  icon="ri-eye-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="View Details"
+                  [routerLink]="['view', invoice.id]">
+                </p-button>
+                <p-button 
+                  icon="ri-edit-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="Edit Invoice"
+                  [routerLink]="['edit', invoice.id]"
+                  [disabled]="invoice.status === 'paid'">
+                </p-button>
+                <p-button 
+                  icon="ri-delete-bin-line" 
+                  severity="danger"
+                  tooltipPosition="top"
+                  pTooltip="Delete Invoice"
+                  (onClick)="confirmDelete(invoice)"
+                  [disabled]="invoice.status === 'paid'">
+                </p-button>
+                <p-button 
+                  icon="ri-money-dollar-circle-line" 
+                  severity="success"
+                  tooltipPosition="top"
+                  pTooltip="Record Payment"
+                  (onClick)="recordPayment(invoice)"
+                  [disabled]="invoice.status === 'paid' || invoice.status === 'cancelled'">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="summary">
+          <div class="flex justify-between items-center">
+            <div>Total Invoices: {{invoices.length}}</div>
+            <div class="text-sm">
+              Total Amount: ${{getTotalAmount() | number:'1.2-2'}} | 
+              Outstanding: ${{getOutstandingAmount() | number:'1.2-2'}}
+            </div>
+          </div>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>
+
+  <!-- Payment Dialog -->
+  <p-dialog 
+    [(visible)]="showPaymentDialog" 
+    [header]="'Record Payment - ' + selectedInvoice?.invoiceNumber"
+    [modal]="true"
+    [style]="{width: '450px'}">
+    <!-- Payment form implementation -->
+  </p-dialog>
+
+  <p-confirmDialog></p-confirmDialog>
+  <p-toast></p-toast>
+  

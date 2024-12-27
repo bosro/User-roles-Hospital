@@ -1,0 +1,152 @@
+<p-card header="General Settings">
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- System Settings -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">System Settings</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              System Name
+            </label>
+            <input 
+              pInputText 
+              formControlName="systemName"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Time Zone
+            </label>
+            <p-dropdown 
+              [options]="timeZones"
+              formControlName="timeZone"
+              [style]="{'width':'100%'}"
+              placeholder="Select Time Zone">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Date Format
+            </label>
+            <p-dropdown 
+              [options]="dateFormats"
+              formControlName="dateFormat"
+              [style]="{'width':'100%'}"
+              placeholder="Select Date Format">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Language
+            </label>
+            <p-dropdown 
+              [options]="languages"
+              formControlName="language"
+              [style]="{'width':'100%'}"
+              placeholder="Select Language">
+            </p-dropdown>
+          </div>
+        </div>
+      </div>
+
+      <!-- Display Settings -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Display Settings</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Theme
+            </label>
+            <p-dropdown 
+              [options]="themes"
+              formControlName="theme"
+              [style]="{'width':'100%'}"
+              placeholder="Select Theme">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Items Per Page
+            </label>
+            <input 
+              type="number" 
+              pInputText 
+              formControlName="itemsPerPage"
+              class="w-full" />
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">
+              Enable Dark Mode
+            </label>
+            <p-inputSwitch formControlName="darkMode"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">
+              Show Help Tips
+            </label>
+            <p-inputSwitch formControlName="showHelpTips"></p-inputSwitch>
+          </div>
+        </div>
+      </div>
+
+      <!-- Default Settings -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Default Settings</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Department
+            </label>
+            <p-dropdown 
+              [options]="departments"
+              formControlName="defaultDepartment"
+              [style]="{'width':'100%'}"
+              placeholder="Select Default Department">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Currency
+            </label>
+            <p-dropdown 
+              [options]="currencies"
+              formControlName="currency"
+              [style]="{'width':'100%'}"
+              placeholder="Select Currency">
+            </p-dropdown>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-2">
+        <p-button 
+          label="Reset" 
+          type="button"
+          severity="secondary"
+          icon="ri-restart-line"
+          (onClick)="resetForm()">
+        </p-button>
+        <p-button 
+          label="Save Changes" 
+          type="submit"
+          icon="ri-save-line"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <p-toast></p-toast>

@@ -1,0 +1,231 @@
+<div class="p-4">
+    <p-card [header]="isEditMode ? 'Edit Medicine' : 'Add New Medicine'">
+      <form
+        [formGroup]="medicineForm"
+        (ngSubmit)="onSubmit()"
+        class="space-y-6"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Basic Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              Basic Information
+            </h3>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Name <span class="text-red-500">*</span>
+              </label>
+              <input pInputText formControlName="name" class="w-full" />
+              <small
+                class="text-red-500"
+                *ngIf="medicineForm.get('name')?.errors?.['required'] && 
+                            medicineForm.get('name')?.touched"
+              >
+                Name is required
+              </small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Code <span class="text-red-500">*</span>
+              </label>
+              <input pInputText formControlName="code" class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Manufacturer <span class="text-red-500">*</span>
+              </label>
+              <input
+                pInputText
+                formControlName="manufacturer"
+                class="w-full"
+              />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Dosage Form <span class="text-red-500">*</span>
+              </label>
+              <p-dropdown
+                [options]="dosageForms"
+                formControlName="dosageForm"
+                [style]="{ width: '100%' }"
+                placeholder="Select Dosage Form"
+              >
+              </p-dropdown>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Strength <span class="text-red-500">*</span>
+              </label>
+              <input pInputText formControlName="strength" class="w-full" />
+            </div>
+          </div>
+
+          <!-- Stock Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">
+              Stock Information
+            </h3>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Quantity <span class="text-red-500">*</span>
+              </label>
+              <p-inputNumber
+                formControlName="quantity"
+                [showButtons]="true"
+                [min]="0"
+                styleClass="w-full"
+              >
+              </p-inputNumber>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Unit <span class="text-red-500">*</span>
+              </label>
+              <p-dropdown
+                [options]="units"
+                formControlName="unit"
+                [style]="{ width: '100%' }"
+                placeholder="Select Unit"
+              >
+              </p-dropdown>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Batch Number <span class="text-red-500">*</span>
+              </label>
+              <input
+                pInputText
+                formControlName="batchNumber"
+                class="w-full"
+              />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Expiry Date <span class="text-red-500">*</span>
+              </label>
+              <p-calendar
+                formControlName="expiryDate"
+                [showIcon]="true"
+                dateFormat="dd/mm/yy"
+                styleClass="w-full"
+              >
+              </p-calendar>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700"
+                >Price</label
+              >
+              <p-inputNumber
+                formControlName="price"
+                mode="currency"
+                currency="USD"
+                [minFractionDigits]="2"
+                styleClass="w-full"
+              >
+              </p-inputNumber>
+            </div>
+          </div>
+
+          <!-- Additional Information -->
+          <div class="space-y-4 md:col-span-2">
+            <h3 class="text-lg font-medium text-gray-900">
+              Additional Information
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="field">
+                <label class="block text-sm font-medium text-gray-700">
+                  Minimum Stock Level
+                </label>
+                <p-inputNumber
+                  formControlName="minStockLevel"
+                  [showButtons]="true"
+                  [min]="0"
+                  styleClass="w-full"
+                >
+                </p-inputNumber>
+              </div>
+
+              <div class="field">
+                <label class="block text-sm font-medium text-gray-700">
+                  Reorder Level
+                </label>
+                <p-inputNumber
+                  formControlName="reorderLevel"
+                  [showButtons]="true"
+                  [min]="0"
+                  styleClass="w-full"
+                >
+                </p-inputNumber>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Storage Conditions
+              </label>
+              <input
+                pInputText
+                formControlName="storageConditions"
+                class="w-full"
+              />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Notes
+              </label>
+              <textarea
+                pInputTextarea
+                formControlName="notes"
+                rows="3"
+                class="w-full"
+              >
+              </textarea>
+            </div>
+
+            <div class="field">
+              <label class="flex items-center space-x-2">
+                <p-inputSwitch
+                  formControlName="prescriptionRequired"
+                ></p-inputSwitch>
+                <span class="text-sm font-medium text-gray-700">
+                  Prescription Required
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-2">
+          <p-button
+            label="Cancel"
+            severity="secondary"
+            icon="ri-close-line"
+            (onClick)="cancel()"
+          >
+          </p-button>
+          <p-button
+            [label]="isEditMode ? 'Update' : 'Save'"
+            icon="ri-save-line"
+            type="submit"
+            [loading]="loading"
+            [disabled]="medicineForm.invalid || loading"
+          >
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+  </div>
+  <p-toast></p-toast>

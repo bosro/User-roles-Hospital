@@ -1,0 +1,49 @@
+<p-card>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Active Sessions</h2>
+      <p-button 
+        label="Terminate All" 
+        icon="ri-shut-down-line"
+        severity="danger"
+        (onClick)="confirmTerminateAll()">
+      </p-button>
+    </div>
+
+    <p-table [value]="activeSessions" [loading]="loading">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Device</th>
+          <th>Location</th>
+          <th>IP Address</th>
+          <th>Last Activity</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-session>
+        <tr>
+          <td>
+            <div class="flex items-center">
+              <i [class]="getDeviceIcon(session.device)" class="text-xl mr-2"></i>
+              <div>
+                <div class="font-medium">{{session.browser}}</div>
+                <div class="text-sm text-gray-500">{{session.device}}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{session.location}}</td>
+          <td>{{session.ipAddress}}</td>
+          <td>{{session.lastActivity | date:'medium'}}</td>
+          <td>{{getDuration(session.startTime)}}</td>
+          <td>
+            <p-button 
+              icon="ri-shut-down-line" 
+              severity="danger"
+              (onClick)="terminateSession(session)">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>

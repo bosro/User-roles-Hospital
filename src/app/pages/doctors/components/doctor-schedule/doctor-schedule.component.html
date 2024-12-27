@@ -1,0 +1,223 @@
+<p>doctor-schedule works!</p>
+<div class="p-4">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Sidebar -->
+      <div class="lg:col-span-1">
+        <p-card>
+          <div class="space-y-4">
+            <!-- Doctor Selection -->
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Select Doctor
+              </label>
+              <p-dropdown 
+                [options]="doctors"
+                [(ngModel)]="selectedDoctorId"
+                (onChange)="onDoctorChange()"
+                [style]="{'width':'100%'}"
+                placeholder="Select Doctor">
+                <ng-template pTemplate="item" let-doctor>
+                  <div class="flex items-center">
+                    <p-avatar 
+                      [image]="doctor.profileImage"
+                      shape="circle"
+                      [style]="{'width':'24px', 'height':'24px'}"
+                      class="mr-2">
+                    </p-avatar>
+                    {{doctor.prefix}} {{doctor.firstName}} {{doctor.lastName}}
+                  </div>
+                </ng-template>
+              </p-dropdown>
+            </div>
+
+            <!-- Quick Actions -->
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Quick Actions</h3>
+              <div class="space-y-2">
+                <p-button 
+                  label="Block Time Slot" 
+                  icon="ri-time-line"
+                  severity="secondary"
+                  styleClass="w-full"
+                  (onClick)="showBlockTimeDialog()">
+                </p-button>
+                <p-button 
+                  label="Set Leave" 
+                  icon="ri-calendar-event-line"
+                  severity="secondary"
+                  styleClass="w-full"
+                  (onClick)="showLeaveDialog()">
+                </p-button>
+              </div>
+            </div>
+
+            <!-- Schedule Summary -->
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Today's Summary</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                  <span>Total Appointments</span>
+                  <span class="font-medium">{{todayStats.totalAppointments}}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                  <span>Completed</span>
+                  <span class="font-medium">{{todayStats.completed}}</span>
+                </div>
+                <div class="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                  <span>Pending</span>
+                  <span class="font-medium">{{todayStats.pending}}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Working Hours -->
+            <div *ngIf="selectedDoctor">
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Working Hours</h3>
+              <div class="space-y-2">
+                <p class="flex items-center text-sm">
+                  <i class="ri-time-line mr-2"></i>
+                  {{selectedDoctor.workingHours.start}} - {{selectedDoctor.workingHours.end}}
+                </p>
+                <p class="flex items-center text-sm">
+                  <i class="ri-calendar-line mr-2"></i>
+                  {{formatWorkingDays(selectedDoctor.workingDays)}}
+                </p>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Calendar -->
+      <div class="lg:col-span-3">
+        <p-card>
+          <full-calendar 
+            #calendar
+            [options]="calendarOptions">
+          </full-calendar>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- Block Time Dialog -->
+    <p-dialog 
+      [(visible)]="showBlockTime" 
+      header="Block Time Slot"
+      [modal]="true"
+      [style]="{width: '450px'}">
+      <form [formGroup]="blockTimeForm" class="space-y-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">Date</label>
+          <p-calendar 
+            formControlName="date"
+            [showTime]="false"
+            [minDate]="minDate"
+            styleClass="w-full">
+          </p-calendar>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">Start Time</label>
+            <p-calendar 
+              formControlName="startTime"
+              [timeOnly]="true"
+              [stepMinute]="15"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">End Time</label>
+            <p-calendar 
+              formControlName="endTime"
+              [timeOnly]="true"
+              [stepMinute]="15"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">Reason</label>
+          <textarea 
+            pInputTextarea 
+            formControlName="reason"
+            rows="3"
+            class="w-full">
+          </textarea>
+        </div>
+      </form>
+
+      <ng-template pTemplate="footer">
+        <p-button 
+          label="Cancel" 
+          icon="ri-close-line"
+          severity="secondary"
+          (onClick)="hideBlockTimeDialog()">
+        </p-button>
+        <p-button 
+          label="Block Time" 
+          icon="ri-time-line"
+          (onClick)="blockTime()"
+          [disabled]="blockTimeForm.invalid">
+        </p-button>
+      </ng-template>
+    </p-dialog>
+
+    <!-- Leave Dialog -->
+    <p-dialog 
+      [(visible)]="showLeave" 
+      header="Set Leave"
+      [modal]="true"
+      [style]="{width: '450px'}">
+      <form [formGroup]="leaveForm" class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">Start Date</label>
+            <p-calendar 
+              formControlName="startDate"
+              [showTime]="false"
+              [minDate]="minDate"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">End Date</label>
+            <p-calendar 
+              formControlName="endDate"
+              [showTime]="false"
+              [minDate]="minDate"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">Reason</label>
+          <textarea 
+            pInputTextarea 
+            formControlName="reason"
+            rows="3"
+            class="w-full">
+          </textarea>
+        </div>
+      </form>
+
+      <ng-template pTemplate="footer">
+        <p-button 
+          label="Cancel" 
+          icon="ri-close-line"
+          severity="secondary"
+          (onClick)="hideLeaveDialog()">
+        </p-button>
+        <p-button 
+          label="Set Leave" 
+          icon="ri-calendar-event-line"
+          (onClick)="setLeave()"
+          [disabled]="leaveForm.invalid">
+        </p-button>
+      </ng-template>
+    </p-dialog>
+  </div>

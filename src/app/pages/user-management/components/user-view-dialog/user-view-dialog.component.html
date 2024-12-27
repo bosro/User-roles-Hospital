@@ -1,0 +1,105 @@
+<div class="p-4">
+  <!-- User Header -->
+  <div class="flex items-start gap-6 mb-6">
+    <p-avatar 
+      [image]="user?.profileImage" 
+      [label]="getUserInitials()"
+      shape="circle"
+      size="xlarge"
+      [style]="{'width': '100px', 'height': '100px'}">
+    </p-avatar>
+    
+    <div class="flex-grow">
+      <h2 class="text-2xl font-bold">
+        {{user?.firstName}} {{user?.lastName}}
+      </h2>
+      <p class="text-gray-600">{{user?.email}}</p>
+      <div class="flex gap-2 mt-2">
+        <span [class]="getRoleClass(user?.role)">
+          {{user?.role}}
+        </span>
+        <span [class]="getStatusClass(user?.status)">
+          {{user?.status}}
+        </span>
+      </div>
+    </div>
+
+    <div class="text-right">
+      <p class="text-sm text-gray-600">Member Since</p>
+      <p class="font-medium">{{user?.createdAt | date}}</p>
+      <p class="text-sm text-gray-600 mt-2">Last Login</p>
+      <p class="font-medium">{{user?.lastLogin | date:'medium'}}</p>
+    </div>
+  </div>
+
+  <!-- User Details Tabs -->
+  <p-tabView>
+    <!-- Basic Information -->
+    <p-tabPanel header="Information">
+      <div class="grid grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium">Contact Information</h3>
+          <div class="space-y-2">
+            <div>
+              <label class="text-sm text-gray-600">Email</label>
+              <p class="font-medium">{{user?.email}}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Department</label>
+              <p class="font-medium">{{user?.department}}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Role</label>
+              <p class="font-medium">{{user?.role}}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium">System Access</h3>
+          <div class="space-y-2">
+            <div>
+              <label class="text-sm text-gray-600">Status</label>
+              <p class="font-medium">{{user?.status}}</p>
+            </div>
+            <div>
+              <label class="text-sm text-gray-600">Last Active</label>
+              <p class="font-medium">{{user?.lastLogin | date:'medium'}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- Permissions -->
+    <p-tabPanel header="Permissions">
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div *ngFor="let permission of user?.permissions" 
+               class="p-3 bg-gray-50 rounded-lg">
+            <i class="ri-checkbox-circle-line text-green-500 mr-2"></i>
+            {{permission}}
+          </div>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- Activity Log -->
+    <p-tabPanel header="Activity Log">
+      <p-timeline [value]="userActivity" class="w-full">
+        <ng-template pTemplate="content" let-activity>
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="font-medium">{{activity.action}}</p>
+              <p class="text-sm text-gray-600">{{activity.details}}</p>
+              <small class="text-gray-500">IP: {{activity.ipAddress}}</small>
+            </div>
+            <span class="text-sm text-gray-500">
+              {{activity.timestamp | date:'medium'}}
+            </span>
+          </div>
+        </ng-template>
+      </p-timeline>
+    </p-tabPanel>
+  </p-tabView>
+</div>

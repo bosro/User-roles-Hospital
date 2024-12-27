@@ -1,0 +1,79 @@
+    <div class="p-4">
+      <div class="mb-4">
+        <p-card>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <p-calendar [(ngModel)]="dateRange" selectionMode="range" 
+                       [maxDate]="today" (onSelect)="loadMetrics()"
+                       placeholder="Select Date Range"></p-calendar>
+            
+            <p-dropdown [options]="departments" [(ngModel)]="selectedDepartment"
+                       (onChange)="loadMetrics()" placeholder="Select Department"
+                       [style]="{'width':'100%'}"></p-dropdown>
+                       
+            <p-dropdown [options]="viewOptions" [(ngModel)]="selectedView"
+                       (onChange)="loadMetrics()" placeholder="Select View"
+                       [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+        </p-card>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-blue-600">{{metrics?.totalPatients || 0}}</h3>
+            <p class="text-gray-600">Total Patients</p>
+          </div>
+        </p-card>
+
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-green-600">{{metrics?.newPatients || 0}}</h3>
+            <p class="text-gray-600">New Patients</p>
+          </div>
+        </p-card>
+
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-purple-600">
+              {{metrics?.averageWaitTime || 0}} mins
+            </h3>
+            <p class="text-gray-600">Average Wait Time</p>
+          </div>
+        </p-card>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p-card header="Patient Demographics">
+          <p-chart type="pie" [data]="demographicsData" [options]="chartOptions"></p-chart>
+        </p-card>
+
+        <p-card header="Wait Time by Hour">
+          <p-chart type="line" [data]="waitTimeData" [options]="chartOptions"></p-chart>
+        </p-card>
+      </div>
+
+      <p-card header="Patient List" class="mt-4">
+        <p-table [value]="patientList" [paginator]="true" [rows]="10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Patient ID</th>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Department</th>
+              <th>Visit Date</th>
+              <th>Wait Time</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-patient>
+            <tr>
+              <td>{{patient.id}}</td>
+              <td>{{patient.name}}</td>
+              <td>{{patient.age}}</td>
+              <td>{{patient.department}}</td>
+              <td>{{patient.visitDate | date}}</td>
+              <td>{{patient.waitTime}} mins</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>

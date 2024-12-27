@@ -1,0 +1,202 @@
+<div class="p-4">
+    <!-- Department Statistics Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-building-2-line text-3xl mr-3 text-blue-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{stats.totalDepartments}}</h3>
+            <p class="text-gray-600">Total Departments</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-user-heart-line text-3xl mr-3 text-green-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{stats.totalPatients}}</h3>
+            <p class="text-gray-600">Active Patients</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-team-line text-3xl mr-3 text-orange-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{stats.totalStaff}}</h3>
+            <p class="text-gray-600">Total Staff</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-hospital-line text-3xl mr-3 text-purple-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{stats.occupancyRate}}%</h3>
+            <p class="text-gray-600">Bed Occupancy</p>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Departments Table -->
+    <p-card>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Departments</h2>
+        <p-button 
+          label="Add Department" 
+          icon="ri-add-line"
+          routerLink="add">
+        </p-button>
+      </div>
+
+      <p-table 
+        #dt 
+        [value]="departments" 
+        [rows]="10" 
+        [paginator]="true"
+        [globalFilterFields]="['name', 'code', 'headOfDepartment.name']"
+        [tableStyle]="{'min-width': '75rem'}"
+        [loading]="loading"
+        dataKey="id"
+        [rowHover]="true"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} departments">
+
+        <ng-template pTemplate="caption">
+          <div class="flex items-center justify-between">
+            <span class="p-input-icon-left">
+              <i class="ri-search-line"></i>
+              <input 
+              pInputText 
+              type="text" 
+              (input)="onSearch($event)" 
+              placeholder="Search departments..." />
+            </span>
+
+            <div class="flex gap-2">
+              <p-button 
+                label="Export" 
+                icon="ri-download-line"
+                severity="secondary"
+                (onClick)="exportData()">
+              </p-button>
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="name">Department <p-sortIcon field="name"></p-sortIcon></th>
+            <th pSortableColumn="headOfDepartment.name">Head of Department <p-sortIcon field="headOfDepartment.name"></p-sortIcon></th>
+            <th>Staff</th>
+            <th>Capacity</th>
+            <th>Status</th>
+            <th>Performance</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-department>
+          <tr>
+            <td>
+              <div class="font-medium">{{department.name}}</div>
+              <div class="text-sm text-gray-500">{{department.code}}</div>
+            </td>
+            <td>
+              <div class="font-medium">{{department.headOfDepartment.name}}</div>
+              <div class="text-sm text-gray-500">{{department.headOfDepartment.email}}</div>
+            </td>
+            <td>
+              <div class="space-y-1">
+                <div class="text-sm">
+                  Doctors: {{department.staff.doctors}}
+                </div>
+                <div class="text-sm">
+                  Nurses: {{department.staff.nurses}}
+                </div>
+                <div class="text-sm">
+                  Support: {{department.staff.support}}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="space-y-1">
+                <div class="text-sm">
+                  Beds: {{department.capacity.beds}}
+                </div>
+                <div class="flex items-center">
+                  <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                    <div 
+                      class="h-full bg-blue-500 rounded"
+                      [style.width.%]="getOccupancyRate(department)">
+                    </div>
+                  </div>
+                  <span class="text-sm">
+                    {{getOccupancyRate(department)}}% Occupied
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p-tag 
+                [value]="department.status"
+                [severity]="getStatusSeverity(department.status)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm">Satisfaction</span>
+                  <span class="text-sm font-medium">
+                    {{department.stats.satisfactionRate}}%
+                  </span>
+                </div>
+                <div class="w-full h-1 bg-gray-200 rounded">
+                  <div 
+                    class="h-full bg-green-500 rounded"
+                    [style.width.%]="department.stats.satisfactionRate">
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button 
+                  icon="ri-eye-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="View Details"
+                  (onClick)="viewDetails(department)">
+                </p-button>
+                <p-button 
+                  icon="ri-edit-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="Edit Department"
+                  (onClick)="editDepartment(department)">
+                </p-button>
+                <p-button 
+                  icon="ri-delete-bin-line" 
+                  severity="danger"
+                  tooltipPosition="top"
+                  pTooltip="Delete Department"
+                  (onClick)="confirmDelete(department)">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="summary">
+          <div class="flex justify-between">
+            <div>Total Departments: {{departments.length}}</div>
+            <div>Average Occupancy: {{getAverageOccupancy()}}%</div>
+          </div>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>

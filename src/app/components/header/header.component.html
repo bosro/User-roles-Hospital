@@ -1,0 +1,22 @@
+<div class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <img src="assets/logo.png" alt="Logo" class="h-8 w-auto"/>
+          <h1 class="ml-3 text-xl font-semibold text-gray-900">Hospital Management</h1>
+        </div>
+
+        <div class="flex items-center">
+          <p-menu #menu [popup]="true" [model]="menuItems"></p-menu>
+          <button 
+            pButton 
+            type="button"
+            icon="ri-user-line"
+            class="p-button-text"
+            (click)="menu.toggle($event)">
+            {{currentUser?.username}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,47 @@
+<div class="p-4">
+  <div class="mb-4">
+    <h3 class="text-lg font-medium text-gray-900">Import Users</h3>
+    <p class="text-sm text-gray-600 mt-1">
+      Upload a CSV file containing user information. 
+      <a href="#" class="text-blue-600" (click)="downloadTemplate($event)">
+        Download template
+      </a>
+    </p>
+  </div>
+
+  <p-message 
+    *ngIf="errorMessage"
+    severity="error"
+    [text]="errorMessage"
+    styleClass="w-full mb-4">
+  </p-message>
+
+  <p-fileUpload
+    #fileUpload
+    [customUpload]="true"
+    (uploadHandler)="onFileUpload($event)"
+    accept=".csv"
+    [auto]="true"
+    chooseLabel="Choose CSV File"
+    [maxFileSize]="1000000">
+    <ng-template pTemplate="content">
+      <div *ngIf="uploadProgress > 0" class="mt-4">
+        <p-progressBar 
+          [value]="uploadProgress"
+          [showValue]="true">
+        </p-progressBar>
+      </div>
+
+      <div *ngIf="importResults" class="mt-4">
+        <div class="flex justify-between items-center p-3 bg-green-50 rounded-lg mb-2">
+          <span>Successfully imported</span>
+          <span class="font-medium">{{importResults.success}}</span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-red-50 rounded-lg">
+          <span>Failed to import</span>
+          <span class="font-medium">{{importResults.failed}}</span>
+        </div>
+      </div>
+    </ng-template>
+  </p-fileUpload>
+</div>

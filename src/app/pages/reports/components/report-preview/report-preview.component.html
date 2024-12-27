@@ -1,0 +1,196 @@
+<div class="p-4">
+    <!-- Report Header -->
+    <div class="flex justify-between items-start mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">{{report?.name}}</h1>
+        <p class="text-gray-600 mt-1">Generated on {{generatedDate | date:'medium'}}</p>
+      </div>
+      
+      <div class="flex gap-2">
+        <p-button 
+          label="Share" 
+          icon="ri-share-line"
+          severity="secondary"
+          (onClick)="showShareDialog()">
+        </p-button>
+        <p-button 
+          label="Export" 
+          icon="ri-download-line"
+          severity="secondary"
+          (onClick)="showExportDialog()">
+        </p-button>
+        <p-button 
+          label="Print" 
+          icon="ri-printer-line"
+          severity="secondary"
+          (onClick)="printReport()">
+        </p-button>
+      </div>
+    </div>
+
+    <!-- Report Sections -->
+    <div class="space-y-6">
+      <ng-container *ngFor="let section of report?.sections">
+        <div [ngSwitch]="section.type">
+          <!-- Chart Section -->
+          <p-card *ngSwitchCase="'chart'" [header]="section.title">
+            <p-chart 
+              [type]="section.config.chartType"
+              [data]="getChartData(section)"
+              [options]="getChartOptions(section)">
+            </p-chart>
+          </p-card>
+
+          <!-- Table Section -->
+          <p-card *ngSwitchCase="'table'" [header]="section.title">
+            <p-table 
+              [value]="getTableData(section)"
+              [paginator]="true"
+              [rows]="section.config.limit || 10"
+              [sortField]="section.config.sortBy"
+              styleClass="p-datatable-striped">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th *ngFor="let col of section.config.columns">
+                    {{col.header}}
+                  </th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-row>
+                <tr>
+                  <td *ngFor="let col of section.config.columns">
+                    {{formatCellValue(row[col.field], col.field)}}
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </p-card>
+
+          <!-- Metrics Section -->
+          <p-card *ngSwitchCase="'metrics'" [header]="section.title">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div *ngFor="let metric of getMetricsData(section)" 
+                   class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-sm font-medium text-gray-500">{{metric.label}}</h4>
+                <p class="mt-1 text-2xl font-semibold" [class]="getMetricValueClass(metric)">
+                  {{formatMetricValue(metric)}}
+                </p>
+                <p class="mt-1 text-sm" [class]="getTrendClass(metric.trend)">
+                  <i [class]="getTrendIcon(metric.trend)"></i>
+                  {{metric.trend}}% vs. previous period
+                </p>
+              </div>
+            </div>
+          </p-card>
+
+          <!-- Summary Section -->
+          <p-card *ngSwitchCase="'summary'" [header]="section.title">
+            <div [innerHTML]="getSummaryContent(section)" class="prose max-w-none">
+            </div>
+          </p-card>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Share Dialog -->
+  <p-dialog 
+    [(visible)]="showShareOptions" 
+    header="Share Report"
+    [modal]="true"
+    [style]="{width: '450px'}">
+    <div class="space-y-4">
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Share Type
+        </label>
+        <p-dropdown 
+          [(ngModel)]="shareType"
+          [options]="shareTypes"
+          [style]="{'width':'100%'}"
+          placeholder="Select share type">
+        </p-dropdown>
+      </div>
+
+      <div class="field" *ngIf="shareType === 'email'">
+        <label class="block text-sm font-medium text-gray-700">
+          Recipients
+        </label>
+        <p-chips 
+          [(ngModel)]="shareRecipients"
+          placeholder="Enter email addresses"
+          [allowDuplicate]="false">
+        </p-chips>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Message (Optional)
+        </label>
+        <textarea 
+          pInputTextarea 
+          [(ngModel)]="shareMessage"
+          rows="3"
+          class="w-full">
+        </textarea>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancel" 
+        icon="ri-close-line"
+        severity="secondary"
+        (onClick)="showShareOptions = false">
+      </p-button>
+      <p-button 
+        label="Share" 
+        icon="ri-share-line"
+        (onClick)="shareReport()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Export Dialog -->
+  <p-dialog 
+    [(visible)]="showExportOptions" 
+    header="Export Report"
+    [modal]="true"
+    [style]="{width: '450px'}">
+    <div class="space-y-4">
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Format
+        </label>
+        <p-dropdown 
+          [(ngModel)]="exportFormat"
+          [options]="exportFormats"
+          [style]="{'width':'100%'}"
+          placeholder="Select format">
+        </p-dropdown>
+      </div>
+
+      <div class="field">
+        <label class="flex items-center space-x-2">
+          <p-checkbox [(ngModel)]="includeCharts"></p-checkbox>
+          <span class="text-sm font-medium text-gray-700">
+            Include Charts
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancel" 
+        icon="ri-close-line"
+        severity="secondary"
+        (onClick)="showExportOptions = false">
+      </p-button>
+      <p-button 
+        label="Export" 
+        icon="ri-download-line"
+        (onClick)="exportReport()">
+      </p-button>
+    </ng-template>
+  </p-dialog>

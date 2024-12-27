@@ -1,0 +1,289 @@
+<div class="p-4">
+    <p-card [header]="isEditMode ? 'Edit Doctor' : 'Add New Doctor'">
+      <form [formGroup]="doctorForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Basic Information -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="col-span-1">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Profile Photo</h3>
+            <p-fileUpload
+              mode="basic"
+              chooseLabel="Upload Photo"
+              [auto]="true"
+              accept="image/*"
+              [maxFileSize]="1000000"
+              (onUpload)="onPhotoUpload($event)">
+            </p-fileUpload>
+          </div>
+          
+          <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Prefix <span class="text-red-500">*</span>
+              </label>
+              <p-dropdown 
+                [options]="prefixes"
+                formControlName="prefix"
+                [style]="{'width':'100%'}"
+                placeholder="Select Prefix">
+              </p-dropdown>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                License Number <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="licenseNumber"
+                class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                First Name <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="firstName"
+                class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Last Name <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="lastName"
+                class="w-full" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Specialization <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="specializations"
+              formControlName="specialization"
+              [style]="{'width':'100%'}"
+              placeholder="Select Specialization">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Department <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="departments"
+              formControlName="department"
+              [style]="{'width':'100%'}"
+              placeholder="Select Department">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Experience (Years) <span class="text-red-500">*</span>
+            </label>
+            <p-inputNumber 
+              formControlName="experience"
+              [showButtons]="true"
+              [min]="0"
+              styleClass="w-full">
+            </p-inputNumber>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Qualification <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="qualification"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">Languages</label>
+            <div class="flex flex-wrap gap-2">
+              <p-chip 
+                *ngFor="let lang of doctorForm.get('languages')?.value"
+                [label]="lang"
+                [removable]="true"
+                (onRemove)="removeLanguage(lang)">
+              </p-chip>
+              <input 
+                pInputText 
+                placeholder="Add languages"
+                (keydown.enter)="addLanguage($event)"
+                class="w-full" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Consultation Fee <span class="text-red-500">*</span>
+            </label>
+            <p-inputNumber 
+              formControlName="consultationFee"
+              mode="currency" 
+              currency="USD" 
+              [minFractionDigits]="2"
+              styleClass="w-full">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              type="email"
+              formControlName="email"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="phone"
+              class="w-full" />
+          </div>
+
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">Address</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="address">
+              <input 
+                pInputText 
+                formControlName="street"
+                placeholder="Street"
+                class="w-full" />
+              <input 
+                pInputText 
+                formControlName="city"
+                placeholder="City"
+                class="w-full" />
+              <input 
+                pInputText 
+                formControlName="state"
+                placeholder="State"
+                class="w-full" />
+              <input 
+                pInputText 
+                formControlName="zipCode"
+                placeholder="Zip Code"
+                class="w-full" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Working Hours -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Working Hours</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Working Days <span class="text-red-500">*</span>
+              </label>
+              <p-multiSelect 
+                [options]="workingDays"
+                formControlName="workingDays"
+                [style]="{'width':'100%'}"
+                defaultLabel="Select Working Days">
+              </p-multiSelect>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Start Time <span class="text-red-500">*</span>
+              </label>
+              <p-calendar 
+                formControlName="startTime"
+                [timeOnly]="true"
+                [showTime]="true"
+                [showSeconds]="false"
+                inputId="timeonly">
+              </p-calendar>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                End Time <span class="text-red-500">*</span>
+              </label>
+              <p-calendar 
+                formControlName="endTime"
+                [timeOnly]="true"
+                [showTime]="true"
+                [showSeconds]="false"
+                inputId="timeonly">
+              </p-calendar>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">About</label>
+              <textarea 
+                pInputTextarea 
+                formControlName="about"
+                rows="4"
+                class="w-full">
+              </textarea>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">Expertise</label>
+              <div class="flex flex-wrap gap-2">
+                <p-chip 
+                  *ngFor="let exp of doctorForm.get('expertise')?.value"
+                  [label]="exp"
+                  [removable]="true"
+                  (onRemove)="removeExpertise(exp)">
+                </p-chip>
+                <input 
+                  pInputText 
+                  placeholder="Add areas of expertise"
+                  (keydown.enter)="addExpertise($event)"
+                  class="w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-2">
+          <p-button 
+            label="Cancel" 
+            severity="secondary"
+            icon="ri-close-line"
+            (onClick)="cancel()">
+          </p-button>
+          <p-button 
+            [label]="isEditMode ? 'Update' : 'Save'"
+            icon="ri-save-line"
+            type="submit"
+            [loading]="loading"
+            [disabled]="doctorForm.invalid || loading">
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+  </div>

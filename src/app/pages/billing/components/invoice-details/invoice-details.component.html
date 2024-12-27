@@ -1,0 +1,264 @@
+<div class="p-4">
+    <p-card>
+      <!-- Invoice Header -->
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Invoice #{{invoice?.invoiceNumber}}
+          </h1>
+          <p class="text-gray-600">
+            Created: {{invoice?.dateIssued | date:'mediumDate'}}
+          </p>
+        </div>
+        
+        <div class="flex gap-2">
+          <p-button 
+            label="Print" 
+            icon="ri-printer-line"
+            severity="secondary"
+            (onClick)="printInvoice()">
+          </p-button>
+          <p-button 
+            label="Edit" 
+            icon="ri-edit-line"
+            severity="secondary"
+            [routerLink]="['../edit', invoice?.id]"
+            [disabled]="invoice?.status === 'paid'">
+          </p-button>
+          <p-button 
+            label="Record Payment" 
+            icon="ri-money-dollar-circle-line"
+            (onClick)="showPaymentDialog = true"
+            [disabled]="invoice?.status === 'paid' || invoice?.status === 'cancelled'">
+          </p-button>
+        </div>
+      </div>
+
+      <!-- Invoice Status -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <h4 class="text-sm font-medium text-gray-500 mb-1">Status</h4>
+          <span [class]="getStatusClass(invoice?.status)">
+            {{invoice?.status}}
+          </span>
+        </div>
+
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <h4 class="text-sm font-medium text-gray-500 mb-1">Due Date</h4>
+          <p class="font-medium" [class]="getDueDateClass()">
+            {{invoice?.dueDate | date:'mediumDate'}}
+          </p>
+        </div>
+
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <h4 class="text-sm font-medium text-gray-500 mb-1">Amount Due</h4>
+          <p class="font-medium" [class]="getAmountClass()">
+            ${{invoice?.balance?.toLocaleString()}}
+          </p>
+        </div>
+
+        <div class="p-4 bg-gray-50 rounded-lg">
+          <h4 class="text-sm font-medium text-gray-500 mb-1">Department</h4>
+          <p class="font-medium">{{invoice?.department}}</p>
+        </div>
+      </div>
+
+      <!-- Patient and Doctor Info -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Patient Information</h3>
+          <div class="space-y-2">
+            <p class="text-gray-600">
+              <span class="font-medium">Name:</span> {{invoice?.patientName}}
+            </p>
+            <!-- Add more patient details -->
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Doctor Information</h3>
+          <div class="space-y-2">
+            <p class="text-gray-600">
+              <span class="font-medium">Name:</span> Dr. {{invoice?.doctorName}}
+            </p>
+            <p class="text-gray-600">
+              <span class="font-medium">Department:</span> {{invoice?.department}}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoice Items -->
+      <div class="mb-8">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Invoice Items</h3>
+        <p-table [value]="invoice?.items || []">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Description</th>
+              <th>Type</th>
+              <th class="text-right">Quantity</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-right">Amount</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{item.description}}</td>
+              <td>{{item.type}}</td>
+              <td class="text-right">{{item.quantity}}</td>
+              <td class="text-right">${{item.unitPrice.toLocaleString()}}</td>
+              <td class="text-right">${{item.amount.toLocaleString()}}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+<!-- For invoice items total -->
+<tr>
+  <td colspan="4" class="text-right font-medium">Subtotal</td>
+  <td class="text-right">${{invoice?.subtotal?.toLocaleString() || '0'}}</td>
+</tr>
+<tr>
+  <td colspan="4" class="text-right font-medium">Tax</td>
+  <td class="text-right">${{invoice?.tax?.toLocaleString() || '0'}}</td>
+</tr>
+<tr>
+  <td colspan="4" class="text-right font-medium">Discount</td>
+  <td class="text-right text-green-600">
+    -${{invoice?.discount?.toLocaleString() || '0'}}
+  </td>
+</tr>
+<tr class="font-bold">
+  <td colspan="4" class="text-right">Total</td>
+  <td class="text-right">${{invoice?.total?.toLocaleString() || '0'}}</td>
+</tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <!-- Insurance Information -->
+      <div *ngIf="invoice?.insuranceClaim" class="mb-8">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Insurance Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p class="text-sm text-gray-500">Provider</p>
+            <p class="font-medium">{{invoice?.insuranceClaim?.provider}}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Policy Number</p>
+            <p class="font-medium">{{invoice?.insuranceClaim?.policyNumber}}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Coverage Amount</p>
+            <p class="font-medium">
+              ${{invoice?.insuranceClaim?.coverageAmount?.toLocaleString() || '0'}}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div *ngIf="invoice?.notes" class="mb-8">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Notes</h3>
+        <p class="text-gray-600">{{invoice?.notes}}</p>
+      </div>
+
+      <!-- Payment History -->
+      <div>
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Payment History</h3>
+        <p-table [value]="payments">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Notes</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-payment>
+            <tr>
+              <td>{{payment.paymentDate | date:'medium'}}</td>
+              <td>${{payment.amount.toLocaleString()}}</td>
+              <td>{{payment.paymentMethod}}</td>
+              <td>
+                <span [class]="getPaymentStatusClass(payment.status)">
+                  {{payment.status}}
+                </span>
+              </td>
+              <td>{{payment.notes}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Payment Dialog -->
+  <p-dialog 
+    [(visible)]="showPaymentDialog" 
+    header="Record Payment"
+    [modal]="true"
+    [style]="{width: '450px'}">
+    <form [formGroup]="paymentForm" class="space-y-4">
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Amount <span class="text-red-500">*</span>
+        </label>
+        <p-inputNumber 
+          formControlName="amount"
+          mode="currency"
+          currency="USD"
+          [minFractionDigits]="2"
+          [max]="invoice?.balance"
+          styleClass="w-full">
+        </p-inputNumber>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Payment Method <span class="text-red-500">*</span>
+        </label>
+        <p-dropdown 
+          [options]="paymentMethods"
+          formControlName="paymentMethod"
+          [style]="{'width':'100%'}"
+          placeholder="Select Payment Method">
+        </p-dropdown>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Transaction ID
+        </label>
+        <input 
+          pInputText 
+          formControlName="transactionId"
+          class="w-full" />
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">Notes</label>
+        <textarea 
+          pInputTextarea 
+          formControlName="notes"
+          rows="3"
+          class="w-full">
+        </textarea>
+      </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancel" 
+        icon="ri-close-line"
+        severity="secondary"
+        (onClick)="showPaymentDialog = false">
+      </p-button>
+      <p-button 
+        label="Record Payment" 
+        icon="ri-money-dollar-circle-line"
+        (onClick)="recordPayment()"
+        [disabled]="paymentForm.invalid || paymentLoading"
+        [loading]="paymentLoading">
+      </p-button>
+    </ng-template>
+  </p-dialog>

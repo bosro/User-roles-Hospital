@@ -1,0 +1,92 @@
+<div class="p-4">
+    <div class="mb-4">
+      <p-card>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <p-calendar [(ngModel)]="dateRange" selectionMode="range" 
+                     [maxDate]="today" (onSelect)="loadMetrics()"
+                     placeholder="Select Date Range"></p-calendar>
+          
+          <p-dropdown [options]="departments" [(ngModel)]="selectedDepartment"
+                     (onChange)="loadMetrics()" placeholder="Select Department"
+                     [style]="{'width':'100%'}"></p-dropdown>
+                     
+          <p-dropdown [options]="metricTypes" [(ngModel)]="selectedMetricType"
+                     (onChange)="loadMetrics()" placeholder="Select Metrics"
+                     [style]="{'width':'100%'}"></p-dropdown>
+        </div>
+      </p-card>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-green-600">
+            ${{metrics?.totalRevenue?.toLocaleString() || 0}}
+          </h3>
+          <p class="text-gray-600">Total Revenue</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-blue-600">
+            {{metrics?.totalPatients || 0}}
+          </h3>
+          <p class="text-gray-600">Total Patients</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-purple-600">
+            {{metrics?.staffUtilization || 0}}%
+          </h3>
+          <p class="text-gray-600">Staff Utilization</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-bold text-orange-600">
+            {{metrics?.performanceMetrics?.patientSatisfaction || 0}}%
+          </h3>
+          <p class="text-gray-600">Patient Satisfaction</p>
+        </div>
+      </p-card>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <p-card header="Revenue by Service">
+        <p-chart type="pie" [data]="revenueData" [options]="chartOptions"></p-chart>
+      </p-card>
+
+      <p-card header="Hourly Statistics">
+        <p-chart type="bar" [data]="hourlyData" [options]="chartOptions"></p-chart>
+      </p-card>
+    </div>
+
+    <p-card header="Staff Performance" class="mt-4">
+      <p-table [value]="staffList" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Staff ID</th>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Patients Seen</th>
+            <th>Efficiency Rating</th>
+            <th>Satisfaction Score</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-staff>
+          <tr>
+            <td>{{staff.id}}</td>
+            <td>{{staff.name}}</td>
+            <td>{{staff.role}}</td>
+            <td>{{staff.patientsSeen}}</td>
+            <td>{{staff.efficiency}}%</td>
+            <td>{{staff.satisfaction}}%</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>

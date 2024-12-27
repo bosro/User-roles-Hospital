@@ -1,0 +1,145 @@
+<div class="p-4">
+    <!-- Filters -->
+    <p-card styleClass="mb-6">
+      <div class="flex flex-wrap gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Date Range
+          </label>
+          <p-calendar 
+            [(ngModel)]="dateRange" 
+            selectionMode="range"
+            [showIcon]="true"
+            [maxDate]="today"
+            (onSelect)="onFiltersChange()"
+            styleClass="w-full">
+          </p-calendar>
+        </div>
+
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Report Type
+          </label>
+          <p-dropdown 
+            [options]="reportTypes"
+            [(ngModel)]="selectedReportType"
+            (onChange)="onFiltersChange()"
+            [style]="{'width':'100%'}"
+            placeholder="Select Report Type">
+          </p-dropdown>
+        </div>
+
+        <div class="flex-1 flex items-end">
+          <p-button 
+            label="Export Report" 
+            icon="ri-download-line"
+            (onClick)="exportReport()">
+          </p-button>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Key Metrics Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold text-blue-600">
+            ${{metrics?.totalRevenue?.toLocaleString() || '0'}}
+          </h3>
+          <p class="text-gray-600">Total Revenue</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold text-red-600">
+            ${{metrics?.expenses?.toLocaleString()}}
+          </h3>
+          <p class="text-gray-600">Total Expenses</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold" 
+              [class.text-green-600]="metrics?.profit! > 0"
+              [class.text-red-600]="metrics?.profit! < 0">
+            ${{metrics?.profit?.toLocaleString()}}
+          </h3>
+          <p class="text-gray-600">Net Profit</p>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Revenue Analysis -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <p-card header="Revenue Trend">
+        <p-chart 
+          type="line" 
+          [data]="revenueTrendData"
+          [options]="lineChartOptions">
+        </p-chart>
+      </p-card>
+
+      <p-card header="Revenue Distribution">
+        <p-chart 
+          type="pie" 
+          [data]="revenueDistributionData"
+          [options]="pieChartOptions">
+        </p-chart>
+      </p-card>
+    </div>
+
+    <!-- Detailed Transactions -->
+    <p-card header="Transaction Details">
+      <p-table 
+        [value]="transactions" 
+        [paginator]="true" 
+        [rows]="10"
+        [sortField]="'date'"
+        [sortOrder]="-1"
+        styleClass="p-datatable-striped">
+        
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Department</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-transaction>
+          <tr>
+            <td>{{transaction.date | date:'medium'}}</td>
+            <td>
+              <span [class]="getTransactionTypeClass(transaction.type)">
+                {{transaction.type}}
+              </span>
+            </td>
+            <td>{{transaction.department}}</td>
+            <td>{{transaction.description}}</td>
+            <td [class]="getAmountClass(transaction.amount)">
+              ${{transaction.amount.toLocaleString()}}
+            </td>
+            <td>
+              <span [class]="getStatusClass(transaction.status)">
+                {{transaction.status}}
+              </span>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="footer">
+          <tr>
+            <td colspan="4" class="text-right font-medium">Total</td>
+            <td colspan="2" class="font-bold">
+              ${{getTotal().toLocaleString()}}
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>

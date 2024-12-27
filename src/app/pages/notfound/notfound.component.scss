@@ -1,0 +1,46 @@
+// src/app/pages/not-found/not-found.component.scss
+:host {
+    display: block;
+    
+    .animate-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: .5;
+      }
+    }
+  
+    .search-box {
+      &:focus-within {
+        .search-icon {
+          @apply text-blue-500;
+        }
+      }
+    }
+  }
+  
+  .quick-nav-item {
+    @apply transition-all duration-200;
+    
+    &:hover {
+      transform: translateX(4px);
+    }
+  }
+  
+  .support-link {
+    @apply relative inline-block;
+    
+    &::after {
+      content: '';
+      @apply absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 transform scale-x-0 transition-transform duration-200;
+    }
+    
+    &:hover::after {
+      @apply scale-x-100;
+    }
+  }

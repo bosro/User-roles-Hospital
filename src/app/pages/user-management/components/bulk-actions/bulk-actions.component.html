@@ -1,0 +1,72 @@
+<div class="flex gap-2">
+    <p-select 
+      [options]="bulkActions"
+      [(ngModel)]="selectedAction"
+      placeholder="Bulk Actions"
+      [disabled]="!selectedUsers.length"
+      styleClass="w-48">
+    </p-select>
+    
+    <p-button 
+      label="Apply" 
+      [disabled]="!selectedAction || !selectedUsers.length"
+      (onClick)="applyBulkAction()">
+    </p-button>
+  </div>
+
+  <!-- Bulk Edit Dialog -->
+  <p-dialog 
+    [(visible)]="showBulkEditDialog" 
+    [header]="getBulkActionHeader()"
+    [modal]="true"
+    [style]="{width: '500px'}">
+    <div class="space-y-4">
+      <div *ngIf="selectedAction === 'status'" class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          New Status
+        </label>
+        <p-select 
+          [options]="statuses"
+          [(ngModel)]="bulkEditData.status"
+          [style]="{'width':'100%'}"
+          placeholder="Select Status">
+        </p-select>
+      </div>
+
+      <div *ngIf="selectedAction === 'role'" class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          New Role
+        </label>
+        <p-select 
+          [options]="roles"
+          [(ngModel)]="bulkEditData.role"
+          [style]="{'width':'100%'}"
+          placeholder="Select Role">
+        </p-select>
+      </div>
+
+      <div *ngIf="selectedAction === 'department'" class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          New Department
+        </label>
+        <p-select 
+          [options]="departments"
+          [(ngModel)]="bulkEditData.department"
+          [style]="{'width':'100%'}"
+          placeholder="Select Department">
+        </p-select>
+      </div>
+    </div>
+
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancel" 
+        severity="secondary"
+        (onClick)="showBulkEditDialog = false">
+      </p-button>
+      <p-button 
+        label="Apply Changes" 
+        (onClick)="confirmBulkEdit()">
+      </p-button>
+    </ng-template>
+  </p-dialog>

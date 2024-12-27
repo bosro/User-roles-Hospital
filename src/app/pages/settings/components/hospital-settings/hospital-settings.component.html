@@ -1,0 +1,244 @@
+<p-card header="Hospital Profile Settings">
+    <form [formGroup]="hospitalForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Basic Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+
+        <!-- Logo Upload -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Hospital Logo
+          </label>
+          <div class="flex items-center space-x-4">
+            <img 
+              [src]="logoPreview || 'assets/placeholder-logo.png'" 
+              alt="Hospital Logo"
+              class="h-20 w-20 object-contain rounded-lg border" />
+            <p-fileUpload 
+              mode="basic" 
+              chooseLabel="Change Logo"
+              [auto]="true"
+              accept="image/*"
+              [maxFileSize]="1000000"
+              (uploadHandler)="onLogoUpload($event)">
+            </p-fileUpload>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Hospital Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="name"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Registration Number <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="registrationNumber"
+              class="w-full" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Tagline
+          </label>
+          <input 
+            pInputText 
+            formControlName="tagline"
+            class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Description
+          </label>
+          <textarea 
+            pInputTextarea 
+            formControlName="description"
+            rows="3"
+            class="w-full">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Contact Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="contact">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Primary Phone <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="phone"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Emergency Contact <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="emergency"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              type="email"
+              formControlName="email"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Website
+            </label>
+            <input 
+              pInputText 
+              formControlName="website"
+              class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Address Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="address">
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">
+              Street Address <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="street"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              City <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="city"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              State/Province <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="state"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Postal Code <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="postalCode"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Country <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="country"
+              class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Media Links -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Social Media</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="socialMedia">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Facebook
+            </label>
+            <input 
+              pInputText 
+              formControlName="facebook"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Twitter
+            </label>
+            <input 
+              pInputText 
+              formControlName="twitter"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              LinkedIn
+            </label>
+            <input 
+              pInputText 
+              formControlName="linkedin"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Instagram
+            </label>
+            <input 
+              pInputText 
+              formControlName="instagram"
+              class="w-full" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-2">
+        <p-button 
+          label="Reset" 
+          type="button"
+          severity="secondary"
+          icon="ri-restart-line"
+          (onClick)="resetForm()">
+        </p-button>
+        <p-button 
+          label="Save Changes" 
+          type="submit"
+          icon="ri-save-line"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <p-toast></p-toast>

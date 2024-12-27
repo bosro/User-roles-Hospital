@@ -1,0 +1,268 @@
+<div class="p-4">
+    <p-card [header]="isEditMode ? 'Edit Invoice' : 'Create Invoice'">
+      <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Header Information -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Invoice Number <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="invoiceNumber"
+              [readonly]="true"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Issue Date <span class="text-red-500">*</span>
+            </label>
+            <p-calendar 
+              formControlName="dateIssued"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Due Date <span class="text-red-500">*</span>
+            </label>
+            <p-calendar 
+              formControlName="dueDate"
+              [showIcon]="true"
+              dateFormat="dd/mm/yy"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+        </div>
+
+        <!-- Patient and Doctor Selection -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Patient <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="patients"
+              formControlName="patientId"
+              [style]="{'width':'100%'}"
+              placeholder="Select Patient"
+              (onChange)="onPatientChange($event)">
+              <ng-template pTemplate="item" let-patient>
+                <div>
+                  <div class="font-medium">{{patient.name}}</div>
+                  <div class="text-sm text-gray-500">ID: {{patient.id}}</div>
+                </div>
+              </ng-template>
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Doctor <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="doctors"
+              formControlName="doctorId"
+              [style]="{'width':'100%'}"
+              placeholder="Select Doctor"
+              (onChange)="onDoctorChange($event)">
+              <ng-template pTemplate="item" let-doctor>
+                <div>
+                  <div class="font-medium">Dr. {{doctor.name}}</div>
+                  <div class="text-sm text-gray-500">{{doctor.department}}</div>
+                </div>
+              </ng-template>
+            </p-dropdown>
+          </div>
+        </div>
+
+        <!-- Invoice Items -->
+        <div class="space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-medium text-gray-900">Invoice Items</h3>
+            <p-button 
+              label="Add Item" 
+              icon="ri-add-line"
+              (onClick)="addItem()"
+              type="button">
+            </p-button>
+          </div>
+
+          <div formArrayName="items">
+            <div *ngFor="let item of items.controls; let i = index" 
+                 [formGroupName]="i"
+                 class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
+              <div class="md:col-span-2">
+                <input 
+                  pInputText 
+                  formControlName="description"
+                  placeholder="Description"
+                  class="w-full" />
+              </div>
+
+              <div>
+                <p-dropdown 
+                  [options]="itemTypes"
+                  formControlName="type"
+                  [style]="{'width':'100%'}"
+                  placeholder="Type">
+                </p-dropdown>
+              </div>
+
+              <div>
+                <p-inputNumber 
+                  formControlName="quantity"
+                  [showButtons]="true"
+                  [min]="1"
+                  placeholder="Qty"
+                  (onInput)="calculateItemAmount(i)"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+
+              <div>
+                <p-inputNumber 
+                  formControlName="unitPrice"
+                  mode="currency" 
+                  currency="USD"
+                  [minFractionDigits]="2"
+                  placeholder="Price"
+                  (onInput)="calculateItemAmount(i)"
+                  styleClass="w-full">
+                </p-inputNumber>
+              </div>
+
+              <div class="flex gap-2">
+                <p-inputNumber 
+                  formControlName="amount"
+                  mode="currency" 
+                  currency="USD"
+                  [readonly]="true"
+                  [minFractionDigits]="2"
+                  styleClass="w-full">
+                </p-inputNumber>
+                <p-button 
+                  icon="ri-delete-bin-line"
+                  severity="danger"
+                  (onClick)="removeItem(i)">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Insurance Information -->
+          <div class="space-y-4" formGroupName="insuranceClaim">
+            <h3 class="text-lg font-medium text-gray-900">Insurance</h3>
+            
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">Provider</label>
+              <input 
+                pInputText 
+                formControlName="provider"
+                class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">Policy Number</label>
+              <input 
+                pInputText 
+                formControlName="policyNumber"
+                class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">Coverage Amount</label>
+              <p-inputNumber 
+                formControlName="coverageAmount"
+                mode="currency" 
+                currency="USD"
+                [minFractionDigits]="2"
+                styleClass="w-full">
+              </p-inputNumber>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Summary</h3>
+            
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span>Subtotal</span>
+                <span class="font-medium">
+                  ${{invoiceForm.get('subtotal')?.value || 0 | number:'1.2-2'}}
+                </span>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span>Tax</span>
+                <span class="font-medium">
+                  ${{invoiceForm.get('tax')?.value || 0 | number:'1.2-2'}}
+                </span>
+              </div>
+
+              <div class="flex justify-between items-center">
+                <span>Discount</span>
+                <span class="font-medium text-green-600">
+                  -${{invoiceForm.get('discount')?.value || 0 | number:'1.2-2'}}
+                </span>
+              </div>
+
+              <div class="flex justify-between items-center pt-2 border-t">
+                <span class="font-medium">Total</span>
+                <span class="text-lg font-bold">
+                  ${{invoiceForm.get('total')?.value || 0 | number:'1.2-2'}}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">Notes</label>
+          <textarea 
+            pInputTextarea 
+            formControlName="notes"
+            rows="3"
+            class="w-full">
+          </textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex justify-between">
+          <p-button 
+            label="Save as Draft"
+            icon="ri-draft-line"
+            severity="secondary"
+            (onClick)="saveAsDraft()"
+            type="button">
+          </p-button>
+
+          <div class="flex gap-2">
+            <p-button 
+              label="Cancel" 
+              icon="ri-close-line"
+              severity="secondary"
+              (onClick)="cancel()"
+              type="button">
+            </p-button>
+            <p-button 
+              [label]="isEditMode ? 'Update' : 'Create'"
+              icon="ri-save-line"
+              type="submit"
+              [loading]="loading"
+              [disabled]="invoiceForm.invalid || loading">
+            </p-button>
+          </div>
+        </div>
+      </form>
+    </p-card>
+  </div>

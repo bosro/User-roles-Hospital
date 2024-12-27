@@ -1,0 +1,250 @@
+<div class="p-4">
+    <p-card>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">
+          {{isEditMode ? 'Edit Patient' : 'Add New Patient'}}
+        </h2>
+        <p-button 
+          icon="ri-arrow-left-line" 
+          label="Back" 
+          severity="secondary"
+          (onClick)="goBack()">
+        </p-button>
+      </div>
+
+      <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Personal Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="firstName"
+              class="w-full" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('firstName')">
+              First name is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="lastName"
+              class="w-full" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('lastName')">
+              Last name is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Date of Birth <span class="text-red-500">*</span>
+            </label>
+            <p-calendar 
+              formControlName="dateOfBirth"
+              [maxDate]="today"
+              [showIcon]="true"
+              styleClass="w-full">
+            </p-calendar>
+            <small class="text-red-500" *ngIf="isFieldInvalid('dateOfBirth')">
+              Date of birth is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Gender <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="genderOptions"
+              formControlName="gender"
+              [style]="{'width':'100%'}"
+              placeholder="Select Gender">
+            </p-dropdown>
+            <small class="text-red-500" *ngIf="isFieldInvalid('gender')">
+              Gender is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Blood Group <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="bloodGroups"
+              formControlName="bloodGroup"
+              [style]="{'width':'100%'}"
+              placeholder="Select Blood Group">
+            </p-dropdown>
+            <small class="text-red-500" *ngIf="isFieldInvalid('bloodGroup')">
+              Blood group is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="phone"
+              class="w-full" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('phone')">
+              Valid phone number is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              type="email"
+              formControlName="email"
+              class="w-full" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('email')">
+              Valid email is required
+            </small>
+          </div>
+
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">
+              Address
+            </label>
+            <textarea 
+              pInputTextarea 
+              formControlName="address"
+              rows="3"
+              class="w-full">
+            </textarea>
+          </div>
+        </div>
+
+        <!-- Medical History -->
+        <div formGroupName="medicalHistory" class="space-y-4">
+          <h3 class="text-lg font-medium">Medical History</h3>
+          
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Allergies
+            </label>
+            <p-chips 
+              formControlName="allergies"
+              separator=","
+              placeholder="Enter allergies">
+            </p-chips>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Medical Conditions
+            </label>
+            <p-chips 
+              formControlName="conditions"
+              separator=","
+              placeholder="Enter conditions">
+            </p-chips>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Past Surgeries
+            </label>
+            <p-chips 
+              formControlName="surgeries"
+              separator=","
+              placeholder="Enter surgeries">
+            </p-chips>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Current Medications
+            </label>
+            <p-chips 
+              formControlName="medications"
+              separator=","
+              placeholder="Enter medications">
+            </p-chips>
+          </div>
+        </div>
+
+        <!-- Insurance Information -->
+        <div formGroupName="insurance" class="space-y-4">
+          <h3 class="text-lg font-medium">Insurance Information</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Insurance Provider <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="provider"
+                class="w-full" />
+              <small class="text-red-500" *ngIf="isFieldInvalid('insurance.provider')">
+                Provider is required
+              </small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Policy Number <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="policyNumber"
+                class="w-full" />
+              <small class="text-red-500" *ngIf="isFieldInvalid('insurance.policyNumber')">
+                Policy number is required
+              </small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Group Number
+              </label>
+              <input 
+                pInputText 
+                formControlName="groupNumber"
+                class="w-full" />
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Expiry Date <span class="text-red-500">*</span>
+              </label>
+              <p-calendar 
+                formControlName="expiryDate"
+                [minDate]="today"
+                [showIcon]="true"
+                styleClass="w-full">
+              </p-calendar>
+              <small class="text-red-500" *ngIf="isFieldInvalid('insurance.expiryDate')">
+                Expiry date is required
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3">
+          <p-button 
+            label="Cancel" 
+            severity="secondary"
+            (onClick)="goBack()">
+          </p-button>
+          <p-button 
+            label="Save Patient"
+            type="submit"
+            [loading]="saving">
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+  </div>

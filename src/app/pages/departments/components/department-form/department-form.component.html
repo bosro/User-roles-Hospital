@@ -1,0 +1,277 @@
+<div class="p-4">
+    <p-card>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">{{isEditMode ? 'Edit' : 'New'}} Department</h2>
+        <div class="flex gap-2">
+          <p-button 
+            label="Cancel" 
+            icon="ri-close-line" 
+            severity="secondary" 
+            (onClick)="cancel()">
+          </p-button>
+          <p-button 
+            label="Save" 
+            icon="ri-save-line" 
+            (onClick)="onSubmit()"
+            [loading]="loading"
+            [disabled]="departmentForm.invalid">
+          </p-button>
+        </div>
+      </div>
+  
+      <form [formGroup]="departmentForm" class="space-y-6">
+        <!-- Basic Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Department Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="name"
+              class="w-full"
+              placeholder="Enter department name" />
+          </div>
+  
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Department Code <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="code"
+              class="w-full"
+              placeholder="Enter department code" />
+          </div>
+  
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea 
+              pInputTextarea 
+              formControlName="description"
+              class="w-full"
+              rows="3"
+              placeholder="Enter department description">
+            </textarea>
+          </div>
+        </div>
+  
+        <!-- Head of Department -->
+        <div formGroupName="headOfDepartment" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Head of Department</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Select Doctor <span class="text-red-500">*</span>
+              </label>
+              <p-dropdown
+                [options]="doctors"
+                formControlName="id"
+                optionLabel="name"
+                optionValue="id"
+                placeholder="Select a doctor"
+                [style]="{'width':'100%'}"
+                (onChange)="onHeadOfDepartmentChange($event)">
+              </p-dropdown>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Location Information -->
+        <div formGroupName="location" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Location</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Building <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="building"
+                class="w-full"
+                placeholder="Enter building" />
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Floor <span class="text-red-500">*</span>
+              </label>
+              <p-inputNumber 
+                formControlName="floor"
+                [showButtons]="false"
+                inputStyleClass="w-full"
+                placeholder="Enter floor number">
+              </p-inputNumber>
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Room Numbers
+              </label>
+              <p-multiSelect
+                formControlName="roomNumbers"
+                [options]="[]"
+                defaultLabel="Select rooms"
+                [style]="{'width':'100%'}">
+              </p-multiSelect>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Capacity -->
+        <div formGroupName="capacity" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Capacity</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Total Beds <span class="text-red-500">*</span>
+              </label>
+              <p-inputNumber 
+                formControlName="beds"
+                [showButtons]="false"
+                inputStyleClass="w-full"
+                placeholder="Enter total beds">
+              </p-inputNumber>
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Current Occupancy
+              </label>
+              <p-inputNumber 
+                formControlName="currentOccupancy"
+                [showButtons]="false"
+                inputStyleClass="w-full"
+                placeholder="Enter current occupancy">
+              </p-inputNumber>
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Staff Count
+              </label>
+              <p-inputNumber 
+                formControlName="staffCount"
+                [showButtons]="false"
+                inputStyleClass="w-full"
+                placeholder="Enter staff count">
+              </p-inputNumber>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Operating Hours -->
+        <div formGroupName="operatingHours" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Operating Hours</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Start Time <span class="text-red-500">*</span>
+              </label>
+              <p-calendar 
+                formControlName="start"
+                [timeOnly]="true"
+                [style]="{'width':'100%'}"
+                inputStyleClass="w-full">
+              </p-calendar>
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                End Time <span class="text-red-500">*</span>
+              </label>
+              <p-calendar 
+                formControlName="end"
+                [timeOnly]="true"
+                [style]="{'width':'100%'}"
+                inputStyleClass="w-full">
+              </p-calendar>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Working Days -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Working Days</h3>
+          <div class="field">
+            <p-multiSelect
+              [options]="workingDays"
+              formControlName="workingDays"
+              defaultLabel="Select working days"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+        </div>
+  
+        <!-- Contact Information -->
+        <div formGroupName="contactInfo" class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Contact Information</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="email"
+                class="w-full"
+                placeholder="Enter department email" />
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Phone <span class="text-red-500">*</span>
+              </label>
+              <input 
+                pInputText 
+                formControlName="phone"
+                class="w-full"
+                placeholder="Enter contact number" />
+            </div>
+  
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Emergency Contact
+              </label>
+              <input 
+                pInputText 
+                formControlName="emergencyContact"
+                class="w-full"
+                placeholder="Enter emergency contact" />
+            </div>
+          </div>
+        </div>
+  
+        <!-- Additional Features -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Facilities
+            </label>
+            <p-multiSelect
+              formControlName="facilities"
+              [options]="[]"
+              defaultLabel="Select facilities"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+  
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Specialties
+            </label>
+            <p-multiSelect
+              formControlName="specialties"
+              [options]="[]"
+              defaultLabel="Select specialties"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+        </div>
+      </form>
+    </p-card>
+  </div>
+  
+  <p-toast></p-toast>

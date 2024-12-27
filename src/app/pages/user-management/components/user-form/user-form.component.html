@@ -1,0 +1,134 @@
+<form [formGroup]="userForm" class="space-y-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Basic Information -->
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        First Name <span class="text-red-500">*</span>
+      </label>
+      <input pInputText formControlName="firstName" class="w-full" />
+      <small class="text-red-500" *ngIf="isFieldInvalid('firstName')">
+        First name is required
+      </small>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Last Name <span class="text-red-500">*</span>
+      </label>
+      <input pInputText formControlName="lastName" class="w-full" />
+      <small class="text-red-500" *ngIf="isFieldInvalid('lastName')">
+        Last name is required
+      </small>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Email <span class="text-red-500">*</span>
+      </label>
+      <input pInputText formControlName="email" type="email" class="w-full" />
+      <small class="text-red-500" *ngIf="isFieldInvalid('email')">
+        Valid email is required
+      </small>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Role <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown 
+        [options]="roles"
+        formControlName="role"
+        [style]="{'width':'100%'}"
+        placeholder="Select Role">
+      </p-dropdown>
+      <small class="text-red-500" *ngIf="isFieldInvalid('role')">
+        Role is required
+      </small>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Department
+      </label>
+      <p-dropdown 
+        [options]="departments"
+        formControlName="department"
+        [style]="{'width':'100%'}"
+        placeholder="Select Department">
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Status <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown 
+        [options]="statuses"
+        formControlName="status"
+        [style]="{'width':'100%'}"
+        placeholder="Select Status">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <!-- Permissions Section -->
+  <div class="space-y-2">
+    <label class="block text-sm font-medium text-gray-700">
+      Permissions
+    </label>
+    <p-multiSelect 
+      [options]="permissions"
+      formControlName="permissions"
+      defaultLabel="Select Permissions"
+      optionLabel="label"
+      [style]="{'width':'100%'}">
+    </p-multiSelect>
+  </div>
+
+  <!-- Password Section (for new users) -->
+  <div *ngIf="!isEditMode" class="space-y-4">
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Password <span class="text-red-500">*</span>
+      </label>
+      <p-password 
+        formControlName="password"
+        [toggleMask]="true"
+        [feedback]="true"
+        styleClass="w-full">
+      </p-password>
+      <small class="text-red-500" *ngIf="isFieldInvalid('password')">
+        Password must be at least 8 characters
+      </small>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700">
+        Confirm Password <span class="text-red-500">*</span>
+      </label>
+      <p-password 
+        formControlName="confirmPassword"
+        [toggleMask]="true"
+        styleClass="w-full">
+      </p-password>
+      <small class="text-red-500" *ngIf="passwordMismatch()">
+        Passwords do not match
+      </small>
+    </div>
+  </div>
+
+  <!-- Profile Image -->
+  <div class="field">
+    <label class="block text-sm font-medium text-gray-700">
+      Profile Image
+    </label>
+    <p-fileUpload 
+      mode="basic" 
+      chooseLabel="Choose Image"
+      [auto]="true"
+      accept="image/*"
+      [maxFileSize]="1000000"
+      (uploadHandler)="onImageUpload($event)">
+    </p-fileUpload>
+  </div>
+</form>

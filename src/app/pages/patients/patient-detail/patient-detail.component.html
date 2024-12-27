@@ -1,0 +1,215 @@
+<div class="p-4">
+    <div *ngIf="isLoading" class="flex justify-center items-center h-96">
+      <p-progressSpinner strokeWidth="4"></p-progressSpinner>
+    </div>
+
+    <div *ngIf="!isLoading && patient">
+      <!-- Patient Header -->
+      <p-card styleClass="mb-4">
+        <div class="flex justify-between">
+          <div class="flex items-start gap-6">
+            <p-avatar 
+              [label]="getInitials(patient)"
+              shape="circle"
+              size="xlarge"
+              [style]="{'width': '100px', 'height': '100px',
+                       'background-color': getAvatarColor(patient.id)}"
+              class="mb-2">
+            </p-avatar>
+            
+            <div>
+              <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold">
+                  {{patient.firstName}} {{patient.lastName}}
+                </h1>
+                <p-tag [value]="patient.status" [severity]="getStatusSeverity(patient.status)">
+                </p-tag>
+              </div>
+              <div class="text-gray-600 mt-1">
+                <div>ID: {{patient.id}}</div>
+                <div>{{patient.gender}} | {{calculateAge(patient.dateOfBirth)}} years</div>
+                <div>{{patient.email}} | {{patient.phone}}</div>
+              </div>
+              <div class="flex gap-3 mt-3">
+                <span class="px-3 py-1 rounded-full text-sm"
+                      [style.backgroundColor]="getBloodGroupColor(patient.bloodGroup)">
+                  Blood: {{patient.bloodGroup}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <p-button 
+              label="Edit" 
+              icon="ri-edit-line"
+              severity="secondary"
+              [routerLink]="['/patients/edit', patient.id]">
+            </p-button>
+            <p-button 
+              label="View Profile" 
+              icon="ri-user-line"
+              [routerLink]="['/patients/profile', patient.id]">
+            </p-button>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-semibold">{{medicalHistory.length}}</h3>
+            <p class="text-gray-600">Medical Records</p>
+          </div>
+        </p-card>
+
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-semibold">{{appointments.length}}</h3>
+            <p class="text-gray-600">Total Appointments</p>
+          </div>
+        </p-card>
+
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-semibold">{{prescriptions.length}}</h3>
+            <p class="text-gray-600">Prescriptions</p>
+          </div>
+        </p-card>
+
+        <p-card>
+          <div class="text-center">
+            <h3 class="text-xl font-semibold">{{documents.length}}</h3>
+            <p class="text-gray-600">Documents</p>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Tabs -->
+      <p-tabView [(activeIndex)]="activeIndex">
+                <p-tabPanel header="Overview">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Basic Information -->
+            <p-card header="Basic Information">
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-gray-600 text-sm">Date of Birth</label>
+                    <p>{{patient.dateOfBirth | date}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Gender</label>
+                    <p>{{patient.gender}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Blood Group</label>
+                    <p>{{patient.bloodGroup}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Phone</label>
+                    <p>{{patient.phone}}</p>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-gray-600 text-sm">Address</label>
+                  <p>{{patient.address}}</p>
+                </div>
+              </div>
+            </p-card>
+
+            <!-- Insurance Information -->
+            <p-card header="Insurance Information">
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-gray-600 text-sm">Provider</label>
+                    <p>{{patient.insurance?.provider}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Policy Number</label>
+                    <p>{{patient.insurance?.policyNumber}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Group Number</label>
+                    <p>{{patient.insurance?.groupNumber}}</p>
+                  </div>
+                  <div>
+                    <label class="text-gray-600 text-sm">Expiry Date</label>
+                    <p>{{patient.insurance?.expiryDate | date}}</p>
+                  </div>
+                </div>
+              </div>
+            </p-card>
+          </div>
+        </p-tabPanel>
+
+        <p-tabPanel header="Medical History">
+          <p-timeline [value]="medicalHistory">
+            <ng-template pTemplate="content" let-event>
+              <div class="bg-white p-4 rounded-lg border">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h4 class="font-medium">{{event.type}}</h4>
+                    <p class="text-sm text-gray-600">{{event.date | date}}</p>
+                    <p class="mt-2">{{event.description}}</p>
+                  </div>
+                  <p-tag [value]="event.category" [severity]="getCategorySeverity(event.category)">
+                  </p-tag>
+                </div>
+              </div>
+            </ng-template>
+          </p-timeline>
+        </p-tabPanel>
+
+        <p-tabPanel header="Documents">
+          <div class="mb-4">
+            <p-fileUpload
+              mode="advanced"
+              [multiple]="true"
+              accept="image/*,.pdf,.doc,.docx"
+              [maxFileSize]="1000000"
+              [customUpload]="true"
+              (uploadHandler)="uploadDocument($event)"
+              chooseLabel="Upload Documents">
+            </p-fileUpload>
+          </div>
+
+          <p-table [value]="documents" [paginator]="true" [rows]="10">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Size</th>
+                <th>Uploaded</th>
+                <th>Actions</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-doc>
+              <tr>
+                <td>{{doc.name}}</td>
+                <td>{{doc.type}}</td>
+                <td>{{formatFileSize(doc.size)}}</td>
+                <td>{{doc.uploadedAt | date}}</td>
+                <td>
+                  <div class="flex gap-2">
+                    <p-button 
+                      icon="ri-download-line" 
+                      severity="secondary"
+                      (onClick)="downloadDocument(doc)">
+                    </p-button>
+                    <p-button 
+                      icon="ri-delete-bin-line" 
+                      severity="danger"
+                      (onClick)="deleteDocument(doc)">
+                    </p-button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-tabPanel>
+      </p-tabView>
+    </div>
+  </div>

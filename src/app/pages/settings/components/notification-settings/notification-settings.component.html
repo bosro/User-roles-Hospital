@@ -1,0 +1,209 @@
+<div class="space-y-6">
+    <!-- Email Settings -->
+    <p-card header="Email Notifications">
+      <form [formGroup]="emailForm" class="space-y-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            SMTP Server Configuration
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="smtp">
+            <div class="field">
+              <label class="block text-sm text-gray-600">Host</label>
+              <input pInputText formControlName="host" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Port</label>
+              <input pInputText formControlName="port" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Username</label>
+              <input pInputText formControlName="username" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Password</label>
+              <input pInputText type="password" formControlName="password" class="w-full" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            From Email Address
+          </label>
+          <input pInputText formControlName="fromEmail" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Email Signature
+          </label>
+          <p-editor formControlName="signature" [style]="{'height':'200px'}"></p-editor>
+        </div>
+
+        <div class="flex justify-end">
+          <p-button 
+            label="Save Email Settings" 
+            icon="ri-save-line"
+            (onClick)="saveEmailSettings()"
+            [loading]="savingEmail">
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+
+    <!-- SMS Settings -->
+    <p-card header="SMS Notifications">
+      <form [formGroup]="smsForm" class="space-y-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            SMS Provider
+          </label>
+          <p-dropdown 
+            [options]="smsProviders"
+            formControlName="provider"
+            [style]="{'width':'100%'}"
+            placeholder="Select SMS Provider">
+          </p-dropdown>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            API Configuration
+          </label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="apiConfig">
+            <div class="field">
+              <label class="block text-sm text-gray-600">API Key</label>
+              <input pInputText formControlName="apiKey" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">API Secret</label>
+              <input pInputText formControlName="apiSecret" class="w-full" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Sender ID
+          </label>
+          <input pInputText formControlName="senderId" class="w-full" />
+        </div>
+
+        <div class="flex justify-end">
+          <p-button 
+            label="Save SMS Settings" 
+            icon="ri-save-line"
+            (onClick)="saveSmsSettings()"
+            [loading]="savingSms">
+          </p-button>
+        </div>
+      </form>
+    </p-card>
+
+    <!-- Notification Rules -->
+    <p-card header="Notification Rules">
+      <div class="space-y-4">
+        <!-- Appointment Notifications -->
+        <div class="space-y-2">
+          <h4 class="font-medium text-gray-900">Appointment Notifications</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Appointment Confirmation</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="appointmentConfirmEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="appointmentConfirmSms"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Appointment Reminder</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="appointmentReminderEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="appointmentReminderSms"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Schedule Changes</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="scheduleChangeEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="scheduleChangeSms"></p-inputSwitch>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing Notifications -->
+        <div class="space-y-2">
+          <h4 class="font-medium text-gray-900">Billing Notifications</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Invoice Generated</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="invoiceGeneratedEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="invoiceGeneratedSms"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Payment Received</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="paymentReceivedEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="paymentReceivedSms"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Payment Due Reminder</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="paymentDueEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="paymentDueSms"></p-inputSwitch>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Notifications -->
+        <div class="space-y-2">
+          <h4 class="font-medium text-gray-900">System Notifications</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center justify-between">
+              <span class="text-sm">System Updates</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="systemUpdateEmail"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Security Alerts</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="securityAlertEmail"></p-inputSwitch>
+                <p-inputSwitch formControlName="securityAlertSms"></p-inputSwitch>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Low Inventory</span>
+              <div class="flex gap-2">
+                <p-inputSwitch formControlName="lowInventoryEmail"></p-inputSwitch>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end mt-4">
+        <p-button 
+          label="Save Notification Rules" 
+          icon="ri-save-line"
+          (onClick)="saveNotificationRules()"
+          [loading]="savingRules">
+        </p-button>
+      </div>
+    </p-card>
+  </div>
+
+  <p-toast></p-toast>

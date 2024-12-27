@@ -1,0 +1,154 @@
+<div class="p-4">
+  <p-card>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Waiting List</h2>
+      <div class="flex gap-2">
+        <p-button label="Add to Waiting List" icon="ri-add-line" (onClick)="showAddDialog()">
+        </p-button>
+      </div>
+    </div>
+
+    <p-table #dt [value]="waitingList" [rows]="10" [paginator]="true" [globalFilterFields]="[
+          'patientName',
+          'type',
+          'priority',
+          'requestedDate'
+        ]" responsiveLayout="stack" [rowHover]="true" dataKey="id" [loading]="loading">
+      <ng-template pTemplate="caption">
+        <div class="flex items-center justify-between">
+          <span class="p-input-icon-left">
+            <i class="ri-search-line"></i>
+            <input pInputText type="text" (input)="onSearch($event)" placeholder="Search..." />
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="priority">
+            Priority
+            <p-sortIcon field="priority"></p-sortIcon>
+          </th>
+          <th pSortableColumn="patientName">
+            Patient
+            <p-sortIcon field="patientName"></p-sortIcon>
+          </th>
+          <th pSortableColumn="type">
+            Type
+            <p-sortIcon field="type"></p-sortIcon>
+          </th>
+          <th pSortableColumn="requestedDate">
+            Requested Date
+            <p-sortIcon field="requestedDate"></p-sortIcon>
+          </th>
+          <th pSortableColumn="waitingTime">
+            Waiting Time
+            <p-sortIcon field="waitingTime"></p-sortIcon>
+          </th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-patient>
+        <tr>
+          <td>
+            <p-tag [severity]="getPrioritySeverity(patient.priority)" [value]="patient.priority">
+            </p-tag>
+          </td>
+          <td>
+            <div class="font-medium">{{ patient.patientName }}</div>
+            <div class="text-sm text-gray-500">
+              ID: {{ patient.patientId }}
+            </div>
+          </td>
+          <td>{{ patient.type }}</td>
+          <td>{{ patient.requestedDate | date : 'mediumDate' }}</td>
+          <td>{{ calculateWaitingTime(patient.requestedDate) }}</td>
+          <td>
+            <span [class]="getStatusClass(patient.status)">
+              {{ patient.status }}
+            </span>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <p-button icon="ri-calendar-line" severity="secondary" tooltipPosition="top"
+                pTooltip="Schedule Appointment" (onClick)="scheduleAppointment(patient)">
+              </p-button>
+              <p-button icon="ri-delete-bin-line" severity="danger" tooltipPosition="top" pTooltip="Remove from List"
+                (onClick)="confirmRemove(patient)">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4">
+            No patients in waiting list
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<!-- Add to Waiting List Dialog -->
+<p-dialog [(visible)]="displayAddDialog" [header]="'Add to Waiting List'" [modal]="true" [style]="{ width: '450px' }"
+  [draggable]="false">
+  <form #waitingForm="ngForm" class="space-y-4">
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Patient
+        <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown [options]="patients" [(ngModel)]="selectedPatient" name="patient" [filter]="true" styleClass="w-full"
+        placeholder="Select Patient" required>
+        <ng-template pTemplate="item" let-patient>
+          <div>
+            <div class="font-medium">{{ patient.name }}</div>
+            <div class="text-sm text-gray-500">ID: {{ patient.id }}</div>
+          </div>
+        </ng-template>
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Type
+        <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown [options]="appointmentTypes" [(ngModel)]="selectedType" name="type" styleClass="w-full"
+        placeholder="Select Type" required>
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Priority
+        <span class="text-red-500">*</span>
+      </label>
+      <p-dropdown [options]="priorities" [(ngModel)]="selectedPriority" name="priority" styleClass="w-full"
+        placeholder="Select Priority" required>
+      </p-dropdown>
+    </div>
+
+    <div class="field">
+      <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+      <textarea pInputTextarea [(ngModel)]="notes" name="notes" rows="3" class="w-full"
+        placeholder="Add any additional notes...">
+        </textarea>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancel" icon="ri-close-line" severity="secondary" (onClick)="hideAddDialog()">
+    </p-button>
+    <p-button label="Add to List" icon="ri-add-line" [disabled]="!waitingForm.valid" (onClick)="addToWaitingList()">
+    </p-button>
+  </ng-template>
+</p-dialog>
+
+<p-confirmDialog></p-confirmDialog>
+<p-toast></p-toast>

@@ -1,0 +1,49 @@
+<p-card>
+  <div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold">Audit Log</h2>
+    <div class="flex gap-2">
+      <p-date-picker [(ngModel)]="dateRange" selectionMode="range" [maxDate]="today" [showIcon]="true"
+        placeholder="Date Range">
+      </p-date-picker>
+      <p-select [options]="actionTypes" [(ngModel)]="selectedActionType" placeholder="All Actions" [showClear]="true">
+      </p-select>
+      <p-button label="Export Log" icon="ri-download-line" severity="secondary" (onClick)="exportLog()">
+      </p-button>
+    </div>
+  </div>
+
+  <p-table [value]="auditLogs" [paginator]="true" [rows]="10" [loading]="loading" [sortField]="'timestamp'"
+    [sortOrder]="-1">
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Timestamp</th>
+        <th>User</th>
+        <th>Action</th>
+        <th>Details</th>
+        <th>IP Address</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-log>
+      <tr>
+        <td>{{log.timestamp | date:'medium'}}</td>
+        <td>
+          <div class="flex items-center">
+            <p-avatar [image]="log.user.profileImage" [label]="getUserInitials(log.user)" shape="circle"
+              styleClass="mr-2" [style]="{ width: '32px', height: '32px' }">
+            </p-avatar>
+            {{log.user.firstName}} {{log.user.lastName}}
+          </div>
+        </td>
+        <td>
+          <span [class]="getActionClass(log.action)">
+            {{log.action}}
+          </span>
+        </td>
+        <td>{{log.details}}</td>
+        <td>{{log.ipAddress}}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

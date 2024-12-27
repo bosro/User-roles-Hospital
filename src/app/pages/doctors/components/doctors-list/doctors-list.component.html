@@ -1,0 +1,191 @@
+<div class="p-4">
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-user-star-line text-3xl mr-3 text-blue-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{totalDoctors}}</h3>
+            <p class="text-gray-600">Total Doctors</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-check-line text-3xl mr-3 text-green-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{activeDoctors}}</h3>
+            <p class="text-gray-600">Active Doctors</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-calendar-check-line text-3xl mr-3 text-orange-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{onDutyToday}}</h3>
+            <p class="text-gray-600">On Duty Today</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-time-line text-3xl mr-3 text-purple-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{onLeave}}</h3>
+            <p class="text-gray-600">On Leave</p>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Doctors List -->
+    <p-card>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Doctors Directory</h2>
+        <p-button 
+          label="Add Doctor" 
+          icon="ri-user-add-line"
+          routerLink="add">
+        </p-button>
+      </div>
+
+      <p-table 
+        #dt 
+        [value]="doctors" 
+        [rows]="10" 
+        [paginator]="true"
+        [globalFilterFields]="['firstName', 'lastName', 'specialization', 'department']"
+        [tableStyle]="{'min-width': '75rem'}"
+        [loading]="loading"
+        dataKey="id"
+        [rowHover]="true"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} doctors">
+
+        <ng-template pTemplate="caption">
+          <div class="flex items-center justify-between">
+            <span class="p-input-icon-left">
+              <i class="ri-search-line"></i>
+              <input 
+              pInputText 
+              type="text" 
+              (input)="onSearch($event)" 
+              placeholder="Search doctors..." />
+            </span>
+
+            <div class="flex gap-2">
+              <p-multiSelect 
+                [options]="departments" 
+                [(ngModel)]="selectedDepartments"
+                defaultLabel="All Departments"
+                (onChange)="filterByDepartment()"
+                styleClass="w-48">
+              </p-multiSelect>
+              
+              <p-multiSelect 
+                [options]="specializations" 
+                [(ngModel)]="selectedSpecializations"
+                defaultLabel="All Specializations"
+                (onChange)="filterBySpecialization()"
+                styleClass="w-48">
+              </p-multiSelect>
+            </div>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Doctor</th>
+            <th>Specialization</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Schedule</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-doctor>
+          <tr>
+            <td>
+              <div class="flex items-center">
+                <p-avatar 
+                [image]="doctor.profileImage" 
+                shape="circle"
+                [style]="{'width': '40px', 'height': '40px'}"
+                [attr.alt]="doctor.firstName + ' ' + doctor.lastName">
+              </p-avatar>
+                <div class="ml-3">
+                  <div class="font-medium">
+                    {{doctor.prefix}} {{doctor.firstName}} {{doctor.lastName}}
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {{doctor.email}}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>{{doctor.specialization}}</td>
+            <td>{{doctor.department}}</td>
+            <td>
+              <p-tag 
+                [value]="doctor.status"
+                [severity]="getStatusSeverity(doctor.status)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="text-sm">
+                <div>{{doctor.workingHours.start}} - {{doctor.workingHours.end}}</div>
+                <div class="text-gray-500">
+                  {{formatWorkingDays(doctor.workingDays)}}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button 
+                  icon="ri-eye-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="View Profile"
+                  (onClick)="viewProfile(doctor)">
+                </p-button>
+                <p-button 
+                  icon="ri-calendar-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="View Schedule"
+                  (onClick)="viewSchedule(doctor)">
+                </p-button>
+                <p-button 
+                  icon="ri-edit-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="Edit Doctor"
+                  (onClick)="editDoctor(doctor)">
+                </p-button>
+                <p-button 
+                  icon="ri-delete-bin-line" 
+                  severity="danger"
+                  tooltipPosition="top"
+                  pTooltip="Delete Doctor"
+                  (onClick)="confirmDelete(doctor)">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center p-4">
+              No doctors found.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>

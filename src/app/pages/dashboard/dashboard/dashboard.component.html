@@ -1,0 +1,264 @@
+<!-- src/app/pages/dashboard/dashboard.component.html -->
+<div class="dashboard-container p-6">
+    <!-- Quick Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <!-- Total Patients -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total Patients</p>
+            <h3 class="text-2xl font-bold text-gray-800">{{stats.totalPatients}}</h3>
+            <p class="text-green-500 text-sm">+5.2% from last month</p>
+          </div>
+          <div class="bg-blue-100 p-3 rounded-full">
+            <i class="pi pi-users text-blue-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Today's Appointments -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Today's Appointments</p>
+            <h3 class="text-2xl font-bold text-gray-800">{{stats.appointmentsToday}}</h3>
+            <p class="text-green-500 text-sm">{{stats.appointmentsToday}} scheduled</p>
+          </div>
+          <div class="bg-green-100 p-3 rounded-full">
+            <i class="pi pi-calendar text-green-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Hospital Occupancy -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Bed Occupancy</p>
+            <h3 class="text-2xl font-bold text-gray-800">
+              {{stats.occupiedBeds}}/{{stats.totalBeds}}
+            </h3>
+            <p class="text-orange-500 text-sm">{{(stats.occupiedBeds/stats.totalBeds * 100).toFixed(1)}}% occupied</p>
+          </div>
+          <div class="bg-orange-100 p-3 rounded-full">
+            <i class="pi pi-home text-orange-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Revenue -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total Revenue</p>
+            <h3 class="text-2xl font-bold text-gray-800">${{stats.totalRevenue.toLocaleString()}}</h3>
+            <p class="text-purple-500 text-sm">{{stats.pendingBills}} pending bills</p>
+          </div>
+          <div class="bg-purple-100 p-3 rounded-full">
+            <i class="pi pi-dollar text-purple-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Patient Trends -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Patient Trends</h3>
+        <p-chart type="line" [data]="patientData" [options]="{ responsive: true }"></p-chart>
+      </div>
+  
+      <!-- Revenue Analysis -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Revenue Analysis</h3>
+        <p-chart type="bar" [data]="revenueData" [options]="{ responsive: true }"></p-chart>
+      </div>
+    </div>
+  
+    <!-- Bottom Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Appointments -->
+      <div class="lg:col-span-2 bg-white rounded-lg shadow">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Recent Appointments</h3>
+            <button pButton label="View All" class="p-button-text"></button>
+          </div>
+          <p-table [value]="recentAppointments" [rows]="5" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-appointment>
+              <tr>
+                <td>{{appointment.patientName}}</td>
+                <td>Dr. {{appointment.doctorName}}</td>
+                <td>{{appointment.date | date:'short'}}</td>
+                <td>
+                  <span class="px-2 py-1 rounded-full text-xs"
+                        [ngClass]="{
+                          'bg-green-100 text-green-800': appointment.status === 'Completed',
+                          'bg-blue-100 text-blue-800': appointment.status === 'Scheduled',
+                          'bg-red-100 text-red-800': appointment.status === 'Cancelled'
+                        }">
+                    {{appointment.status}}
+                  </span>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+  
+      <!-- Department Distribution -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold mb-4">Department Distribution</h3>
+        <p-chart type="doughnut" [data]="departmentData" [options]="{ responsive: true }"></p-chart>
+      </div>
+    </div>
+
+    <!-- src/app/pages/dashboard/dashboard.component.html -->
+<div class="dashboard-container p-6">
+    <!-- Control Panel -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+      <div class="flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex gap-4">
+          <p-dropdown 
+            [options]="timeRanges" 
+            [(ngModel)]="selectedTimeRange"
+            (onChange)="updateChartData()"
+            placeholder="Select Time Range">
+          </p-dropdown>
+          
+          <p-dropdown 
+            [options]="departments" 
+            [(ngModel)]="departmentFilter"
+            (onChange)="updateChartData()"
+            placeholder="Select Department">
+          </p-dropdown>
+  
+          <p-calendar 
+            [(ngModel)]="dateRange" 
+            selectionMode="range"
+            [showButtonBar]="true"
+            (onSelect)="applyDateFilter()"
+            placeholder="Custom Date Range">
+          </p-calendar>
+        </div>
+  
+        <div class="flex gap-2">
+          <button 
+            pButton 
+            icon="pi pi-file-pdf" 
+            label="Export PDF" 
+            [loading]="exportLoading"
+            (click)="exportPDF()"
+            class="p-button-secondary">
+          </button>
+          <button 
+            pButton 
+            icon="pi pi-file-excel" 
+            label="Export Excel"
+            [loading]="exportLoading"
+            (click)="exportExcel()"
+            class="p-button-success">
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Interactive Stats Cards -->
+<!-- Interactive Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+  <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-all cursor-pointer"
+       *ngFor="let stat of statCards"
+       (click)="showMetricDetails(stat.type)"
+       [pTooltip]="'Click for detailed analysis'">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-gray-500 text-sm">{{stat.title}}</p>
+        <h3 class="text-2xl font-bold text-gray-800">{{stat.value}}</h3>
+        <p class="text-sm" [ngClass]="{'text-green-500': stat.trend === 'up', 'text-red-500': stat.trend === 'down'}">
+          {{stat.subtext}}
+        </p>
+      </div>
+      <div [class]="stat.iconBg + ' p-3 rounded-full'">
+        <i [class]="stat.icon + ' ' + stat.iconColor + ' text-xl'"></i>
+      </div>
+    </div>
+  </div>
+</div>
+  
+    <!-- Enhanced Charts Section -->
+    <p-tabView [(activeIndex)]="activeTabIndex">
+      <p-tabPanel header="Patient Analytics">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Patient Trends</h3>
+            <p-chart type="line" [data]="patientData" [options]="{ responsive: true }"></p-chart>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Patient Satisfaction</h3>
+            <p-chart type="pie" [data]="satisfactionData" [options]="{ responsive: true }"></p-chart>
+          </div>
+        </div>
+      </p-tabPanel>
+  
+      <p-tabPanel header="Financial Analytics">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+            <p-chart type="bar" [data]="revenueData" [options]="{ responsive: true, plugins: { stacked: true } }"></p-chart>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Department Revenue Distribution</h3>
+            <p-chart type="doughnut" [data]="departmentData" [options]="{ responsive: true }"></p-chart>
+          </div>
+        </div>
+      </p-tabPanel>
+  
+      <p-tabPanel header="Operational Metrics">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Waiting Time Analysis</h3>
+            <p-chart type="bar" [data]="waitingTimeData" [options]="{ responsive: true, indexAxis: 'y' }"></p-chart>
+          </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold mb-4">Resource Utilization</h3>
+            <p-chart type="line" [data]="resourceUtilizationData" [options]="{ responsive: true }"></p-chart>
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  
+    <!-- Metric Detail Dialog -->
+    <p-dialog 
+      [(visible)]="showDetailDialog" 
+      [style]="{width: '80vw'}" 
+      [modal]="true"
+      [draggable]="false"
+      [resizable]="false">
+      <ng-template pTemplate="header">
+        <h2 class="text-xl font-semibold">{{selectedMetric?.title}} - Detailed Analysis</h2>
+      </ng-template>
+      
+      <div class="p-4">
+        <!-- Dynamic content based on selected metric -->
+        <div [ngSwitch]="selectedMetric?.type">
+          <div *ngSwitchCase="'patients'">
+            <!-- Patient detailed metrics -->
+          </div>
+          <div *ngSwitchCase="'appointments'">
+            <!-- Appointment detailed metrics -->
+          </div>
+          <!-- Add more cases for other metrics -->
+        </div>
+      </div>
+    </p-dialog>
+  </div>
+  </div>

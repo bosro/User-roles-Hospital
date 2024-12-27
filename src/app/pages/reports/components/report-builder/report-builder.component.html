@@ -1,0 +1,347 @@
+<div class="p-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">
+        {{isEditMode ? 'Edit Report Template' : 'Create Report Template'}}
+      </h2>
+      <div class="flex gap-2">
+        <p-button 
+          label="Preview" 
+          icon="ri-eye-line"
+          severity="secondary"
+          (onClick)="previewReport()">
+        </p-button>
+        <p-button 
+          label="Save Template" 
+          icon="ri-save-line"
+          (onClick)="saveTemplate()"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </div>
+
+    <form [formGroup]="templateForm" class="space-y-6">
+      <!-- Basic Information -->
+      <p-card>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Template Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+              pInputText 
+              formControlName="name"
+              class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Report Type <span class="text-red-500">*</span>
+            </label>
+            <p-dropdown 
+              [options]="reportTypes"
+              formControlName="type"
+              [style]="{'width':'100%'}"
+              placeholder="Select Report Type">
+            </p-dropdown>
+          </div>
+
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">
+              Description
+            </label>
+            <textarea 
+              pInputTextarea 
+              formControlName="description"
+              rows="3"
+              class="w-full">
+            </textarea>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Report Filters -->
+      <p-card header="Report Filters">
+        <div formGroupName="filters" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Date Range
+            </label>
+            <p-dropdown 
+              [options]="dateRanges"
+              formControlName="dateRange"
+              [style]="{'width':'100%'}"
+              placeholder="Select Date Range">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Department
+            </label>
+            <p-dropdown 
+              [options]="departments"
+              formControlName="department"
+              [style]="{'width':'100%'}"
+              placeholder="All Departments">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Group By
+            </label>
+            <p-dropdown 
+              [options]="groupByOptions"
+              formControlName="groupBy"
+              [style]="{'width':'100%'}"
+              placeholder="Select Grouping">
+            </p-dropdown>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Report Sections -->
+      <p-card header="Report Sections">
+        <div class="mb-4">
+          <p-button 
+            label="Add Section" 
+            icon="ri-add-line"
+            severity="secondary"
+            (onClick)="openSectionDialog()">
+          </p-button>
+        </div>
+
+        <div cdkDropList 
+             (cdkDropListDropped)="dropSection($event)"
+             class="space-y-4">
+          <div *ngFor="let section of sections.controls; let i = index"
+               cdkDrag
+               [formGroupName]="i"
+               class="bg-white border rounded-lg p-4 cursor-move">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <i [class]="getSectionIcon(section.value.type)"></i>
+                  <h4 class="font-medium">{{section.value.title}}</h4>
+                </div>
+                <p class="text-sm text-gray-600">
+                  {{getSectionDescription(section.value)}}
+                </p>
+              </div>
+              <div class="flex gap-2">
+                <p-button 
+                  icon="ri-edit-line"
+                  severity="secondary"
+                  (onClick)="editSection(i)">
+                </p-button>
+                <p-button 
+                  icon="ri-delete-bin-line"
+                  severity="danger"
+                  (onClick)="removeSection(i)">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+
+      <!-- Schedule Settings -->
+      <p-card header="Schedule Settings" *ngIf="showScheduleSettings">
+        <div formGroupName="schedule" class="space-y-4">
+          <div class="flex items-center gap-2">
+            <p-inputSwitch formControlName="active"></p-inputSwitch>
+            <span class="text-sm font-medium text-gray-700">
+              Enable Automated Report Generation
+            </span>
+          </div>
+
+          <div *ngIf="schedule.get('active')?.value" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Frequency
+              </label>
+              <p-dropdown 
+                [options]="frequencies"
+                formControlName="frequency"
+                [style]="{'width':'100%'}"
+                placeholder="Select Frequency">
+              </p-dropdown>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Time
+              </label>
+              <p-calendar 
+                formControlName="time"
+                [timeOnly]="true"
+                [showTime]="true"
+                [showSeconds]="false"
+                inputId="timeonly">
+              </p-calendar>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Recipients
+              </label>
+              <div class="flex flex-wrap gap-2">
+                <p-chip 
+                  *ngFor="let recipient of schedule.get('recipients')?.value"
+                  [label]="recipient"
+                  [removable]="true"
+                  (onRemove)="removeRecipient(recipient)">
+                </p-chip>
+                <input 
+                  pInputText 
+                  placeholder="Enter email and press enter"
+                  (keydown.enter)="addRecipient($event)"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </form>
+  </div>
+
+  <!-- Section Dialog -->
+  <p-dialog 
+    [(visible)]="showSectionDialog" 
+    [header]="editingSection ? 'Edit Section' : 'Add Section'"
+    [modal]="true"
+    [style]="{width: '500px'}">
+    <form [formGroup]="sectionForm" class="space-y-4">
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Section Type <span class="text-red-500">*</span>
+        </label>
+        <p-dropdown 
+          [options]="sectionTypes"
+          formControlName="type"
+          [style]="{'width':'100%'}"
+          placeholder="Select Section Type">
+        </p-dropdown>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Title <span class="text-red-500">*</span>
+        </label>
+        <input 
+          pInputText 
+          formControlName="title"
+          class="w-full" />
+      </div>
+
+      <!-- Dynamic Config Based on Section Type -->
+      <div [ngSwitch]="sectionForm.get('type')?.value" formGroupName="config">
+        <!-- Chart Configuration -->
+        <div *ngSwitchCase="'chart'" class="space-y-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Chart Type
+            </label>
+            <p-dropdown 
+              [options]="chartTypes"
+              formControlName="chartType"
+              [style]="{'width':'100%'}"
+              placeholder="Select Chart Type">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Metrics
+            </label>
+            <p-multiSelect 
+              [options]="availableMetrics"
+              formControlName="metrics"
+              defaultLabel="Select Metrics"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+        </div>
+
+        <!-- Table Configuration -->
+        <div *ngSwitchCase="'table'" class="space-y-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Columns
+            </label>
+            <p-multiSelect 
+              [options]="availableColumns"
+              formControlName="columns"
+              defaultLabel="Select Columns"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Sort By
+              </label>
+              <p-dropdown 
+                [options]="availableColumns"
+                formControlName="sortBy"
+                [style]="{'width':'100%'}"
+                placeholder="Select Sort Field">
+              </p-dropdown>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Limit
+              </label>
+              <p-inputNumber 
+                formControlName="limit"
+                [showButtons]="true"
+                [min]="1"
+                styleClass="w-full">
+              </p-inputNumber>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Configuration -->
+        <div *ngSwitchCase="'metrics'" class="space-y-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Select Metrics
+            </label>
+            <p-multiSelect 
+              [options]="availableMetrics"
+              formControlName="metrics"
+              defaultLabel="Select Metrics"
+              [style]="{'width':'100%'}">
+            </p-multiSelect>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancel" 
+        icon="ri-close-line"
+        severity="secondary"
+        (onClick)="cancelSection()">
+      </p-button>
+      <p-button 
+        label="Save Section" 
+        icon="ri-save-line"
+        (onClick)="saveSection()"
+        [disabled]="sectionForm.invalid">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <!-- Preview Dialog -->
+  <p-dialog 
+    [(visible)]="showPreviewDialog" 
+    header="Report Preview"
+    [modal]="true"
+    [maximizable]="true"
+    [style]="{width: '90vw'}">
+    <!-- Report preview content -->
+  </p-dialog>

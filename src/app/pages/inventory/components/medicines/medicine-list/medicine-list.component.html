@@ -1,0 +1,108 @@
+<div class="p-4">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold">Medicines Inventory</h2>
+        <p-button 
+            label="Add Medicine" 
+            icon="ri-add-line" 
+            routerLink="add">
+        </p-button>
+    </div>
+
+    <p-card>
+        <p-table 
+            #dt 
+            [value]="medicines" 
+            [rows]="10" 
+            [paginator]="true"
+            [globalFilterFields]="['name', 'brand', 'batchNumber', 'manufacturer']"
+            [tableStyle]="{'min-width': '75rem'}"
+            [loading]="loading"
+            dataKey="id"
+            [rowHover]="true">
+
+            <ng-template pTemplate="caption">
+                <div class="flex items-center justify-between">
+                    <span class="p-input-icon-left">
+                        <i class="ri-search-line"></i>
+                        <input 
+                        pInputText 
+                        type="text" 
+                        (input)="onSearch($event)" 
+                        placeholder="Search medicines..." />
+                    </span>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
+                    <th pSortableColumn="brand">Brand/Details <p-sortIcon field="brand"></p-sortIcon></th>
+                    <th pSortableColumn="quantity">Stock Level <p-sortIcon field="quantity"></p-sortIcon></th>
+                    <th pSortableColumn="expiryDate">Expiry Date <p-sortIcon field="expiryDate"></p-sortIcon></th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-medicine>
+                <tr>
+                    <td>
+                        <div class="font-medium">{{medicine.name}}</div>
+                        <div class="text-sm text-gray-500">{{medicine.batchNumber}}</div>
+                    </td>
+                    <td>
+                        <div>{{medicine.brand}}</div>
+                        <div class="text-sm text-gray-500">{{medicine.manufacturer}}</div>
+                    </td>
+                    <td>
+                        <div [class]="getStockLevelClass(medicine)">
+                            {{medicine.quantity}} units
+                            <div class="text-sm text-gray-500">
+                                Reorder at: {{medicine.reorderLevel}}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div [class]="getExpiryClass(medicine.expiryDate)">
+                            {{medicine.expiryDate | date}}
+                        </div>
+                    </td>
+                    <td>
+                        <p-tag 
+                            [value]="medicine.status"
+                            [severity]="getStatusSeverity(medicine.status)">
+                        </p-tag>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <p-button 
+                                icon="ri-eye-line" 
+                                severity="secondary"
+                                (onClick)="viewDetails(medicine)">
+                            </p-button>
+                            <p-button 
+                                icon="ri-edit-line" 
+                                severity="secondary"
+                                (onClick)="editMedicine(medicine)">
+                            </p-button>
+                            <p-button 
+                                icon="ri-stock-line" 
+                                severity="warn"
+                                (onClick)="adjustStock(medicine)">
+                            </p-button>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </p-card>
+
+    <!-- Stock Adjustment Dialog -->
+    <p-dialog 
+        [(visible)]="showStockDialog" 
+        [header]="'Adjust Stock - ' + selectedMedicine?.name"
+        [modal]="true"
+        [style]="{width: '450px'}">
+        <!-- Stock adjustment form will go here -->
+    </p-dialog>
+</div>

@@ -1,0 +1,256 @@
+<div class="space-y-6">
+  <!-- Payment Methods -->
+  <p-card header="Payment Methods">
+    <form [formGroup]="paymentForm" class="space-y-4">
+      <!-- Online Payments -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Online Payment Gateways</h3>
+
+        <!-- Stripe Configuration -->
+        <div class="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-medium">Stripe</h4>
+              <p class="text-sm text-gray-600">Accept credit card payments</p>
+            </div>
+            <p-inputSwitch formControlName="stripeEnabled"></p-inputSwitch>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="paymentForm.get('stripeEnabled')?.value"
+            formGroupName="stripe">
+            <div class="field">
+              <label class="block text-sm text-gray-600">Public Key</label>
+              <input pInputText formControlName="publicKey" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Secret Key</label>
+              <input pInputText type="password" formControlName="secretKey" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Webhook Secret</label>
+              <input pInputText type="password" formControlName="webhookSecret" class="w-full" />
+            </div>
+          </div>
+        </div>
+
+        <!-- PayPal Configuration -->
+        <div class="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-medium">PayPal</h4>
+              <p class="text-sm text-gray-600">Accept PayPal payments</p>
+            </div>
+            <p-inputSwitch formControlName="paypalEnabled"></p-inputSwitch>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="paymentForm.get('paypalEnabled')?.value"
+            formGroupName="paypal">
+            <div class="field">
+              <label class="block text-sm text-gray-600">Client ID</label>
+              <input pInputText formControlName="clientId" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Secret Key</label>
+              <input pInputText type="password" formControlName="secretKey" class="w-full" />
+            </div>
+            <div class="field">
+              <label class="block text-sm text-gray-600">Environment</label>
+              <p-dropdown [options]="paypalEnvironments" formControlName="environment" [style]="{'width':'100%'}">
+              </p-dropdown>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offline Payment Methods -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Offline Payment Methods</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Cash</span>
+              <p-inputSwitch formControlName="cashEnabled"></p-inputSwitch>
+            </div>
+          </div>
+
+          <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Bank Transfer</span>
+              <p-inputSwitch formControlName="bankTransferEnabled"></p-inputSwitch>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <p-button label="Save Payment Settings" icon="ri-save-line" (onClick)="savePaymentSettings()"
+          [loading]="savingPayment">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <!-- Invoice Settings -->
+  <p-card header="Invoice Settings">
+    <form [formGroup]="invoiceForm" class="space-y-4">
+      <!-- Basic Settings -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Invoice Prefix
+          </label>
+          <input pInputText formControlName="prefix" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Starting Number
+          </label>
+          <p-inputNumber formControlName="startingNumber" [min]="1" [showButtons]="true" styleClass="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Default Due Days
+          </label>
+          <p-inputNumber formControlName="defaultDueDays" [min]="0" [showButtons]="true" styleClass="w-full">
+          </p-inputNumber>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Default Currency
+          </label>
+          <p-dropdown [options]="currencies" formControlName="defaultCurrency" [style]="{'width':'100%'}"
+            placeholder="Select Currency">
+          </p-dropdown>
+        </div>
+      </div>
+
+      <!-- Tax Settings -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Tax Configuration</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Tax Name
+            </label>
+            <input pInputText formControlName="taxName" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Tax Rate (%)
+            </label>
+            <p-inputNumber formControlName="defaultTaxRate" [min]="0" [max]="100" [minFractionDigits]="2"
+              [maxFractionDigits]="2" styleClass="w-full">
+            </p-inputNumber>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <p-inputSwitch formControlName="taxEnabled"></p-inputSwitch>
+          <span class="text-sm font-medium text-gray-700">Enable Tax on Invoices</span>
+        </div>
+      </div>
+
+      <!-- Invoice Template -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Invoice Template</h3>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Header Text
+          </label>
+          <input pInputText formControlName="headerText" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Footer Text
+          </label>
+          <p-editor formControlName="footerText" [style]="{'height':'200px'}">
+          </p-editor>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Terms & Conditions
+          </label>
+          <p-editor formControlName="terms" [style]="{'height':'200px'}">
+          </p-editor>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Logo
+          </label>
+          <p-fileUpload mode="advanced" [maxFileSize]="1000000" accept="image/*" [customUpload]="true"
+            (uploadHandler)="onLogoUpload($event)" [auto]="true">
+          </p-fileUpload>
+        </div>
+      </div>
+
+      <!-- Email Settings -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Invoice Email Settings</h3>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Email Subject Template
+          </label>
+          <input pInputText formControlName="emailSubject" class="w-full" />
+          <small class="text-gray-500">
+            Available variables: {{'{invoice_number}'}}, {{'{due_date}'}}, {{'{amount}'}}
+          </small>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Email Body Template
+          </label>
+          <p-editor formControlName="emailBody" [style]="{'height':'300px'}">
+          </p-editor>
+          <small class="text-gray-500">
+            Available variables: {{'{patient_name}'}}, {{'{invoice_number}'}}, {{'{due_date}'}}, {{'{amount}'}}, {{'{payment_link}'}}
+          </small>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <p-button label="Save Invoice Settings" icon="ri-save-line" (onClick)="saveInvoiceSettings()"
+          [loading]="savingInvoice">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <!-- Preview Button -->
+  <div class="flex justify-end space-x-2">
+    <p-button label="Preview Template" icon="ri-eye-line" severity="secondary" (onClick)="previewTemplate()">
+    </p-button>
+    <p-button label="Save Invoice Settings" icon="ri-save-line" (onClick)="saveInvoiceSettings()"
+      [loading]="savingInvoice">
+    </p-button>
+  </div>
+
+  <!-- Preview Dialog -->
+  <p-dialog [(visible)]="showPreview" [header]="'Invoice Template Preview'" [modal]="true" [maximizable]="true"
+    [style]="{width: '90vw'}" [contentStyle]="{padding: '0'}">
+
+    <div class="flex justify-end gap-2 mb-4 px-4">
+      <p-button label="Download PDF" icon="ri-download-line" severity="secondary" (onClick)="downloadPreview()">
+      </p-button>
+      <p-button label="Send Test Email" icon="ri-mail-line" severity="secondary" (onClick)="sendTestEmail()">
+      </p-button>
+    </div>
+
+    <app-invoice-preview [settings]="getPreviewSettings()">
+    </app-invoice-preview>
+  </p-dialog>
+</div>
+
+<p-toast></p-toast>

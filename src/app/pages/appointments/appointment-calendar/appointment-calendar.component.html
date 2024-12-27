@@ -1,0 +1,119 @@
+<div class="p-4">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <!-- Calendar Sidebar -->
+      <div class="lg:col-span-1">
+        <p-card>
+          <div class="space-y-4">
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Quick Actions</h3>
+              <div class="space-y-2">
+                <p-button 
+                  label="New Appointment" 
+                  icon="ri-add-line" 
+                  styleClass="w-full"
+                  (onClick)="navigateToNewAppointment()">
+                </p-button>
+                <p-button 
+                  label="View List" 
+                  icon="ri-list-check" 
+                  styleClass="w-full"
+                  severity="secondary"
+                  routerLink="../list">
+                </p-button>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Filter By Department</h3>
+              <p-dropdown 
+                [options]="departments" 
+                [(ngModel)]="selectedDepartment"
+                (onChange)="filterAppointments()"
+                styleClass="w-full">
+              </p-dropdown>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold mb-2">Upcoming Appointments</h3>
+              <div class="space-y-2">
+                <div *ngFor="let appointment of upcomingAppointments" 
+                     class="p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <p class="font-medium">{{appointment.patientName}}</p>
+                      <p class="text-sm text-gray-600">{{appointment.date | date:'shortTime'}}</p>
+                    </div>
+                    <span [class]="getStatusClass(appointment.status)">
+                      {{appointment.status}}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Main Calendar -->
+      <div class="lg:col-span-3">
+<!-- Main Calendar -->
+<div class="lg:col-span-3">
+  <p-card>
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </p-card>
+</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment Details Dialog -->
+  <p-dialog 
+    [(visible)]="displayEventDialog" 
+    [modal]="true" 
+    [style]="{width: '450px'}"
+    header="Appointment Details">
+    <div *ngIf="selectedAppointment" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Patient</label>
+          <p class="mt-1">{{selectedAppointment.patientName}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Doctor</label>
+          <p class="mt-1">{{selectedAppointment.doctorName}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Date & Time</label>
+          <p class="mt-1">{{selectedAppointment.date | date:'medium'}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Status</label>
+          <p class="mt-1">
+            <span [class]="getStatusClass(selectedAppointment.status)">
+              {{selectedAppointment.status}}
+            </span>
+          </p>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Notes</label>
+        <p class="mt-1">{{selectedAppointment.notes}}</p>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button 
+        icon="ri-edit-line" 
+        label="Edit" 
+        (onClick)="editAppointment(selectedAppointment!)">
+      </p-button>
+      <p-button 
+        icon="ri-delete-bin-line" 
+        label="Delete" 
+        severity="danger"
+        (onClick)="confirmDelete(selectedAppointment!)">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog></p-confirmDialog>
+  <p-toast></p-toast>

@@ -1,0 +1,212 @@
+<div class="p-4">
+  <!-- Stats Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <p-card>
+      <div class="flex items-center">
+        <i class="ri-user-heart-line text-3xl mr-3 text-blue-500"></i>
+        <div>
+          <h3 class="text-xl font-semibold">{{stats.totalPatients}}</h3>
+          <p class="text-gray-600">Total Patients</p>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="flex items-center">
+        <i class="ri-calendar-check-line text-3xl mr-3 text-green-500"></i>
+        <div>
+          <h3 class="text-xl font-semibold">{{stats.todayAppointments}}</h3>
+          <p class="text-gray-600">Today's Appointments</p>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="flex items-center">
+        <i class="ri-user-add-line text-3xl mr-3 text-orange-500"></i>
+        <div>
+          <h3 class="text-xl font-semibold">{{stats.newPatients}}</h3>
+          <p class="text-gray-600">New This Month</p>
+        </div>
+      </div>
+    </p-card>
+
+    <p-card>
+      <div class="flex items-center">
+        <i class="ri-nurse-line text-3xl mr-3 text-purple-500"></i>
+        <div>
+          <h3 class="text-xl font-semibold">{{stats.activePatients}}</h3>
+          <p class="text-gray-600">Active Patients</p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Patient Table -->
+  <p-card>
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Patients</h2>
+      <p-button 
+        label="Add Patient" 
+        icon="ri-user-add-line"
+        routerLink="add">
+      </p-button>
+    </div>
+
+    <!-- Filters -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <span class="p-input-icon-left w-full">
+        <i class="ri-search-line"></i>
+        <input 
+          pInputText 
+          type="text" 
+          [(ngModel)]="filters.search"
+          (input)="onSearch($event)"
+          placeholder="Search patients..."
+          class="w-full" />
+      </span>
+
+      <p-calendar 
+        [(ngModel)]="filters.dateRange" 
+        selectionMode="range"
+        [maxDate]="today"
+        [showIcon]="true"
+        placeholder="Registration Date"
+        styleClass="w-full">
+      </p-calendar>
+
+      <p-dropdown 
+      [options]="bloodGroups"
+      [(ngModel)]="filters.bloodGroup"
+      (onChange)="filterPatients()"
+      placeholder="Blood Group"
+      [showClear]="true"
+      styleClass="w-full"
+      optionLabel="label"
+      optionValue="value">
+    </p-dropdown>
+
+      <p-dropdown 
+        [options]="statuses"
+        [(ngModel)]="filters.status"
+        (onChange)="filterPatients()"
+        placeholder="Status"
+        [showClear]="true"
+        styleClass="w-full">
+      </p-dropdown>
+    </div>
+
+    <p-table 
+      #dt
+      [value]="patients" 
+      [rows]="10" 
+      [paginator]="true"
+      [loading]="loading"
+      [rowHover]="true"
+      dataKey="id"
+      [showCurrentPageReport]="true"
+      [globalFilterFields]="['firstName', 'lastName', 'email', 'phone']"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} patients">
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="lastName">
+            Patient <p-sortIcon field="lastName"></p-sortIcon>
+          </th>
+          <th>Contact Info</th>
+          <th pSortableColumn="dateOfBirth">
+            Age/Gender <p-sortIcon field="dateOfBirth"></p-sortIcon>
+          </th>
+          <th>Blood Group</th>
+          <th pSortableColumn="lastVisit">
+            Last Visit <p-sortIcon field="lastVisit"></p-sortIcon>
+          </th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-patient>
+        <tr>
+          <td>
+            <div class="flex items-center">
+              <p-avatar 
+                [label]="getInitials(patient)"
+                shape="circle"
+                [style]="{'background-color': getAvatarColor(patient.id!)}"
+                class="mr-2">
+              </p-avatar>
+              <div>
+                <div class="font-medium">
+                  {{patient.firstName}} {{patient.lastName}}
+                </div>
+                <div class="text-sm text-gray-500">
+                  ID: {{patient.id}}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div>{{patient.phone}}</div>
+            <div class="text-sm text-gray-500">{{patient.email}}</div>
+          </td>
+          <td>
+            <div>{{calculateAge(patient.dateOfBirth)}} years</div>
+            <div class="text-sm text-gray-500">{{patient.gender}}</div>
+          </td>
+          <td>
+            <span class="px-2 py-1 rounded-full text-xs font-medium"
+                  [style.backgroundColor]="getBloodGroupColor(patient.bloodGroup)">
+              {{patient.bloodGroup}}
+            </span>
+          </td>
+          <td>
+            <div>{{patient.lastVisit | date}}</div>
+            <div class="text-sm text-gray-500">
+              {{getTimeSince(patient.lastVisit)}}
+            </div>
+          </td>
+          <td>
+            <p-tag 
+              [value]="patient.status"
+              [severity]="getStatusSeverity(patient.status)">
+            </p-tag>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <p-button 
+                icon="ri-eye-line" 
+                severity="secondary"
+                tooltipPosition="top"
+                pTooltip="View Profile"
+                [routerLink]="['/patients/profile', patient.id]">
+              </p-button>
+              <p-button 
+                icon="ri-calendar-line" 
+                severity="secondary"
+                tooltipPosition="top"
+                pTooltip="Appointments"
+                [routerLink]="['/patients/appointments', patient.id]">
+              </p-button>
+              <p-button 
+                icon="ri-edit-line" 
+                severity="secondary"
+                tooltipPosition="top"
+                pTooltip="Edit Patient"
+                [routerLink]="['/patients/edit', patient.id]">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4">
+            No patients found.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

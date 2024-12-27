@@ -1,0 +1,80 @@
+<div class="p-4">
+    <!-- Filters -->
+    <p-card styleClass="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <p-calendar 
+          [(ngModel)]="dateRange" 
+          selectionMode="range"
+          [maxDate]="today"
+          [showIcon]="true"
+          placeholder="Date Range"
+          (onSelect)="loadAnalytics()">
+        </p-calendar>
+
+        <p-dropdown
+          [options]="departments"
+          [(ngModel)]="selectedDepartment"
+          placeholder="Select Department"
+          [showClear]="true"
+          (onChange)="loadAnalytics()">
+        </p-dropdown>
+
+        <p-dropdown
+          [options]="viewTypes"
+          [(ngModel)]="selectedView"
+          placeholder="Select View"
+          (onChange)="loadAnalytics()">
+        </p-dropdown>
+      </div>
+    </p-card>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{analytics.totalPatients}}</h3>
+          <p class="text-gray-600">Total Patients</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{analytics.newPatients}}</h3>
+          <p class="text-gray-600">New Patients</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{analytics.averageVisits}}</h3>
+          <p class="text-gray-600">Avg. Visits/Day</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{analytics.satisfaction}}%</h3>
+          <p class="text-gray-600">Patient Satisfaction</p>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <p-card header="Patient Registrations">
+        <p-chart type="line" [data]="registrationChart" [options]="chartOptions"></p-chart>
+      </p-card>
+
+      <p-card header="Age Distribution">
+        <p-chart type="pie" [data]="ageDistributionChart" [options]="chartOptions"></p-chart>
+      </p-card>
+
+      <p-card header="Appointments by Department">
+        <p-chart type="bar" [data]="departmentChart" [options]="chartOptions"></p-chart>
+      </p-card>
+
+      <p-card header="Gender Distribution">
+        <p-chart type="doughnut" [data]="genderChart" [options]="chartOptions"></p-chart>
+      </p-card>
+    </div>
+  </div>

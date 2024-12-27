@@ -1,0 +1,121 @@
+<!-- src/app/pages/patients/patient-detail/lab-results/lab-results.component.html -->
+<div class="space-y-6">
+    <!-- Filters -->
+    <div class="bg-white shadow rounded-lg p-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Time Range</label>
+          <select [(ngModel)]="timeRange" 
+                  (change)="loadLabResults()"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="all">All Time</option>
+            <option value="6months">Last 6 Months</option>
+            <option value="1year">Last Year</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Category</label>
+          <select [(ngModel)]="categoryFilter" 
+                  (change)="loadLabResults()"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <option value="all">All Categories</option>
+            <option *ngFor="let category of categories" [value]="category">
+              {{category}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Lab Reports List -->
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      <div *ngFor="let report of labReports" class="p-4">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-medium text-gray-900">
+              {{report.category}} Report
+            </h3>
+            <p class="text-sm text-gray-500">
+              Test Date: {{report.date | date:'mediumDate'}}
+            </p>
+          </div>
+          <div class="flex space-x-2">
+            <button (click)="downloadReport(report.id)"
+                    class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+              <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download
+            </button>
+          </div>
+        </div>
+  
+        <!-- Test Results Table -->
+        <div class="mt-4 overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference Range</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trend</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let test of report.tests">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{test.testName}}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{test.result}}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{test.unit}}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{test.referenceRange.min}} - {{test.referenceRange.max}}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + getStatusClass(test.status)">
+                    {{test.status}}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <button (click)="showTrendAnalysis(test)"
+                          class="text-blue-600 hover:text-blue-900">
+                    View Trend
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Trend Analysis Modal -->
+    <div *ngIf="displayTrend" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4">
+        <div class="p-4 border-b">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-medium">
+              Trend Analysis: {{selectedTest?.testName}}
+            </h3>
+            <button (click)="displayTrend = false" class="text-gray-400 hover:text-gray-500">
+              <span class="sr-only">Close</span>
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div class="p-4">
+          <p-chart type="line" [data]="trendData" [options]="{ responsive: true }"></p-chart>
+        </div>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,199 @@
+<div class="p-4">
+    <!-- Profile Header -->
+    <p-card styleClass="mb-4">
+      <div class="md:flex md:items-start">
+        <div class="md:flex-shrink-0 mb-4 md:mb-0">
+          <p-avatar 
+          [image]="doctor?.profileImage || ''"
+          shape="circle"
+          size="xlarge"
+          [attr.alt]="(doctor?.firstName || '') + ' ' + (doctor?.lastName || '')">
+        </p-avatar>
+        </div>
+        <div class="md:ml-6 flex-1">
+          <div class="flex justify-between items-start">
+            <div>
+              <h1 class="text-2xl font-bold">
+                {{doctor?.prefix}} {{doctor?.firstName}} {{doctor?.lastName}}
+              </h1>
+              <p class="text-gray-600">{{doctor?.specialization}}</p>
+            </div>
+            <div class="flex gap-2">
+              <p-button 
+                icon="ri-edit-line" 
+                label="Edit Profile"
+                severity="secondary"
+                (onClick)="editProfile()">
+              </p-button>
+              <p-button 
+                icon="ri-calendar-line" 
+                label="View Schedule"
+                (onClick)="viewSchedule()">
+              </p-button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">Department</h4>
+              <p class="mt-1">{{doctor?.department}}</p>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">Experience</h4>
+              <p class="mt-1">{{doctor?.experience}} years</p>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">License No.</h4>
+              <p class="mt-1">{{doctor?.licenseNumber}}</p>
+            </div>
+            <div>
+              <h4 class="text-sm font-medium text-gray-500">Status</h4>
+              <p-tag 
+                [value]="doctor?.status"
+                [severity]="getStatusSeverity(doctor?.status)">
+              </p-tag>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Detailed Information -->
+    <p-tabView>
+      <!-- About Tab -->
+      <p-tabPanel header="About">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Professional Summary</h3>
+              <p class="text-gray-600">{{doctor?.about}}</p>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Areas of Expertise</h3>
+              <div class="flex flex-wrap gap-2">
+                <p-tag 
+                  *ngFor="let expertise of doctor?.expertise"
+                  [value]="expertise"
+                  severity="info">
+                </p-tag>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Languages</h3>
+              <div class="flex flex-wrap gap-2">
+                <p-tag 
+                  *ngFor="let language of doctor?.languages"
+                  [value]="language"
+                  severity="success">
+                </p-tag>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Contact Information</h3>
+              <div class="space-y-2">
+                <p class="flex items-center">
+                  <i class="ri-mail-line mr-2"></i>
+                  {{doctor?.email}}
+                </p>
+                <p class="flex items-center">
+                  <i class="ri-phone-line mr-2"></i>
+                  {{doctor?.phone}}
+                </p>
+                <p class="flex items-center">
+                  <i class="ri-map-pin-line mr-2"></i>
+                  {{formatAddress(doctor?.address)}}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Working Hours</h3>
+              <div class="space-y-2">
+                <p class="flex items-center">
+                  <i class="ri-time-line mr-2"></i>
+                  {{doctor?.workingHours?.start}} - {{doctor?.workingHours?.end}}
+                </p>
+                <p class="flex items-center">
+                  <i class="ri-calendar-line mr-2"></i>
+                  {{formatWorkingDays(doctor?.workingDays)}}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">Consultation Fee</h3>
+              <p class="text-xl font-medium text-blue-600">
+                ${{doctor?.consultationFee}}
+              </p>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Schedule Tab -->
+      <p-tabPanel header="Schedule">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Calendar Widget -->
+          <div class="col-span-2">
+            <p-calendar 
+              [inline]="true"
+              [showWeek]="true"
+              (onSelect)="onDateSelect($event)">
+            </p-calendar>
+          </div>
+
+          <!-- Time Slots -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Available Time Slots
+            </h3>
+            <div class="space-y-2">
+              <ng-container *ngFor="let slot of availableSlots">
+                <div 
+                  class="p-3 rounded-lg border"
+                  [class.bg-green-50]="slot.status === 'available'"
+                  [class.bg-red-50]="slot.status === 'booked'"
+                  [class.bg-gray-50]="slot.status === 'blocked'">
+                  <div class="flex justify-between items-center">
+                    <span>{{slot.startTime}} - {{slot.endTime}}</span>
+                    <p-tag 
+                      [value]="slot.status"
+                      [severity]="getSlotStatusSeverity(slot.status)">
+                    </p-tag>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Statistics Tab -->
+      <p-tabPanel header="Statistics">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Appointments Chart -->
+          <p-card header="Appointments Overview">
+            <p-chart 
+              type="line" 
+              [data]="appointmentsChartData"
+              [options]="chartOptions">
+            </p-chart>
+          </p-card>
+
+          <!-- Patient Demographics -->
+          <p-card header="Patient Demographics">
+            <p-chart 
+              type="pie" 
+              [data]="demographicsChartData"
+              [options]="pieChartOptions">
+            </p-chart>
+          </p-card>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>

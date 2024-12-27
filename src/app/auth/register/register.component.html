@@ -1,0 +1,188 @@
+<div class="text-center mb-8">
+    <img src="assets/images/logo.png" alt="Healthcare Logo" class="mx-auto h-12 w-auto mb-4">
+    <h2 class="text-3xl font-bold text-gray-900">Create your account</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Already have an account?
+      <a routerLink="/auth/login" class="font-medium text-blue-600 hover:text-blue-500">
+        Sign in
+      </a>
+    </p>
+  </div>
+  
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+    <div class="rounded-md shadow-sm space-y-4">
+      <!-- Name Fields -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+          <input
+            id="firstName"
+            type="text"
+            formControlName="firstName"
+            [ngClass]="{
+              'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+              'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('firstName')?.invalid || !registerForm.get('firstName')?.touched,
+              'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched
+            }"
+          >
+          <div *ngIf="registerForm.get('firstName')?.invalid && registerForm.get('firstName')?.touched" class="mt-1 text-sm text-red-600">
+            First name is required
+          </div>
+        </div>
+        <div>
+          <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+          <input
+            id="lastName"
+            type="text"
+            formControlName="lastName"
+            [ngClass]="{
+              'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+              'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('lastName')?.invalid || !registerForm.get('lastName')?.touched,
+              'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched
+            }"
+          >
+          <div *ngIf="registerForm.get('lastName')?.invalid && registerForm.get('lastName')?.touched" class="mt-1 text-sm text-red-600">
+            Last name is required
+          </div>
+        </div>
+      </div>
+  
+      <!-- Email Field -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          [ngClass]="{
+            'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+            'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('email')?.invalid || !registerForm.get('email')?.touched,
+            'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('email')?.invalid && registerForm.get('email')?.touched
+          }"
+        >
+        <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="mt-1 text-sm text-red-600">
+          <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email address</span>
+        </div>
+      </div>
+  
+      <!-- Role Selection -->
+      <div>
+        <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+        <select
+          id="role"
+          formControlName="role"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+        >
+          <option value="DOCTOR">Doctor</option>
+          <option value="NURSE">Nurse</option>
+          <option value="RECEPTIONIST">Receptionist</option>
+          <option value="PHARMACIST">Pharmacist</option>
+        </select>
+      </div>
+  
+      <!-- Department Selection -->
+      <div>
+        <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
+        <select
+          id="department"
+          formControlName="department"
+          [ngClass]="{
+            'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+            'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('department')?.invalid || !registerForm.get('department')?.touched,
+            'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('department')?.invalid && registerForm.get('department')?.touched
+          }"
+        >
+          <option value="">Select Department</option>
+          <option value="CARDIOLOGY">Cardiology</option>
+          <option value="NEUROLOGY">Neurology</option>
+          <option value="PEDIATRICS">Pediatrics</option>
+          <option value="ORTHOPEDICS">Orthopedics</option>
+        </select>
+        <div *ngIf="registerForm.get('department')?.invalid && registerForm.get('department')?.touched" class="mt-1 text-sm text-red-600">
+          Please select a department
+        </div>
+      </div>
+  
+      <!-- Password Fields -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          [ngClass]="{
+            'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+            'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('password')?.invalid || !registerForm.get('password')?.touched,
+            'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('password')?.invalid && registerForm.get('password')?.touched
+          }"
+        >
+        <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="mt-1 text-sm text-red-600">
+          <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 8 characters</span>
+        </div>
+      </div>
+  
+      <div>
+        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          formControlName="confirmPassword"
+          [ngClass]="{
+            'mt-1 block w-full rounded-md shadow-sm sm:text-sm': true,
+            'border-gray-300 focus:border-blue-500 focus:ring-blue-500': !registerForm.get('confirmPassword')?.invalid || !registerForm.get('confirmPassword')?.touched,
+            'border-red-500 focus:border-red-500 focus:ring-red-500': registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched
+          }"
+        >
+        <div *ngIf="registerForm.errors?.['mismatch'] && registerForm.get('confirmPassword')?.touched" class="mt-1 text-sm text-red-600">
+          Passwords do not match
+        </div>
+      </div>
+    </div>
+  
+    <!-- Terms Checkbox -->
+    <div class="flex items-center">
+      <input
+        id="terms"
+        type="checkbox"
+        formControlName="terms"
+        [ngClass]="{
+          'h-4 w-4 focus:ring-blue-500 rounded': true,
+          'border-gray-300 text-blue-600': !registerForm.get('terms')?.invalid || !registerForm.get('terms')?.touched,
+          'border-red-500': registerForm.get('terms')?.invalid && registerForm.get('terms')?.touched
+        }"
+      >
+      <label for="terms" class="ml-2 block text-sm text-gray-900">
+        I agree to the
+        <a href="#" class="text-blue-600 hover:text-blue-500">Terms of Service</a>
+        and
+        <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+      </label>
+    </div>
+    <div *ngIf="registerForm.get('terms')?.invalid && registerForm.get('terms')?.touched" class="mt-1 text-sm text-red-600">
+      You must accept the terms and conditions
+    </div>
+  
+    <!-- Submit Button -->
+    <div>
+      <button
+        type="submit"
+        [disabled]="registerForm.invalid || isLoading"
+        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400"
+      >
+        <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ isLoading ? 'Creating account...' : 'Create account' }}
+      </button>
+    </div>
+  
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="mt-4">
+      <div class="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <span class="block sm:inline">{{errorMessage}}</span>
+      </div>
+    </div>
+  </form>

@@ -1,0 +1,306 @@
+<div class="p-4">
+    <!-- Patient Header -->
+    <p-card styleClass="mb-4">
+      <div class="flex justify-between">
+        <div class="flex items-start gap-6">
+          <p-avatar 
+            [label]="getInitials(patient)"
+            shape="circle"
+            size="xlarge"
+            [style]="{'width': '100px', 'height': '100px',
+                     'background-color': getAvatarColor(patient?.id!)}"
+            class="mb-2">
+          </p-avatar>
+          
+          <div>
+            <div class="flex items-center gap-3">
+              <h1 class="text-2xl font-bold">
+                {{patient?.firstName}} {{patient?.lastName}}
+              </h1>
+              <p-tag 
+                [value]="patient?.status"
+                [severity]="getStatusSeverity(patient?.status)">
+              </p-tag>
+            </div>
+            <div class="text-gray-600 mt-1">
+              <div>ID: {{patient?.id}}</div>
+              <div>{{patient?.gender}} | {{calculateAge(patient?.dateOfBirth)}} years</div>
+            </div>
+            <div class="flex gap-3 mt-3">
+              <span class="px-3 py-1 rounded-full text-sm"
+                    [style.backgroundColor]="getBloodGroupColor(patient?.bloodGroup)">
+                Blood: {{patient?.bloodGroup}}
+              </span>
+              <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                Registered: {{patient?.registrationDate | date}}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <p-button 
+            label="Edit Profile" 
+            icon="ri-edit-line"
+            severity="secondary"
+            [routerLink]="['/patients/edit', patient?.id]">
+          </p-button>
+          <p-button 
+            label="New Appointment" 
+            icon="ri-calendar-line"
+            (onClick)="scheduleAppointment()">
+          </p-button>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{patientStats.totalVisits}}</h3>
+          <p class="text-gray-600">Total Visits</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{patientStats.upcomingAppointments}}</h3>
+          <p class="text-gray-600">Upcoming Appointments</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{patientStats.prescriptions}}</h3>
+          <p class="text-gray-600">Active Prescriptions</p>
+        </div>
+      </p-card>
+
+      <p-card>
+        <div class="text-center">
+          <h3 class="text-xl font-semibold">{{patientStats.lastVisit | date}}</h3>
+          <p class="text-gray-600">Last Visit</p>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Main Content -->
+    <p-tabView>
+      <!-- Medical History -->
+      <p-tabPanel header="Medical History">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Allergies & Conditions -->
+          <div class="space-y-4">
+            <div class="bg-white p-4 rounded-lg border">
+              <h3 class="text-lg font-medium mb-3">Allergies</h3>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let allergy of patient?.medicalHistory?.allergies"
+                      class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                  {{allergy}}
+                </span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg border">
+              <h3 class="text-lg font-medium mb-3">Medical Conditions</h3>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let condition of patient?.medicalHistory?.conditions"
+                      class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+                  {{condition}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Surgeries & Medications -->
+          <div class="space-y-4">
+            <div class="bg-white p-4 rounded-lg border">
+              <h3 class="text-lg font-medium mb-3">Past Surgeries</h3>
+              <div class="space-y-2">
+                <div *ngFor="let surgery of patient?.medicalHistory?.surgeries"
+                     class="p-2 bg-gray-50 rounded">
+                  {{surgery}}
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg border">
+              <h3 class="text-lg font-medium mb-3">Current Medications</h3>
+              <div class="space-y-2">
+                <div *ngFor="let medication of patient?.medicalHistory?.medications"
+                     class="p-2 bg-gray-50 rounded">
+                  {{medication}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Appointments & Visits -->
+      <p-tabPanel header="Appointments & Visits">
+        <p-timeline [value]="appointments" styleClass="mt-4">
+          <ng-template pTemplate="marker" let-appointment>
+            <span [class]="getAppointmentMarkerClass(appointment.status)">
+              <i [class]="getAppointmentIcon(appointment.status)"></i>
+            </span>
+          </ng-template>
+          <ng-template pTemplate="content" let-appointment>
+            <div class="bg-white p-4 rounded-lg border">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h4 class="font-medium">{{appointment.type}}</h4>
+                  <p class="text-sm text-gray-600">
+                    Dr. {{appointment.doctorName}}
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    {{appointment.date | date:'medium'}}
+                  </p>
+                </div>
+                <p-tag 
+                  [value]="appointment.status"
+                  [severity]="getAppointmentStatusSeverity(appointment.status)">
+                </p-tag>
+              </div>
+
+              <div *ngIf="appointment.vitals" class="mt-3 grid grid-cols-3 gap-4">
+                <div class="text-center p-2 bg-gray-50 rounded">
+                  <div class="text-sm text-gray-600">Blood Pressure</div>
+                  <div class="font-medium">{{appointment.vitals.bloodPressure}}</div>
+                </div>
+                <div class="text-center p-2 bg-gray-50 rounded">
+                  <div class="text-sm text-gray-600">Temperature</div>
+                  <div class="font-medium">{{appointment.vitals.temperature}}°C</div>
+                </div>
+                <div class="text-center p-2 bg-gray-50 rounded">
+                  <div class="text-sm text-gray-600">Heart Rate</div>
+                  <div class="font-medium">{{appointment.vitals.heartRate}} bpm</div>
+                </div>
+              </div>
+
+              <div *ngIf="appointment.diagnosis" class="mt-3">
+                <div class="text-sm text-gray-600">Diagnosis</div>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <span *ngFor="let diagnosis of appointment.diagnosis"
+                        class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                    {{diagnosis}}
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="appointment.prescriptions?.length" class="mt-3">
+                <div class="text-sm text-gray-600">Prescriptions</div>
+                <div class="space-y-2 mt-1">
+                  <div *ngFor="let prescription of appointment.prescriptions"
+                       class="p-2 bg-gray-50 rounded text-sm">
+                    <div class="font-medium">{{prescription.medication}}</div>
+                    <div class="text-gray-600">
+                      {{prescription.dosage}} - {{prescription.frequency}}
+                      ({{prescription.duration}})
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="appointment.notes" class="mt-3">
+                <div class="text-sm text-gray-600">Notes</div>
+                <p class="mt-1 text-sm">{{appointment.notes}}</p>
+              </div>
+            </div>
+          </ng-template>
+        </p-timeline>
+      </p-tabPanel>
+
+      <!-- Documents -->
+      <p-tabPanel header="Documents">
+        <div class="mb-4">
+          <p-fileUpload
+            mode="advanced"
+            [multiple]="true"
+            accept="image/*,.pdf,.doc,.docx"
+            [maxFileSize]="1000000"
+            [customUpload]="true"
+            (uploadHandler)="onDocumentUpload($event)"
+            chooseLabel="Upload Documents">
+          </p-fileUpload>
+        </div>
+
+        <p-table [value]="documents" [paginator]="true" [rows]="10">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Size</th>
+              <th>Uploaded</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+
+          <ng-template pTemplate="body" let-doc>
+            <tr>
+              <td>{{doc.name}}</td>
+              <td>{{doc.type}}</td>
+              <td>{{formatFileSize(doc.size)}}</td>
+              <td>{{doc.uploadedAt | date}}</td>
+              <td>
+                <div class="flex gap-2">
+                  <p-button 
+                    icon="ri-download-line" 
+                    severity="secondary"
+                    (onClick)="downloadDocument(doc)">
+                  </p-button>
+                  <p-button 
+                    icon="ri-delete-bin-line" 
+                    severity="danger"
+                    (onClick)="deleteDocument(doc)">
+                  </p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-tabPanel>
+
+      <!-- Insurance Information -->
+      <p-tabPanel header="Insurance">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-4 rounded-lg border">
+            <h3 class="text-lg font-medium mb-3">Insurance Details</h3>
+            <div class="space-y-3">
+              <div>
+                <label class="text-sm text-gray-600">Provider</label>
+                <p class="font-medium">{{patient?.insurance?.provider}}</p>
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Policy Number</label>
+                <p class="font-medium">{{patient?.insurance?.policyNumber}}</p>
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Group Number</label>
+                <p class="font-medium">{{patient?.insurance?.groupNumber}}</p>
+              </div>
+              <div>
+                <label class="text-sm text-gray-600">Expiry Date</label>
+                <p class="font-medium">{{patient?.insurance?.expiryDate | date}}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg border">
+            <h3 class="text-lg font-medium mb-3">Claims History</h3>
+            <!-- Claims history implementation -->
+          </div>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+
+  <!-- Schedule Appointment Dialog -->
+  <p-dialog 
+    [(visible)]="showAppointmentDialog" 
+    header="Schedule Appointment"
+    [modal]="true"
+    [style]="{width: '500px'}">
+    <!-- Appointment form implementation -->
+  </p-dialog>

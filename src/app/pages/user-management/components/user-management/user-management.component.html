@@ -1,0 +1,258 @@
+
+      <div class="p-4">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <p-card>
+            <div class="flex items-center">
+              <i class="ri-user-line text-3xl mr-3 text-blue-500"></i>
+              <div>
+                <h3 class="text-xl font-semibold">{{userStats.totalUsers}}</h3>
+                <p class="text-gray-600">Total Users</p>
+              </div>
+            </div>
+          </p-card>
+  
+          <p-card>
+            <div class="flex items-center">
+              <i class="ri-user-add-line text-3xl mr-3 text-green-500"></i>
+              <div>
+                <h3 class="text-xl font-semibold">{{userStats.activeUsers}}</h3>
+                <p class="text-gray-600">Active Users</p>
+              </div>
+            </div>
+          </p-card>
+  
+          <p-card>
+            <div class="flex items-center">
+              <i class="ri-time-line text-3xl mr-3 text-orange-500"></i>
+              <div>
+                <h3 class="text-xl font-semibold">{{userStats.pendingUsers}}</h3>
+                <p class="text-gray-600">Pending Approvals</p>
+              </div>
+            </div>
+          </p-card>
+  
+          <p-card>
+            <div class="flex items-center">
+              <i class="ri-shield-keyhole-line text-3xl mr-3 text-purple-500"></i>
+              <div>
+                <h3 class="text-xl font-semibold">{{userStats.onlineUsers}}</h3>
+                <p class="text-gray-600">Online Now</p>
+              </div>
+            </div>
+          </p-card>
+        </div>
+  
+        <!-- User List -->
+        <p-card>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">User Management</h2>
+            <div class="flex gap-2">
+              <p-button 
+                label="Import Users" 
+                icon="ri-file-upload-line"
+                severity="secondary"
+                (onClick)="showImportDialog()">
+              </p-button>
+              <p-button 
+                label="Add User" 
+                icon="ri-user-add-line"
+                (onClick)="showUserDialog()">
+              </p-button>
+            </div>
+          </div>
+  
+          <!-- Filters -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <span class="p-input-icon-left w-full">
+              <i class="ri-search-line"></i>
+              <input 
+                pInputText 
+                type="text" 
+                [(ngModel)]="filters.search"
+                (input)="onSearch($event)"
+                placeholder="Search users..."
+                class="w-full" />
+            </span>
+  
+            <p-dropdown 
+              [options]="roles"
+              [(ngModel)]="filters.role"
+              (onChange)="filterUsers()"
+              placeholder="Select Role"
+              [showClear]="true"
+              styleClass="w-full">
+            </p-dropdown>
+  
+            <p-dropdown 
+              [options]="departments"
+              [(ngModel)]="filters.department"
+              (onChange)="filterUsers()"
+              placeholder="Select Department"
+              [showClear]="true"
+              styleClass="w-full">
+            </p-dropdown>
+  
+            <p-dropdown 
+              [options]="statuses"
+              [(ngModel)]="filters.status"
+              (onChange)="filterUsers()"
+              placeholder="Select Status"
+              [showClear]="true"
+              styleClass="w-full">
+            </p-dropdown>
+          </div>
+  
+          <p-table 
+            #dt
+            [value]="users" 
+            [rows]="10" 
+            [paginator]="true"
+            [loading]="loading"
+            [rowHover]="true"
+            dataKey="id"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} users"
+            [rowsPerPageOptions]="[10,25,50]"
+            [globalFilterFields]="['firstName','lastName','email','role','department']">
+  
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="firstName">
+                  User <p-sortIcon field="firstName"></p-sortIcon>
+                </th>
+                <th pSortableColumn="role">
+                  Role <p-sortIcon field="role"></p-sortIcon>
+                </th>
+                <th pSortableColumn="department">
+                  Department <p-sortIcon field="department"></p-sortIcon>
+                </th>
+                <th pSortableColumn="status">
+                  Status <p-sortIcon field="status"></p-sortIcon>
+                </th>
+                <th pSortableColumn="lastLogin">
+                  Last Login <p-sortIcon field="lastLogin"></p-sortIcon>
+                </th>
+                <th>Actions</th>
+              </tr>
+            </ng-template>
+  
+            <ng-template pTemplate="body" let-user>
+              <tr>
+                <td>
+                  <div class="flex items-center">
+                    <p-avatar 
+                      [image]="user.profileImage" 
+                      [label]="getUserInitials(user)"
+                      shape="circle"
+                      [style]="{'width': '32px', 'height': '32px'}"
+                      class="mr-2">
+                    </p-avatar>
+                    <div>
+                      <div class="font-medium">
+                        {{user.firstName}} {{user.lastName}}
+                      </div>
+                      <div class="text-sm text-gray-500">{{user.email}}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span [class]="getRoleClass(user.role)">
+                    {{user.role}}
+                  </span>
+                </td>
+                <td>{{user.department}}</td>
+                <td>
+                  <span [class]="getStatusClass(user.status)">
+                    {{user.status}}
+                  </span>
+                </td>
+                <td>
+                  <div class="text-sm">
+                    {{user.lastLogin | date:'medium'}}
+                  </div>
+                </td>
+                <td>
+                  <div class="flex gap-2">
+                    <p-button 
+                      icon="ri-eye-line" 
+                      severity="secondary"
+                      (onClick)="viewUser(user)"
+                      pTooltip="View Details">
+                    </p-button>
+                    <p-button 
+                      icon="ri-edit-line" 
+                      severity="secondary"
+                      (onClick)="editUser(user)"
+                      pTooltip="Edit User">
+                    </p-button>
+                    <p-button 
+                      icon="ri-lock-line" 
+                      severity="secondary"
+                      (onClick)="resetPassword(user)"
+                      pTooltip="Reset Password">
+                    </p-button>
+                    <p-button 
+                      [icon]="user.status === 'active' ? 'ri-lock-line' : 'ri-lock-unlock-line'"
+                      [severity]="user.status === 'active' ? 'danger' : 'success'"
+                      (onClick)="toggleUserStatus(user)"
+                      [pTooltip]="user.status === 'active' ? 'Block User' : 'Activate User'">
+                    </p-button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+  
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="6" class="text-center p-4">
+                  No users found.
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+  
+        <!-- User Dialog -->
+        <p-dialog 
+          [(visible)]="displayUserDialog" 
+          [header]="selectedUser ? 'Edit User' : 'Add New User'"
+          [modal]="true"
+          [style]="{width: '650px'}"
+          [draggable]="false">
+          <!-- User Form -->
+        </p-dialog>
+  
+        <!-- Import Dialog -->
+        <p-dialog 
+          [(visible)]="displayImportDialog" 
+          header="Import Users"
+          [modal]="true"
+          [style]="{width: '450px'}"
+          [draggable]="false">
+          <!-- Import Form -->
+        </p-dialog>
+  
+        <!-- View User Dialog -->
+        <p-dialog 
+          [(visible)]="displayViewDialog" 
+          [header]="selectedUser ? selectedUser.firstName + ' ' + selectedUser.lastName : ''"
+          [modal]="true"
+          [style]="{width: '800px'}"
+          [draggable]="false">
+          <!-- User Details View -->
+        </p-dialog>
+  
+        <!-- Reset Password Dialog -->
+        <p-dialog 
+          [(visible)]="displayResetDialog" 
+          header="Reset Password"
+          [modal]="true"
+          [style]="{width: '400px'}"
+          [draggable]="false">
+          <!-- Reset Password Form -->
+        </p-dialog>
+  
+        <p-confirmDialog></p-confirmDialog>
+        <p-toast></p-toast>
+      </div>

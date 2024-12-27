@@ -1,0 +1,292 @@
+<div class="p-4">
+  <!-- Profile Header -->
+  <div class="mb-6">
+    <p-card>
+      <div class="md:flex items-center gap-8">
+        <div class="flex-shrink-0 text-center mb-4 md:mb-0">
+          <div class="relative inline-block">
+            <p-avatar 
+              [image]="profileImage"
+              size="xlarge" 
+              shape="circle"
+              [style]="{'width': '150px', 'height': '150px'}"
+              class="mb-2">
+            </p-avatar>
+            <button 
+              class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border"
+              (click)="showPhotoDialog()">
+              <i class="ri-camera-line text-xl text-gray-600"></i>
+            </button>
+          </div>
+          <h2 class="text-xl font-bold mt-2">{{userData?.name}}</h2>
+          <p class="text-gray-600">{{userData?.role}}</p>
+        </div>
+
+        <div class="flex-grow">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+              <h3 class="text-2xl font-bold text-blue-600">{{userData?.stats?.totalPatients}}</h3>
+              <p class="text-gray-600">Total Patients</p>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+              <h3 class="text-2xl font-bold text-green-600">{{userData?.stats?.appointmentsThisMonth}}</h3>
+              <p class="text-gray-600">Appointments This Month</p>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+              <h3 class="text-2xl font-bold text-purple-600">{{userData?.stats?.yearsOfService}}</h3>
+              <p class="text-gray-600">Years of Service</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Main Content -->
+  <p-tabView>
+    <!-- Personal Information -->
+    <p-tabPanel header="Personal Information">
+      <form [formGroup]="personalForm" class="space-y-6" (ngSubmit)="updatePersonalInfo()">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              First Name
+            </label>
+            <input pInputText formControlName="firstName" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Last Name
+            </label>
+            <input pInputText formControlName="lastName" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input pInputText formControlName="email" type="email" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <input pInputText formControlName="phone" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Specialization
+            </label>
+            <input pInputText formControlName="specialization" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Department
+            </label>
+            <input pInputText formControlName="department" class="w-full" />
+          </div>
+
+          <div class="field md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700">
+              Bio
+            </label>
+            <textarea 
+              pInputTextarea 
+              formControlName="bio"
+              rows="4"
+              class="w-full">
+            </textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <p-button 
+            type="submit" 
+            label="Save Changes"
+            icon="ri-save-line"
+            [loading]="saving">
+          </p-button>
+        </div>
+      </form>
+    </p-tabPanel>
+
+    <!-- Security -->
+    <p-tabPanel header="Security">
+      <div class="space-y-6">
+        <!-- Change Password -->
+        <div class="bg-white p-6 rounded-lg border">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+          <form [formGroup]="passwordForm" class="space-y-4" (ngSubmit)="updatePassword()">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Current Password
+              </label>
+              <p-password 
+                formControlName="currentPassword"
+                [toggleMask]="true"
+                styleClass="w-full">
+              </p-password>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                New Password
+              </label>
+              <p-password 
+                formControlName="newPassword"
+                [toggleMask]="true"
+                [feedback]="true"
+                styleClass="w-full">
+              </p-password>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700">
+                Confirm New Password
+              </label>
+              <p-password 
+                formControlName="confirmPassword"
+                [toggleMask]="true"
+                styleClass="w-full">
+              </p-password>
+            </div>
+
+            <div class="flex justify-end">
+              <p-button 
+                type="submit" 
+                label="Update Password"
+                icon="ri-lock-password-line"
+                [loading]="updatingPassword">
+              </p-button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Two-Factor Authentication -->
+        <div class="bg-white p-6 rounded-lg border">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
+              <p class="text-gray-600 mt-1">
+                Add additional security to your account using 2FA
+              </p>
+            </div>
+            <p-inputSwitch 
+              [(ngModel)]="twoFactorEnabled"
+              (onChange)="toggleTwoFactor()">
+            </p-inputSwitch>
+          </div>
+        </div>
+
+        <!-- Login History -->
+        <div class="bg-white p-6 rounded-lg border">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Login Activity</h3>
+          <p-timeline [value]="loginHistory" class="w-full">
+            <ng-template pTemplate="content" let-login>
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-medium">{{login.location}}</p>
+                  <p class="text-sm text-gray-600">{{login.device}}</p>
+                </div>
+                <p-tag 
+                  [value]="login.status"
+                  [severity]="login.status === 'success' ? 'success' : 'danger'">
+                </p-tag>
+              </div>
+              <small class="text-gray-500">{{login.timestamp | date:'medium'}}</small>
+            </ng-template>
+          </p-timeline>
+        </div>
+      </div>
+    </p-tabPanel>
+
+    <!-- Preferences -->
+    <p-tabPanel header="Preferences">
+      <div class="space-y-6">
+        <!-- Notification Preferences -->
+        <div class="bg-white p-6 rounded-lg border">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium">Email Notifications</p>
+                <p class="text-sm text-gray-600">Receive updates via email</p>
+              </div>
+              <p-inputSwitch [(ngModel)]="preferences.emailNotifications"></p-inputSwitch>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium">SMS Notifications</p>
+                <p class="text-sm text-gray-600">Receive updates via SMS</p>
+              </div>
+              <p-inputSwitch [(ngModel)]="preferences.smsNotifications"></p-inputSwitch>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium">Appointment Reminders</p>
+                <p class="text-sm text-gray-600">Get reminders before appointments</p>
+              </div>
+              <p-inputSwitch [(ngModel)]="preferences.appointmentReminders"></p-inputSwitch>
+            </div>
+          </div>
+        </div>
+
+        <!-- Display Preferences -->
+        <div class="bg-white p-6 rounded-lg border">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Display Preferences</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium">Dark Mode</p>
+                <p class="text-sm text-gray-600">Use dark theme</p>
+              </div>
+              <p-inputSwitch [(ngModel)]="preferences.darkMode"></p-inputSwitch>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium">Compact View</p>
+                <p class="text-sm text-gray-600">Show more items per page</p>
+              </div>
+              <p-inputSwitch [(ngModel)]="preferences.compactView"></p-inputSwitch>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <p-button 
+            label="Save Preferences"
+            icon="ri-save-line"
+            (onClick)="savePreferences()"
+            [loading]="savingPreferences">
+          </p-button>
+        </div>
+      </div>
+    </p-tabPanel>
+  </p-tabView>
+
+  <!-- Photo Upload Dialog -->
+  <p-dialog 
+    [(visible)]="showPhotoUpload" 
+    header="Update Profile Photo"
+    [modal]="true"
+    [style]="{width: '450px'}">
+    <p-fileUpload
+      mode="advanced"
+      [maxFileSize]="1000000"
+      accept="image/*"
+      [customUpload]="true"
+      (uploadHandler)="onPhotoUpload($event)"
+      [auto]="true"
+      chooseLabel="Choose Photo">
+    </p-fileUpload>
+  </p-dialog>
+</div>
+
+<p-toast></p-toast>

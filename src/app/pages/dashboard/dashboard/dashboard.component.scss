@@ -1,0 +1,62 @@
+// src/app/pages/dashboard/dashboard.component.scss
+.dashboard-container {
+    @apply bg-gray-50 min-h-screen;
+  
+    :host ::ng-deep {
+      .p-card {
+        .p-card-body {
+          padding: 1.25rem;
+        }
+      }
+  
+      .p-datatable {
+        .p-datatable-header {
+          background: transparent;
+          border: none;
+          padding: 0;
+        }
+  
+        .p-datatable-thead > tr > th {
+          @apply bg-gray-50 text-gray-600 font-medium text-sm;
+          border: none;
+        }
+  
+        .p-datatable-tbody > tr {
+          &:nth-child(even) {
+            @apply bg-gray-50;
+          }
+  
+          > td {
+            @apply border-b border-gray-100 py-3;
+          }
+        }
+      }
+  
+      .p-chart {
+        canvas {
+          width: 100% !important;
+          height: auto !important;
+        }
+      }
+    }
+  }
+  
+  .stat-card {
+    @apply transition-all duration-300 hover:shadow-lg;
+  
+    &:hover {
+      transform: translateY(-2px);
+    }
+  }
+  
+  .metric-value {
+    @apply text-2xl font-bold;
+    
+    &.positive {
+      @apply text-green-500;
+    }
+    
+    &.negative {
+      @apply text-red-500;
+    }
+  }

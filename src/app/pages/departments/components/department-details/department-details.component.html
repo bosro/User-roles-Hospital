@@ -1,0 +1,264 @@
+<div class="p-4">
+    <!-- Department Header -->
+    <p-card styleClass="mb-4">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold mb-1">{{department?.name}}</h1>
+          <p class="text-gray-600">{{department?.code}}</p>
+        </div>
+        <div class="flex gap-2">
+          <p-button 
+            label="Edit" 
+            icon="ri-edit-line"
+            severity="secondary"
+            (onClick)="editDepartment()">
+          </p-button>
+          <p-tag 
+            [value]="department?.status"
+            [severity]="getStatusSeverity(department?.status)">
+          </p-tag>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Head of Department</h4>
+          <div class="mt-1 flex items-center">
+            <p-avatar 
+              shape="circle"
+              [style]="{'width':'32px', 'height':'32px'}"
+              class="mr-2">
+            </p-avatar>
+            <div>
+              <p class="font-medium">{{department?.headOfDepartment?.name}}</p>
+              <p class="text-sm text-gray-500">{{department?.headOfDepartment?.email}}</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Operating Hours</h4>
+          <div class="mt-1">
+            <p class="flex items-center">
+              <i class="ri-time-line mr-2"></i>
+              {{department?.operatingHours?.start}} - {{department?.operatingHours?.end}}
+            </p>
+            <p class="text-sm text-gray-500">
+              {{formatWorkingDays(department?.workingDays)}}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Location</h4>
+          <div class="mt-1">
+            <p>{{department?.location?.building}}, Floor {{department?.location?.floor}}</p>
+            <p class="text-sm text-gray-500">
+              Rooms: {{department?.location?.roomNumbers?.join(', ')}}
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-medium text-gray-500">Contact</h4>
+          <div class="mt-1">
+            <p class="flex items-center">
+              <i class="ri-phone-line mr-2"></i>
+              {{department?.contactInfo?.phone}}
+            </p>
+            <p class="text-sm text-red-500">
+              Emergency: {{department?.contactInfo?.emergencyContact}}
+            </p>
+          </div>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Detailed Information Tabs -->
+    <p-tabView>
+      <!-- Overview Tab -->
+      <p-tabPanel header="Overview">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Capacity Stats -->
+          <p-card header="Capacity & Occupancy">
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span>Bed Occupancy</span>
+                  <span class="font-medium">
+                    {{department?.capacity?.currentOccupancy}}/{{department?.capacity?.beds}}
+                  </span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded">
+                  <div 
+                    class="h-full bg-blue-500 rounded"
+                    [style.width.%]="getOccupancyRate()">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span>Staff Distribution</span>
+                  <span class="font-medium">Total: {{getTotalStaff()}}</span>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between text-sm">
+                    <span>Doctors</span>
+                    <span>{{department?.staff?.doctors}}</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span>Nurses</span>
+                    <span>{{department?.staff?.nurses}}</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span>Technicians</span>
+                    <span>{{department?.staff?.technicians}}</span>
+                  </div>
+                  <div class="flex justify-between text-sm">
+                    <span>Support Staff</span>
+                    <span>{{department?.staff?.support}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </p-card>
+
+          <!-- Performance Metrics -->
+          <p-card header="Performance Metrics">
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span>Patient Satisfaction</span>
+                  <span class="font-medium">
+                    {{department?.stats?.satisfactionRate}}%
+                  </span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded">
+                  <div 
+                    class="h-full bg-green-500 rounded"
+                    [style.width.%]="department?.stats?.satisfactionRate">
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span>Average Wait Time</span>
+                  <span class="font-medium">
+                    {{department?.stats?.averageWaitTime}} mins
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Daily Appointments</span>
+                  <span class="font-medium">
+                    {{department?.stats?.appointmentsPerDay}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </p-card>
+
+          <!-- Budget Information -->
+          <p-card header="Budget Overview">
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between mb-2">
+                  <span>Budget Utilization</span>
+                  <span class="font-medium">
+                    {{getBudgetUtilization()}}%
+                  </span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded">
+                  <div 
+                    class="h-full rounded"
+                    [class]="getBudgetUtilizationClass()"
+                    [style.width.%]="getBudgetUtilization()">
+                  </div>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span>Allocated Budget</span>
+                  <span class="font-medium">
+                    ${{department?.budget?.allocated?.toLocaleString()}}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Utilized</span>
+                  <span class="font-medium">
+                    ${{department?.budget?.utilized?.toLocaleString()}}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Fiscal Year</span>
+                  <span class="font-medium">
+                    {{department?.budget?.fiscalYear}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </p-card>
+        </div>
+
+        <!-- Facilities and Specialties -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Facilities</h3>
+            <div class="flex flex-wrap gap-2">
+              <p-tag 
+                *ngFor="let facility of department?.facilities"
+                [value]="facility"
+                severity="info">
+              </p-tag>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h3 class="text-lg font-medium text-gray-900">Specialties</h3>
+            <div class="flex flex-wrap gap-2">
+              <p-tag 
+                *ngFor="let specialty of department?.specialties"
+                [value]="specialty"
+                severity="success">
+              </p-tag>
+            </div>
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <!-- Staff Tab -->
+      <p-tabPanel header="Staff">
+        <p-table 
+          [value]="departmentStaff" 
+          [rows]="10" 
+          [paginator]="true">
+          <!-- Staff table implementation -->
+        </p-table>
+      </p-tabPanel>
+
+      <!-- Analytics Tab -->
+      <p-tabPanel header="Analytics">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Patient Flow Chart -->
+          <p-card header="Patient Flow">
+            <p-chart 
+              type="line" 
+              [data]="patientFlowData"
+              [options]="chartOptions">
+            </p-chart>
+          </p-card>
+
+          <!-- Resource Utilization Chart -->
+          <p-card header="Resource Utilization">
+            <p-chart 
+              type="bar" 
+              [data]="resourceUtilizationData"
+              [options]="chartOptions">
+            </p-chart>
+          </p-card>
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>

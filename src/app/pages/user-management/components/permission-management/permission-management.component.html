@@ -1,0 +1,48 @@
+<p>permission-management works!</p>
+<div class="p-4">
+    <p-card>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Role Permissions</h2>
+        <div class="flex gap-2">
+          <p-button 
+            label="Add Role" 
+            icon="ri-add-line"
+            severity="secondary"
+            (onClick)="showAddRoleDialog()">
+          </p-button>
+          <p-button 
+            label="Save Changes" 
+            icon="ri-save-line"
+            [loading]="saving"
+            (onClick)="savePermissions()">
+          </p-button>
+        </div>
+      </div>
+
+      <!-- Permissions Tree Table -->
+      <p-treeTable [value]="permissionNodes" [columns]="roles">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Permission</th>
+            <th *ngFor="let role of roles">{{role}}</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-node>
+          <tr>
+            <td>
+              <span [style.padding-left]="node.level * 20 + 'px'">
+                {{node.label}}
+              </span>
+            </td>
+            <td *ngFor="let role of roles" class="text-center">
+              <p-checkbox 
+                [(ngModel)]="node.data[role]"
+                [binary]="true"
+                (onChange)="onPermissionChange(node, role)">
+              </p-checkbox>
+            </td>
+          </tr>
+        </ng-template>
+      </p-treeTable>
+    </p-card>
+  </div>

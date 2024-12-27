@@ -1,0 +1,107 @@
+<div class="bg-white p-8 border rounded-lg shadow-sm">
+    <!-- Hospital Info -->
+    <div class="flex justify-between items-start mb-8">
+      <div>
+        <img [src]="settings.logo || 'assets/logo-placeholder.png'" 
+             alt="Hospital Logo" 
+             class="h-16 w-auto mb-2" />
+        <h1 class="text-2xl font-bold text-gray-900">{{settings.hospitalName}}</h1>
+        <div class="text-gray-600 mt-1">
+          <p>{{settings.address?.street}}</p>
+          <p>{{settings.address?.city}}, {{settings.address?.state}} {{settings.address?.postalCode}}</p>
+          <p>{{settings.address?.country}}</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <h2 class="text-3xl font-bold text-gray-900">INVOICE</h2>
+        <p class="text-gray-600 mt-1">#{{settings.prefix}}{{mockData.invoiceNumber}}</p>
+        <p class="text-gray-600">Issue Date: {{mockData.issueDate | date}}</p>
+        <p class="text-gray-600">Due Date: {{mockData.dueDate | date}}</p>
+      </div>
+    </div>
+
+    <!-- Patient Info -->
+    <div class="mb-8">
+      <h3 class="text-gray-700 font-medium mb-2">Bill To:</h3>
+      <div class="text-gray-600">
+        <p class="font-medium text-gray-900">{{mockData.patientName}}</p>
+        <p>Patient ID: {{mockData.patientId}}</p>
+        <p>{{mockData.patientAddress}}</p>
+      </div>
+    </div>
+
+    <!-- Services Table -->
+    <table class="w-full mb-8">
+      <thead>
+        <tr class="border-b-2 border-gray-200">
+          <th class="text-left py-2">Description</th>
+          <th class="text-center py-2">Quantity</th>
+          <th class="text-right py-2">Unit Price</th>
+          <th class="text-right py-2">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of mockData.items" class="border-b border-gray-100">
+          <td class="py-3">
+            <div class="font-medium text-gray-900">{{item.description}}</div>
+            <div class="text-sm text-gray-600" *ngIf="item.code">Code: {{item.code}}</div>
+          </td>
+          <td class="text-center py-3">{{item.quantity}}</td>
+          <td class="text-right py-3">${{item.unitPrice.toFixed(2)}}</td>
+          <td class="text-right py-3">${{(item.quantity * item.unitPrice).toFixed(2)}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="flex justify-end mb-8">
+      <div class="w-64">
+        <div class="flex justify-between py-2">
+          <span class="text-gray-600">Subtotal:</span>
+          <span class="font-medium">${{mockData.subtotal.toFixed(2)}}</span>
+        </div>
+        <div class="flex justify-between py-2" *ngIf="settings.taxEnabled">
+          <span class="text-gray-600">{{settings.taxName}} ({{settings.defaultTaxRate}}%):</span>
+          <span class="font-medium">${{mockData.tax.toFixed(2)}}</span>
+        </div>
+        <div class="flex justify-between py-2" *ngIf="mockData.discount > 0">
+          <span class="text-gray-600">Discount:</span>
+          <span class="font-medium text-green-600">-${{mockData.discount.toFixed(2)}}</span>
+        </div>
+        <div class="flex justify-between py-2 border-t border-gray-200 text-lg font-bold">
+          <span>Total:</span>
+          <span>${{mockData.total.toFixed(2)}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Info -->
+    <div class="mb-8">
+      <h3 class="text-gray-700 font-medium mb-2">Payment Information:</h3>
+      <div class="text-gray-600 space-y-1">
+        <p>Due Date: {{mockData.dueDate | date}}</p>
+        <p *ngIf="settings.bankTransferEnabled">
+          Bank Transfer Details:
+          <br />Bank: {{settings.bankDetails?.bankName}}
+          <br />Account: {{settings.bankDetails?.accountNumber}}
+        </p>
+      </div>
+    </div>
+
+    <!-- Notes & Terms -->
+    <div class="space-y-4">
+      <div *ngIf="mockData.notes" class="text-gray-600">
+        <h3 class="text-gray-700 font-medium mb-2">Notes:</h3>
+        <p>{{mockData.notes}}</p>
+      </div>
+
+      <div class="text-gray-600">
+        <h3 class="text-gray-700 font-medium mb-2">Terms & Conditions:</h3>
+        <div [innerHTML]="settings.terms"></div>
+      </div>
+
+      <div class="text-center text-gray-500 text-sm mt-8">
+        <div [innerHTML]="settings.footerText"></div>
+      </div>
+    </div>
+  </div>
