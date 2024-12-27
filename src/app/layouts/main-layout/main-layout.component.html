@@ -1,114 +1,111 @@
 <div class="h-screen flex overflow-hidden bg-gray-100">
-    <!-- Sidebar -->
-    <div [class.w-64]="!isSidebarCollapsed"
-         [class.w-20]="isSidebarCollapsed"
-         class="hidden md:flex md:flex-shrink-0 transition-all duration-300">
-      <div class="flex flex-col w-full">
-        <!-- Sidebar Header -->
-        <div class="flex items-center justify-between h-16 flex-shrink-0 px-4 bg-blue-600">
-          <img *ngIf="!isSidebarCollapsed" src="assets/images/logo-white.png" alt="Logo" class="h-8 w-auto">
-          <img *ngIf="isSidebarCollapsed" src="assets/images/logo-icon.png" alt="Icon" class="h-8 w-8">
-          <button (click)="toggleSidebar()" class="text-white hover:text-gray-200">
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path *ngIf="!isSidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-              <path *ngIf="isSidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-  
-        <!-- Sidebar Content -->
-        <div class="flex-1 flex flex-col overflow-y-auto bg-white border-r border-gray-200">
-          <nav class="flex-1 px-2 py-4 space-y-1">
-            <ng-container *ngFor="let item of menuItems">
-              <!-- Menu Item -->
-              <div class="menu-item" [class.active]="item.path === currentPath">
-                <a [routerLink]="item.path"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                   [class.text-gray-600]="item.path !== currentPath"
-                   [class.hover:bg-gray-50]="item.path !== currentPath"
-                   [class.hover:text-gray-900]="item.path !== currentPath"
-                   [class.bg-blue-50]="item.path === currentPath"
-                   [class.text-blue-600]="item.path === currentPath">
-                  <svg class="mr-3 h-6 w-6" 
-                       [class.text-gray-400]="item.path !== currentPath"
-                       [class.group-hover:text-gray-500]="item.path !== currentPath"
-                       [class.text-blue-600]="item.path === currentPath"
-                       xmlns="http://www.w3.org/2000/svg" 
-                       fill="none" 
-                       viewBox="0 0 24 24" 
-                       stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"/>
-                  </svg>
-                  <span [class.hidden]="isSidebarCollapsed">{{item.title}}</span>
-                </a>
-              </div>
-  
-              <!-- Submenu Items -->
-              <div *ngIf="item.children && !isSidebarCollapsed" class="ml-8 space-y-1">
-                <a *ngFor="let child of item.children"
-                   [routerLink]="child.path"
-                   class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
-                  {{child.title}}
-                </a>
-              </div>
-            </ng-container>
-          </nav>
-        </div>
-      </div>
-    </div>
-  
-    <!-- Main Content -->
-    <div class="flex flex-col w-0 flex-1 overflow-hidden">
-      <!-- Top Navigation -->
-      <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
-        <button (click)="toggleMobileMenu()" class="md:hidden px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+  <!-- Sidebar -->
+  <div [class.w-64]="!isSidebarCollapsed" [class.w-20]="isSidebarCollapsed"
+    class="hidden md:flex md:flex-shrink-0 transition-all duration-300">
+    <div class="flex flex-col w-full">
+      <!-- Sidebar Header -->
+      <div class="flex items-center justify-between h-16 flex-shrink-0 px-4 bg-blue-600">
+        <img *ngIf="!isSidebarCollapsed" src="assets/images/logo.jpg" alt="Logo" class="h-8 w-auto">
+        <img *ngIf="isSidebarCollapsed" src="assets/images/logo.jpg" alt="Icon" class="h-8 w-8">
+        <button (click)="toggleSidebar()" class="text-white hover:text-gray-200">
           <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <path *ngIf="!isSidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            <path *ngIf="isSidebarCollapsed" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 5l7 7-7 7M5 5l7 7-7 7" />
           </svg>
         </button>
-  
-        <!-- Search Bar -->
-        <div class="flex-1 px-4 flex justify-between">
-          <div class="flex-1 flex">
-            <div class="w-full flex md:ml-0">
-              <label for="search_field" class="sr-only">Search</label>
-              <div class="relative w-full text-gray-400 focus-within:text-gray-600">
-                <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input [(ngModel)]="searchQuery"
-                       class="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent sm:text-sm"
-                       placeholder="Search"
-                       type="search">
+      </div>
+
+      <!-- Sidebar Content -->
+      <div class="flex-1 flex flex-col overflow-y-auto bg-white border-r border-gray-200">
+        <nav class="flex-1 px-2 py-4 space-y-1">
+          <ng-container *ngFor="let item of menuItems">
+            <!-- Menu Item -->
+            <div class="menu-item" [class.active]="item.path === currentPath">
+              <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                [class.text-gray-600]="item.path !== currentPath" [class.hover:bg-gray-50]="item.path !== currentPath"
+                [class.hover:text-gray-900]="item.path !== currentPath" [class.bg-blue-50]="item.path === currentPath"
+                [class.text-blue-600]="item.path === currentPath">
+                <svg class="mr-3 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
+                  [class.group-hover:text-gray-500]="item.path !== currentPath"
+                  [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
+                  viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                </svg>
+                <span [class.hidden]="isSidebarCollapsed">{{item.title}}</span>
+              </a>
+            </div>
+
+            <!-- Submenu Items -->
+            <div *ngIf="item.children && !isSidebarCollapsed" class="ml-8 space-y-1">
+              <a *ngFor="let child of item.children" [routerLink]="child.path"
+                class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                {{child.title}}
+              </a>
+            </div>
+          </ng-container>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex flex-col w-0 flex-1 overflow-hidden">
+    <!-- Top Navigation -->
+    <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+      <button (click)="toggleMobileMenu()"
+        class="md:hidden px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- Search Bar -->
+      <!-- <div class="flex-1 px-4 flex justify-between">
+        <div class="flex-1 flex">
+          <div class="w-full flex md:ml-0">
+            <label for="search_field" class="sr-only">Search</label>
+            <div class="relative w-full text-gray-400 focus-within:text-gray-600">
+              <div class="absolute inset-y-0 left-0 flex items-center pointer-events-none">
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
+              <input [(ngModel)]="searchQuery"
+                class="block w-full h-full pl-8 pr-3 py-2 border-transparent text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-0 focus:border-transparent sm:text-sm"
+                placeholder="Search" type="search">
             </div>
           </div>
-  
-          <!-- User Menu -->
-          <div class="ml-4 flex items-center md:ml-6">
-            <!-- Notifications -->
-            <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              <span class="sr-only">View notifications</span>
-              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </div> -->
+
+        <!-- User Menu -->
+        <div class="ml-4 flex items-center md:ml-6">
+          <!-- Notifications -->
+          <button
+            class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <span class="sr-only">View notifications</span>
+            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
-            <span *ngIf="unreadNotificationsCount > 0" 
-                  class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white">
+            <span *ngIf="unreadNotificationsCount > 0"
+              class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white">
             </span>
           </button>
-  
+
           <!-- Profile Dropdown -->
           <div class="ml-3 relative">
             <div>
-              <button class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" 
-                      (click)="isProfileMenuOpen = !isProfileMenuOpen">
+              <button
+                class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                (click)="isProfileMenuOpen = !isProfileMenuOpen">
                 <span class="sr-only">Open user menu</span>
-                <img *ngIf="(currentUser$ | async)?.profileImage; else userInitials"
-                     class="h-8 w-8 rounded-full"
-                     [src]="(currentUser$ | async)?.profileImage"
-                     alt="Profile photo">
+                <img *ngIf="(currentUser$ | async)?.profileImage; else userInitials" class="h-8 w-8 rounded-full"
+                  [src]="(currentUser$ | async)?.profileImage" alt="Profile photo">
                 <ng-template #userInitials>
                   <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
                     {{(currentUser$ | async)?.firstName?.charAt(0)}}{{(currentUser$ | async)?.lastName?.charAt(0)}}
@@ -116,25 +113,23 @@
                 </ng-template>
               </button>
             </div>
-  
+
             <!-- Profile Dropdown Menu -->
             <div *ngIf="isProfileMenuOpen"
-                 class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                 role="menu">
-              <a routerLink="/profile" 
-                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                 role="menuitem">Your Profile</a>
-              <a routerLink="/settings" 
-                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                 role="menuitem">Settings</a>
-              <button (click)="logout()" 
-                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" 
-                      role="menuitem">Sign out</button>
+              class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+              role="menu">
+              <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                role="menuitem">Your Profile</a>
+              <a routerLink="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                role="menuitem">Settings</a>
+              <button (click)="logout()"
+                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Sign
+                out</button>
             </div>
           </div>
         </div>
       </div>
-  
+
       <!-- Mobile Menu -->
       <div *ngIf="isMobileMenuOpen" class="md:hidden">
         <div class="fixed inset-0 flex z-40">
@@ -142,19 +137,20 @@
           <div class="fixed inset-0" (click)="toggleMobileMenu()">
             <div class="absolute inset-0 bg-gray-600 opacity-75"></div>
           </div>
-  
+
           <!-- Menu Content -->
           <div class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white">
             <div class="absolute top-0 right-0 -mr-12 pt-2">
-              <button (click)="toggleMobileMenu()" 
-                      class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+              <button (click)="toggleMobileMenu()"
+                class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                 <span class="sr-only">Close sidebar</span>
-                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-  
+
             <!-- Mobile Menu Items -->
             <div class="flex-shrink-0 flex items-center px-4">
               <img src="assets/images/logo.png" alt="Logo" class="h-8 w-auto">
@@ -162,21 +158,15 @@
             <div class="mt-5 flex-1 h-0 overflow-y-auto">
               <nav class="px-2 space-y-1">
                 <ng-container *ngFor="let item of menuItems">
-                  <a [routerLink]="item.path"
-                     class="group flex items-center px-2 py-2 text-base font-medium rounded-md"
-                     [class.text-gray-600]="item.path !== currentPath"
-                     [class.hover:bg-gray-50]="item.path !== currentPath"
-                     [class.hover:text-gray-900]="item.path !== currentPath"
-                     [class.bg-blue-50]="item.path === currentPath"
-                     [class.text-blue-600]="item.path === currentPath">
-                    <svg class="mr-4 h-6 w-6"
-                         [class.text-gray-400]="item.path !== currentPath"
-                         [class.group-hover:text-gray-500]="item.path !== currentPath"
-                         [class.text-blue-600]="item.path === currentPath"
-                         xmlns="http://www.w3.org/2000/svg"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
+                  <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-base font-medium rounded-md"
+                    [class.text-gray-600]="item.path !== currentPath"
+                    [class.hover:bg-gray-50]="item.path !== currentPath"
+                    [class.hover:text-gray-900]="item.path !== currentPath"
+                    [class.bg-blue-50]="item.path === currentPath" [class.text-blue-600]="item.path === currentPath">
+                    <svg class="mr-4 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
+                      [class.group-hover:text-gray-500]="item.path !== currentPath"
+                      [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
                     </svg>
                     {{item.title}}
@@ -187,7 +177,7 @@
           </div>
         </div>
       </div>
-  
+
       <!-- Main Content Area -->
       <main class="flex-1 relative overflow-y-auto focus:outline-none">
         <div class="py-6">
