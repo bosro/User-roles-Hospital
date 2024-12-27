@@ -6,7 +6,7 @@ import { CardModule } from 'primeng/card';
 import { ChartModule } from 'primeng/chart';
 import { DropdownModule } from 'primeng/dropdown';
 import { TableModule } from 'primeng/table';
-import { FinancialMetrics, ReportFilters } from '../../models/reports.model';
+import { ExportReportData, FinancialMetrics, ReportFilters } from '../../models/reports.model';
 import { ReportService } from '../../services/reports.service';
 import { MessageService } from 'primeng/api';
 import { FormsModule } from '@angular/forms';
@@ -226,16 +226,28 @@ export class FinancialReportsComponent implements OnInit {
 
   exportReport(): void {
     if (!this.dateRange || this.dateRange.length !== 2) return;
-
-    const filters: ReportFilters = {
+  
+    const exportData: ExportReportData = {
+      // Include the filters
       dateRange: {
         start: this.dateRange[0],
         end: this.dateRange[1]
       },
-      reportType: this.selectedReportType || undefined
+      reportType: this.selectedReportType || undefined,
+      
+      // Add required ExportReportData properties
+      format: 'pdf',
+      includeCharts: true,
+      reportId: 'financial-report',
+      
+      // Optionally add other export-specific settings
+      title: 'Financial Report',
+      description: `Financial report from ${this.dateRange[0].toLocaleDateString()} to ${this.dateRange[1].toLocaleDateString()}`,
+      includeTransactions: true,
+      includeSummary: true
     };
-
-    this.reportService.exportReport('financial', filters).subscribe({
+  
+    this.reportService.exportReport('financial', exportData).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

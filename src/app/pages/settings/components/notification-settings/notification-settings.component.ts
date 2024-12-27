@@ -4,13 +4,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angula
 import { MessageService } from "primeng/api";
 import { ButtonModule } from "primeng/button";
 import { CardModule } from "primeng/card";
-import { DropdownModule } from "primeng/dropdown";
-import { EditorModule } from "primeng/editor";
 import { InputSwitchModule } from "primeng/inputswitch";
 import { InputTextModule } from "primeng/inputtext";
+import { EditorModule } from "primeng/editor";
+import { DropdownModule } from "primeng/dropdown";
 import { ToastModule } from "primeng/toast";
 import { SettingsService } from "../../services/settings.service";
-import { Chip } from 'primeng/chip';
 
 @Component({
   selector: 'app-notification-settings',
@@ -22,26 +21,42 @@ import { Chip } from 'primeng/chip';
     ButtonModule,
     InputTextModule,
     InputSwitchModule,
-    DropdownModule,
     EditorModule,
+    DropdownModule,
     ToastModule
   ],
   templateUrl: 'notification-settings.component.html'
 })
 export class NotificationSettingsComponent implements OnInit {
   emailForm!: FormGroup;
+  notificationForm!: FormGroup;
   smsForm!: FormGroup;
-  notificationRulesForm!: FormGroup;
-  
-  savingEmail = false;
-  savingSms = false;
-  savingRules = false;
+  saving = false;
 
   smsProviders = [
     { label: 'Twilio', value: 'twilio' },
     { label: 'Nexmo', value: 'nexmo' },
-    { label: 'MessageBird', value: 'messagebird' },
-    { label: 'AWS SNS', value: 'aws_sns' }
+    { label: 'MessageBird', value: 'messagebird' }
+  ];
+
+  notificationTypes = [
+    // Patient Related
+    { label: 'Appointment Reminders', group: 'patient' },
+    { label: 'Prescription Refills', group: 'patient' },
+    { label: 'Lab Results', group: 'patient' },
+    { label: 'Follow-up Care', group: 'patient' },
+    
+    // Staff Related
+    { label: 'Schedule Changes', group: 'staff' },
+    { label: 'Emergency Alerts', group: 'staff' },
+    { label: 'Staff Meetings', group: 'staff' },
+    { label: 'Inventory Alerts', group: 'staff' },
+    
+    // Administrative
+    { label: 'System Updates', group: 'admin' },
+    { label: 'Billing Updates', group: 'admin' },
+    { label: 'Security Alerts', group: 'admin' },
+    { label: 'Compliance Reminders', group: 'admin' }
   ];
 
   constructor(
@@ -58,47 +73,53 @@ export class NotificationSettingsComponent implements OnInit {
 
   private initializeForms() {
     this.emailForm = this.fb.group({
-      smtp: this.fb.group({
-        host: ['', Validators.required],
-        port: ['', Validators.required],
-        username: ['', Validators.required],
-        password: ['', Validators.required]
-      }),
-      fromEmail: ['', [Validators.required, Validators.email]],
-      signature: ['']
+      smtpServer: ['', Validators.required],
+      smtpPort: ['', Validators.required],
+      smtpUsername: ['', Validators.required],
+      smtpPassword: ['', Validators.required],
+      senderEmail: ['', [Validators.required, Validators.email]],
+      senderName: ['', Validators.required],
+      encryption: ['tls'],
+      emailSignature: [''],
+      emailTemplate: ['']
     });
 
     this.smsForm = this.fb.group({
-      provider: ['', Validators.required],
-      apiConfig: this.fb.group({
-        apiKey: ['', Validators.required],
-        apiSecret: ['', Validators.required]
-      }),
-      senderId: ['', Validators.required]
+      provider: [''],
+      apiKey: [''],
+      apiSecret: [''],
+      senderId: [''],
+      defaultCountryCode: ['+1']
     });
 
-    this.notificationRulesForm = this.fb.group({
-      // Appointment notifications
-      appointmentConfirmEmail: [true],
-      appointmentConfirmSms: [true],
-      appointmentReminderEmail: [true],
-      appointmentReminderSms: [true],
-      scheduleChangeEmail: [true],
-      scheduleChangeSms: [true],
-      
-      // Billing notifications
-      invoiceGeneratedEmail: [true],
-      invoiceGeneratedSms: [false],
-      paymentReceivedEmail: [true],
-      paymentReceivedSms: [false],
-      paymentDueEmail: [true],
-      paymentDueSms: [true],
-      
-      // System notifications
-      systemUpdateEmail: [true],
-      securityAlertEmail: [true],
-      securityAlertSms: [true],
-      lowInventoryEmail: [true]
+    this.notificationForm = this.fb.group({
+      // Patient Notifications
+      appointmentReminders: [true],
+      appointmentRemindersTime: ['24'],
+      prescriptionRefills: [true],
+      labResults: [true],
+      followUpCare: [true],
+
+      // Staff Notifications
+      scheduleChanges: [true],
+      emergencyAlerts: [true],
+      staffMeetings: [true],
+      inventoryAlerts: [true],
+
+      // Administrative Notifications
+      systemUpdates: [true],
+      billingUpdates: [true],
+      securityAlerts: [true],
+      complianceReminders: [true],
+
+      // Delivery Preferences
+      defaultChannel: ['email'],
+      allowSMS: [true],
+      allowEmail: [true],
+      allowPush: [false],
+      workingHoursOnly: [true],
+      quietHoursStart: ['22:00'],
+      quietHoursEnd: ['07:00']
     });
   }
 
@@ -111,8 +132,8 @@ export class NotificationSettingsComponent implements OnInit {
         if (settings.sms) {
           this.smsForm.patchValue(settings.sms);
         }
-        if (settings.rules) {
-          this.notificationRulesForm.patchValue(settings.rules);
+        if (settings.notifications) {
+          this.notificationForm.patchValue(settings.notifications);
         }
       },
       error: () => {
@@ -128,7 +149,7 @@ export class NotificationSettingsComponent implements OnInit {
   saveEmailSettings() {
     if (this.emailForm.invalid) return;
 
-    this.savingEmail = true;
+    this.saving = true;
     this.settingsService.updateNotificationSettings({
       email: this.emailForm.value
     }).subscribe({
@@ -147,15 +168,15 @@ export class NotificationSettingsComponent implements OnInit {
         });
       },
       complete: () => {
-        this.savingEmail = false;
+        this.saving = false;
       }
     });
   }
 
-  saveSmsSettings() {
+  saveSMSSettings() {
     if (this.smsForm.invalid) return;
 
-    this.savingSms = true;
+    this.saving = true;
     this.settingsService.updateNotificationSettings({
       sms: this.smsForm.value
     }).subscribe({
@@ -174,32 +195,76 @@ export class NotificationSettingsComponent implements OnInit {
         });
       },
       complete: () => {
-        this.savingSms = false;
+        this.saving = false;
       }
     });
   }
 
-  saveNotificationRules() {
-    this.savingRules = true;
+  saveNotificationSettings() {
+    if (this.notificationForm.invalid) return;
+
+    this.saving = true;
     this.settingsService.updateNotificationSettings({
-      rules: this.notificationRulesForm.value
+      notifications: this.notificationForm.value
     }).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: 'Notification rules updated successfully'
+          detail: 'Notification settings updated successfully'
         });
       },
       error: () => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to update notification rules'
+          detail: 'Failed to update notification settings'
         });
       },
       complete: () => {
-        this.savingRules = false;
+        this.saving = false;
+      }
+    });
+  }
+
+  testEmailSettings() {
+    if (this.emailForm.invalid) return;
+
+    this.settingsService.testEmailSettings(this.emailForm.value).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Test email sent successfully'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to send test email'
+        });
+      }
+    });
+  }
+
+  testSMSSettings() {
+    if (this.smsForm.invalid) return;
+
+    this.settingsService.testSMSSettings(this.smsForm.value).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Test SMS sent successfully'
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to send test SMS'
+        });
       }
     });
   }

@@ -116,11 +116,25 @@
         <label class="block text-sm font-medium text-gray-700">
           Recipients
         </label>
-        <p-chips 
-          [(ngModel)]="shareRecipients"
-          placeholder="Enter email addresses"
-          [allowDuplicate]="false">
-        </p-chips>
+        
+        <!-- Email input -->
+        <input 
+          type="email" 
+          pInputText 
+          [(ngModel)]="currentEmail" 
+          (keyup.enter)="addEmail()"
+          placeholder="Enter email address and press Enter"
+          class="w-full mb-2">
+          
+        <!-- Display chips for added emails -->
+        <div class="flex flex-wrap gap-2 mt-2">
+          <p-chip 
+            *ngFor="let email of shareRecipients" 
+            [label]="email"
+            [removable]="true"
+            (onRemove)="removeEmail(email)">
+          </p-chip>
+        </div>
       </div>
 
       <div class="field">

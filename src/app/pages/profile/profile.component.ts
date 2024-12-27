@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -34,7 +34,8 @@ import { MessageService } from 'primeng/api';
     InputSwitchModule,
     ToastModule,
     TimelineModule,
-    TagModule
+    TagModule,
+    FormsModule
   ],
   templateUrl: 'profile.component.html'
 })
@@ -42,13 +43,14 @@ export class ProfileComponent implements OnInit {
   personalForm!: FormGroup;
   passwordForm!: FormGroup;
   
-  profileImage: string | null = null;
+  profileImage: string  = '';
   showPhotoUpload = false;
   saving = false;
   updatingPassword = false;
   savingPreferences = false;
   twoFactorEnabled = false;
 
+  
   userData: any = {
     name: 'Dr. John Doe',
     role: 'Senior Cardiologist',
@@ -137,18 +139,21 @@ export class ProfileComponent implements OnInit {
     this.showPhotoUpload = true;
   }
 
-  onPhotoUpload(event: any) {
+  onPhotoUpload(event: { files: File[] }) {
     const file = event.files[0];
     const reader = new FileReader();
     
-    reader.onload = (e: any) => {
-      this.profileImage = e.target.result;
-      this.showPhotoUpload = false;
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Profile photo updated successfully'
-      });
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      if (e.target?.result) {
+        // Type assertion since we know it will be a string
+        this.profileImage = e.target.result as string;
+        this.showPhotoUpload = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Profile photo updated successfully'
+        });
+      }
     };
 
     reader.readAsDataURL(file);

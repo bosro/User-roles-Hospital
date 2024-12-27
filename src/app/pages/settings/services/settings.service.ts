@@ -71,4 +71,36 @@ import { Injectable } from "@angular/core";
     updateIntegrationSettings(settings: any): Observable<any> {
       return this.http.put(`${this.apiUrl}/integrations`, settings);
     }
+
+    testEmailSettings(settings: any): Observable<any> {
+      return this.http.post(`${this.apiUrl}/notifications/test-email`, settings);
+  }
+
+  testSMSSettings(settings: any): Observable<any> {
+      return this.http.post(`${this.apiUrl}/notifications/test-sms`, settings);
+  }
+
+  testIntegrationConnection(type: string): Observable<any> {
+      return this.http.post(`${this.apiUrl}/integrations/test-connection/${type}`, {});
+  }
+
+  getDepartments(): Observable<any> {
+      return this.http.get(`${this.apiUrl}/departments`);
+  }
+
+  addDepartment(department: any): Observable<any> {
+      return this.http.post(`${this.apiUrl}/departments`, department);
+  }
+
+  updateDepartment(department: any): Observable<any> {
+      return this.http.put(`${this.apiUrl}/departments/${department.id}`, department);
+  }
+
+  deleteDepartment(id: string): Observable<any> {
+      return this.http.delete(`${this.apiUrl}/departments/${id}`);
+  }
+
+  resetSecuritySettings(): Observable<any> {
+      return this.http.post(`${this.apiUrl}/security/reset`, {});
+  }
   }

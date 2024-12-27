@@ -1,16 +1,18 @@
 import { Observable } from "rxjs";
 
+export type GroupByPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year'
+
 export interface ReportFilters {
-    dateRange: {
-      start: Date;
-      end: Date;
-    };
-    department?: string;
-    doctor?: string;
-    reportType?: string;
-    groupBy?: 'day' | 'week' | 'month' | 'quarter' | 'year';
-  }
-  
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  department?: string;
+  doctor?: string;
+  reportType?: string;
+  groupBy?: GroupByPeriod;
+}
+
   export interface ReportData {
     labels: string[];
     datasets: {
@@ -36,7 +38,6 @@ export interface ReportFilters {
     }[];
   }
   
- // reports.model.ts
 export interface PatientMetrics {
   totalPatients: number;
   newPatients: number;
@@ -79,19 +80,17 @@ export interface ReportService {
   getDepartmentMetrics(filters: ReportFilters): Observable<DepartmentMetrics>;
 }
   
+export interface MonthlyTrend {
+  month: string;
+  revenue: number;
+  expenses: number;
+  profit: number;
+}
 
+export interface DepartmentRevenue {
+  [key: string]: number;
+}
 
-// export interface ReportTemplate {
-//   id?: string;
-//   name: string;
-//   description?: string;
-//   type: string;
-//   filters: ReportFilters;
-//   sections: ReportSection[];
-//   schedule?: ReportSchedule;
-//   createdBy: string;
-//   createdAt: Date;
-// }
 
 
 export interface ReportSchedule {
@@ -128,6 +127,24 @@ export interface ReportSection {
   title: string;
   order: number;
   config: SectionConfig;
+}
+
+
+export interface ShareReportData {
+  type: 'email' | 'link';
+  recipients: string[];
+  message: string;
+  reportId: string;
+}
+
+export interface ExportReportData extends ReportFilters {
+  format: 'pdf' | 'excel' | 'csv';
+  includeCharts: boolean;
+  reportId: string;
+  title?: string;
+  description?: string;
+  includeTransactions?: boolean;
+  includeSummary?: boolean;
 }
 
 

@@ -1,59 +1,89 @@
 <div class="space-y-6">
-    <!-- Email Settings -->
-    <p-card header="Email Notifications">
-      <form [formGroup]="emailForm" class="space-y-4">
+  <!-- Email Configuration -->
+  <p-card header="Email Configuration">
+    <form [formGroup]="emailForm" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="field">
           <label class="block text-sm font-medium text-gray-700">
-            SMTP Server Configuration
+            SMTP Server
           </label>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="smtp">
-            <div class="field">
-              <label class="block text-sm text-gray-600">Host</label>
-              <input pInputText formControlName="host" class="w-full" />
-            </div>
-            <div class="field">
-              <label class="block text-sm text-gray-600">Port</label>
-              <input pInputText formControlName="port" class="w-full" />
-            </div>
-            <div class="field">
-              <label class="block text-sm text-gray-600">Username</label>
-              <input pInputText formControlName="username" class="w-full" />
-            </div>
-            <div class="field">
-              <label class="block text-sm text-gray-600">Password</label>
-              <input pInputText type="password" formControlName="password" class="w-full" />
-            </div>
-          </div>
+          <input pInputText formControlName="smtpServer" class="w-full" />
         </div>
 
         <div class="field">
           <label class="block text-sm font-medium text-gray-700">
-            From Email Address
+            SMTP Port
           </label>
-          <input pInputText formControlName="fromEmail" class="w-full" />
+          <input pInputText formControlName="smtpPort" class="w-full" />
         </div>
 
         <div class="field">
           <label class="block text-sm font-medium text-gray-700">
-            Email Signature
+            SMTP Username
           </label>
-          <p-editor formControlName="signature" [style]="{'height':'200px'}"></p-editor>
+          <input pInputText formControlName="smtpUsername" class="w-full" />
         </div>
 
-        <div class="flex justify-end">
-          <p-button 
-            label="Save Email Settings" 
-            icon="ri-save-line"
-            (onClick)="saveEmailSettings()"
-            [loading]="savingEmail">
-          </p-button>
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            SMTP Password
+          </label>
+          <input pInputText type="password" formControlName="smtpPassword" class="w-full" />
         </div>
-      </form>
-    </p-card>
 
-    <!-- SMS Settings -->
-    <p-card header="SMS Notifications">
-      <form [formGroup]="smsForm" class="space-y-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Sender Email
+          </label>
+          <input pInputText formControlName="senderEmail" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            Sender Name
+          </label>
+          <input pInputText formControlName="senderName" class="w-full" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Email Signature
+        </label>
+        <p-editor formControlName="emailSignature" [style]="{'height':'200px'}"></p-editor>
+      </div>
+
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700">
+          Email Template
+        </label>
+        <p-editor formControlName="emailTemplate" [style]="{'height':'300px'}"></p-editor>
+        <small class="text-gray-500">
+          Available variables: {{'{patient_name}'}}, {{'{appointment_date}'}}
+        </small>
+      </div>
+
+      <div class="flex justify-end space-x-2">
+        <p-button 
+          label="Test Email" 
+          icon="ri-mail-send-line" 
+          severity="secondary"
+          (onClick)="testEmailSettings()">
+        </p-button>
+        <p-button 
+          label="Save Email Settings" 
+          icon="ri-save-line"
+          (onClick)="saveEmailSettings()"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+
+  <!-- SMS Configuration -->
+  <p-card header="SMS Configuration">
+    <form [formGroup]="smsForm" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="field">
           <label class="block text-sm font-medium text-gray-700">
             SMS Provider
@@ -68,18 +98,23 @@
 
         <div class="field">
           <label class="block text-sm font-medium text-gray-700">
-            API Configuration
+            Default Country Code
           </label>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="apiConfig">
-            <div class="field">
-              <label class="block text-sm text-gray-600">API Key</label>
-              <input pInputText formControlName="apiKey" class="w-full" />
-            </div>
-            <div class="field">
-              <label class="block text-sm text-gray-600">API Secret</label>
-              <input pInputText formControlName="apiSecret" class="w-full" />
-            </div>
-          </div>
+          <input pInputText formControlName="defaultCountryCode" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            API Key
+          </label>
+          <input pInputText type="password" formControlName="apiKey" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">
+            API Secret
+          </label>
+          <input pInputText type="password" formControlName="apiSecret" class="w-full" />
         </div>
 
         <div class="field">
@@ -88,122 +123,161 @@
           </label>
           <input pInputText formControlName="senderId" class="w-full" />
         </div>
-
-        <div class="flex justify-end">
-          <p-button 
-            label="Save SMS Settings" 
-            icon="ri-save-line"
-            (onClick)="saveSmsSettings()"
-            [loading]="savingSms">
-          </p-button>
-        </div>
-      </form>
-    </p-card>
-
-    <!-- Notification Rules -->
-    <p-card header="Notification Rules">
-      <div class="space-y-4">
-        <!-- Appointment Notifications -->
-        <div class="space-y-2">
-          <h4 class="font-medium text-gray-900">Appointment Notifications</h4>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Appointment Confirmation</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="appointmentConfirmEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="appointmentConfirmSms"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Appointment Reminder</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="appointmentReminderEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="appointmentReminderSms"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Schedule Changes</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="scheduleChangeEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="scheduleChangeSms"></p-inputSwitch>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Billing Notifications -->
-        <div class="space-y-2">
-          <h4 class="font-medium text-gray-900">Billing Notifications</h4>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Invoice Generated</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="invoiceGeneratedEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="invoiceGeneratedSms"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Payment Received</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="paymentReceivedEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="paymentReceivedSms"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Payment Due Reminder</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="paymentDueEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="paymentDueSms"></p-inputSwitch>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Notifications -->
-        <div class="space-y-2">
-          <h4 class="font-medium text-gray-900">System Notifications</h4>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="flex items-center justify-between">
-              <span class="text-sm">System Updates</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="systemUpdateEmail"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Security Alerts</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="securityAlertEmail"></p-inputSwitch>
-                <p-inputSwitch formControlName="securityAlertSms"></p-inputSwitch>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <span class="text-sm">Low Inventory</span>
-              <div class="flex gap-2">
-                <p-inputSwitch formControlName="lowInventoryEmail"></p-inputSwitch>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div class="flex justify-end mt-4">
+      <div class="flex justify-end space-x-2">
         <p-button 
-          label="Save Notification Rules" 
+          label="Test SMS" 
+          icon="ri-message-2-line" 
+          severity="secondary"
+          (onClick)="testSMSSettings()">
+        </p-button>
+        <p-button 
+          label="Save SMS Settings" 
           icon="ri-save-line"
-          (onClick)="saveNotificationRules()"
-          [loading]="savingRules">
+          (onClick)="saveSMSSettings()"
+          [loading]="saving">
         </p-button>
       </div>
-    </p-card>
-  </div>
+    </form>
+  </p-card>
 
-  <p-toast></p-toast>
+  <!-- Notification Rules -->
+  <p-card header="Notification Rules">
+    <form [formGroup]="notificationForm" class="space-y-6">
+      <!-- Patient Notifications -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Patient Notifications</h3>
+        
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Appointment Reminders</label>
+              <p class="text-sm text-gray-500">Send reminders before scheduled appointments</p>
+            </div>
+            <p-inputSwitch formControlName="appointmentReminders"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Prescription Refills</label>
+              <p class="text-sm text-gray-500">Notify when prescriptions need refilling</p>
+            </div>
+            <p-inputSwitch formControlName="prescriptionRefills"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Lab Results</label>
+              <p class="text-sm text-gray-500">Alert when lab results are ready</p>
+            </div>
+            <p-inputSwitch formControlName="labResults"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Follow-up Care</label>
+              <p class="text-sm text-gray-500">Remind about follow-up appointments</p>
+            </div>
+            <p-inputSwitch formControlName="followUpCare"></p-inputSwitch>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Notifications -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Staff Notifications</h3>
+        
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Schedule Changes</label>
+              <p class="text-sm text-gray-500">Alert staff about schedule modifications</p>
+            </div>
+            <p-inputSwitch formControlName="scheduleChanges"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Emergency Alerts</label>
+              <p class="text-sm text-gray-500">High-priority emergency notifications</p>
+            </div>
+            <p-inputSwitch formControlName="emergencyAlerts"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Staff Meetings</label>
+              <p class="text-sm text-gray-500">Meeting reminders and updates</p>
+            </div>
+            <p-inputSwitch formControlName="staffMeetings"></p-inputSwitch>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-gray-700">Inventory Alerts</label>
+              <p class="text-sm text-gray-500">Low inventory and supply notifications</p>
+            </div>
+            <p-inputSwitch formControlName="inventoryAlerts"></p-inputSwitch>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Preferences -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Delivery Preferences</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Default Notification Channel
+            </label>
+            <p-dropdown 
+              [options]="[
+                {label: 'Email', value: 'email'},
+                {label: 'SMS', value: 'sms'},
+                {label: 'Both', value: 'both'}
+              ]"
+              formControlName="defaultChannel"
+              [style]="{'width':'100%'}">
+            </p-dropdown>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Quiet Hours Start
+            </label>
+            <input type="time" pInputText formControlName="quietHoursStart" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Quiet Hours End
+            </label>
+            <input type="time" pInputText formControlName="quietHoursEnd" class="w-full" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-700">
+              Send During Working Hours Only
+            </label>
+            <p-inputSwitch formControlName="workingHoursOnly"></p-inputSwitch>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <p-button 
+          label="Save Notification Settings" 
+          icon="ri-save-line"
+          (onClick)="saveNotificationSettings()"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+</div>
+
+<p-toast></p-toast>

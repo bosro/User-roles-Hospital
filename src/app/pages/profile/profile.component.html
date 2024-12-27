@@ -5,15 +5,10 @@
       <div class="md:flex items-center gap-8">
         <div class="flex-shrink-0 text-center mb-4 md:mb-0">
           <div class="relative inline-block">
-            <p-avatar 
-              [image]="profileImage"
-              size="xlarge" 
-              shape="circle"
-              [style]="{'width': '150px', 'height': '150px'}"
-              class="mb-2">
+            <p-avatar [image]="profileImage || undefined" size="xlarge" shape="circle"
+              [style]="{'width': '150px', 'height': '150px'}" class="mb-2">
             </p-avatar>
-            <button 
-              class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border"
+            <button class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border"
               (click)="showPhotoDialog()">
               <i class="ri-camera-line text-xl text-gray-600"></i>
             </button>
@@ -94,21 +89,13 @@
             <label class="block text-sm font-medium text-gray-700">
               Bio
             </label>
-            <textarea 
-              pInputTextarea 
-              formControlName="bio"
-              rows="4"
-              class="w-full">
+            <textarea pInputTextarea formControlName="bio" rows="4" class="w-full">
             </textarea>
           </div>
         </div>
 
         <div class="flex justify-end">
-          <p-button 
-            type="submit" 
-            label="Save Changes"
-            icon="ri-save-line"
-            [loading]="saving">
+          <p-button type="submit" label="Save Changes" icon="ri-save-line" [loading]="saving">
           </p-button>
         </div>
       </form>
@@ -125,10 +112,7 @@
               <label class="block text-sm font-medium text-gray-700">
                 Current Password
               </label>
-              <p-password 
-                formControlName="currentPassword"
-                [toggleMask]="true"
-                styleClass="w-full">
+              <p-password formControlName="currentPassword" [toggleMask]="true" styleClass="w-full">
               </p-password>
             </div>
 
@@ -136,11 +120,7 @@
               <label class="block text-sm font-medium text-gray-700">
                 New Password
               </label>
-              <p-password 
-                formControlName="newPassword"
-                [toggleMask]="true"
-                [feedback]="true"
-                styleClass="w-full">
+              <p-password formControlName="newPassword" [toggleMask]="true" [feedback]="true" styleClass="w-full">
               </p-password>
             </div>
 
@@ -148,19 +128,12 @@
               <label class="block text-sm font-medium text-gray-700">
                 Confirm New Password
               </label>
-              <p-password 
-                formControlName="confirmPassword"
-                [toggleMask]="true"
-                styleClass="w-full">
+              <p-password formControlName="confirmPassword" [toggleMask]="true" styleClass="w-full">
               </p-password>
             </div>
 
             <div class="flex justify-end">
-              <p-button 
-                type="submit" 
-                label="Update Password"
-                icon="ri-lock-password-line"
-                [loading]="updatingPassword">
+              <p-button type="submit" label="Update Password" icon="ri-lock-password-line" [loading]="updatingPassword">
               </p-button>
             </div>
           </form>
@@ -175,9 +148,7 @@
                 Add additional security to your account using 2FA
               </p>
             </div>
-            <p-inputSwitch 
-              [(ngModel)]="twoFactorEnabled"
-              (onChange)="toggleTwoFactor()">
+            <p-inputSwitch [(ngModel)]="twoFactorEnabled" (onChange)="toggleTwoFactor()">
             </p-inputSwitch>
           </div>
         </div>
@@ -192,9 +163,7 @@
                   <p class="font-medium">{{login.location}}</p>
                   <p class="text-sm text-gray-600">{{login.device}}</p>
                 </div>
-                <p-tag 
-                  [value]="login.status"
-                  [severity]="login.status === 'success' ? 'success' : 'danger'">
+                <p-tag [value]="login.status" [severity]="login.status === 'success' ? 'success' : 'danger'">
                 </p-tag>
               </div>
               <small class="text-gray-500">{{login.timestamp | date:'medium'}}</small>
@@ -260,10 +229,7 @@
         </div>
 
         <div class="flex justify-end">
-          <p-button 
-            label="Save Preferences"
-            icon="ri-save-line"
-            (onClick)="savePreferences()"
+          <p-button label="Save Preferences" icon="ri-save-line" (onClick)="savePreferences()"
             [loading]="savingPreferences">
           </p-button>
         </div>
@@ -272,19 +238,9 @@
   </p-tabView>
 
   <!-- Photo Upload Dialog -->
-  <p-dialog 
-    [(visible)]="showPhotoUpload" 
-    header="Update Profile Photo"
-    [modal]="true"
-    [style]="{width: '450px'}">
-    <p-fileUpload
-      mode="advanced"
-      [maxFileSize]="1000000"
-      accept="image/*"
-      [customUpload]="true"
-      (uploadHandler)="onPhotoUpload($event)"
-      [auto]="true"
-      chooseLabel="Choose Photo">
+  <p-dialog [(visible)]="showPhotoUpload" header="Update Profile Photo" [modal]="true" [style]="{width: '450px'}">
+    <p-fileUpload mode="advanced" [maxFileSize]="1000000" accept="image/*" [customUpload]="true"
+      (uploadHandler)="onPhotoUpload($event)" [auto]="true" chooseLabel="Choose Photo">
     </p-fileUpload>
   </p-dialog>
 </div>

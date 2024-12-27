@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from "@angular/core";
 import { User } from "../../models/user.model";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { DropdownModule } from "primeng/dropdown";
 import { CommonModule } from "@angular/common";
 import { InputTextModule } from "primeng/inputtext";
@@ -27,8 +27,8 @@ export class UserFormComponent implements OnInit {
   @Output() save = new EventEmitter<any>();
   @Output() cancel = new EventEmitter<void>();
 
-  userForm: FormGroup;
-  isEditMode = false;
+  userForm!: FormGroup;
+  isEditMode: boolean = false;
 
   roles = [
     { label: 'Admin', value: 'admin' },
@@ -73,6 +73,15 @@ export class UserFormComponent implements OnInit {
     }
   }
 
+  // ngOnInit() {
+  //   this.isEditMode = !!this.user; // Set based on whether user exists
+  //   if (this.user) {
+  //     this.userForm.patchValue(this.user);
+  //   }
+  //   this.updateValidators(); // Update validators after mode is determined
+  // }
+
+
   private initializeForm() {
     this.userForm = this.fb.group({
       firstName: ['', Validators.required],
@@ -82,27 +91,57 @@ export class UserFormComponent implements OnInit {
       department: [''],
       status: ['active', Validators.required],
       permissions: [[]],
-      password: ['', !this.isEditMode ? [Validators.required, Validators.minLength(8)] : []],
-      confirmPassword: ['', !this.isEditMode ? Validators.required : []]
-    }, { validator: this.isEditMode ? null : this.passwordMatchValidator });
+      password: ['', []],
+      confirmPassword: ['', []]
+    });
   }
 
-  private passwordMatchValidator(form: FormGroup) {
+
+  private static passwordMatchValidator: ValidatorFn = (
+    control: AbstractControl
+  ): ValidationErrors | null => {
+    const form = control as FormGroup;
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
-    return password?.value === confirmPassword?.value ? null : { mismatch: true };
-  }
+
+    if (!password || !confirmPassword) return null;
+
+    return password.value === confirmPassword.value ? 
+      null : 
+      { mismatch: true };
+  };
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.userForm.get(fieldName);
     return field ? field.invalid && (field.dirty || field.touched) : false;
   }
 
-  passwordMismatch(): boolean {
-    return this.userForm.hasError('mismatch') && 
-           this.userForm.get('confirmPassword')?.touched;
-  }
+  private updateValidators() {
+    const passwordControl = this.userForm.get('password');
+    const confirmPasswordControl = this.userForm.get('confirmPassword');
 
+    if (!this.isEditMode) {
+      passwordControl?.setValidators([Validators.required, Validators.minLength(8)]);
+      confirmPasswordControl?.setValidators([Validators.required]);
+      this.userForm.setValidators(UserFormComponent.passwordMatchValidator);
+    } else {
+      passwordControl?.clearValidators();
+      confirmPasswordControl?.clearValidators();
+      this.userForm.clearValidators();
+    }
+
+    passwordControl?.updateValueAndValidity();
+    confirmPasswordControl?.updateValueAndValidity();
+    this.userForm.updateValueAndValidity();
+  }
+ 
+
+  passwordMismatch(): boolean {
+    const confirmPasswordControl = this.userForm.get('confirmPassword');
+    return this.userForm.hasError('mismatch') && 
+           (confirmPasswordControl?.touched ?? false);
+  }
+  
   onImageUpload(event: any) {
     const file = event.files[0];
     // Handle image upload

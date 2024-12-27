@@ -1,0 +1,119 @@
+<p-card header="Integration Settings">
+    <form [formGroup]="integrationForm" class="space-y-6">
+      <!-- EHR Integration -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">EHR System Integration</h3>
+          <p-inputSwitch formControlName="ehr.enabled"></p-inputSwitch>
+        </div>
+  
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="integrationForm.get('ehr.enabled')?.value" formGroupName="ehr">
+          <div class="field">
+            <label class="block text-sm text-gray-600">Provider</label>
+            <p-dropdown [options]="integrationTypes" formControlName="provider" [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Key</label>
+            <input pInputText type="password" formControlName="apiKey" class="w-full" />
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Endpoint</label>
+            <input pInputText formControlName="apiEndpoint" class="w-full" />
+          </div>
+          <div class="flex items-center justify-end">
+            <p-button label="Test Connection" severity="secondary" (onClick)="testConnection('ehr')"></p-button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Laboratory Integration -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Laboratory System Integration</h3>
+          <p-inputSwitch formControlName="laboratory.enabled"></p-inputSwitch>
+        </div>
+  
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="integrationForm.get('laboratory.enabled')?.value" formGroupName="laboratory">
+          <div class="field">
+            <label class="block text-sm text-gray-600">Provider</label>
+            <p-dropdown [options]="integrationTypes" formControlName="provider" [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Key</label>
+            <input pInputText type="password" formControlName="apiKey" class="w-full" />
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Endpoint</label>
+            <input pInputText formControlName="apiEndpoint" class="w-full" />
+          </div>
+          <div class="flex items-center justify-end">
+            <p-button label="Test Connection" severity="secondary" (onClick)="testConnection('laboratory')"></p-button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Pharmacy Integration -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Pharmacy System Integration</h3>
+          <p-inputSwitch formControlName="pharmacy.enabled"></p-inputSwitch>
+        </div>
+  
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="integrationForm.get('pharmacy.enabled')?.value" formGroupName="pharmacy">
+          <div class="field">
+            <label class="block text-sm text-gray-600">Provider</label>
+            <p-dropdown [options]="integrationTypes" formControlName="provider" [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Key</label>
+            <input pInputText type="password" formControlName="apiKey" class="w-full" />
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Endpoint</label>
+            <input pInputText formControlName="apiEndpoint" class="w-full" />
+          </div>
+          <div class="flex items-center justify-end">
+            <p-button label="Test Connection" severity="secondary" (onClick)="testConnection('pharmacy')"></p-button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Imaging Integration -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-medium text-gray-900">Medical Imaging Integration</h3>
+          <p-inputSwitch formControlName="imaging.enabled"></p-inputSwitch>
+        </div>
+  
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="integrationForm.get('imaging.enabled')?.value" formGroupName="imaging">
+          <div class="field">
+            <label class="block text-sm text-gray-600">Provider</label>
+            <p-dropdown [options]="integrationTypes" formControlName="provider" [style]="{'width':'100%'}"></p-dropdown>
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Key</label>
+            <input pInputText type="password" formControlName="apiKey" class="w-full" />
+          </div>
+          <div class="field">
+            <label class="block text-sm text-gray-600">API Endpoint</label>
+            <input pInputText formControlName="apiEndpoint" class="w-full" />
+          </div>
+          <div class="flex items-center justify-end">
+            <p-button label="Test Connection" severity="secondary" (onClick)="testConnection('imaging')"></p-button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Save Button -->
+      <div class="flex justify-end">
+        <p-button 
+          label="Save Integration Settings" 
+          icon="ri-save-line" 
+          (onClick)="saveSettings()"
+          [loading]="saving">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+  
+  <p-toast></p-toast>
