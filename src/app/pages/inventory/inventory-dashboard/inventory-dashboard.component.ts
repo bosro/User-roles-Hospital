@@ -1,4 +1,3 @@
-// src/app/pages/inventory/components/inventory-dashboard/inventory-dashboard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -7,6 +6,11 @@ import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ConfirmationService } from 'primeng/api';
+import { ReorderDialogComponent } from './reorder-dialog/reorder-dialog.component';
+import { PurchaseOrder } from '../models/inventory.model';
+import { DialogModule } from 'primeng/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
 
 type AlertType = 'expiry' | 'stock' | 'maintenance';
 type ActivityStatus = 'completed' | 'pending' | 'failed';
@@ -36,9 +40,11 @@ interface Activity {
     ButtonModule,
     ChartModule,
     TableModule,
-    TagModule
+    TagModule,
+    DialogModule
   ],
-  templateUrl: 'inventory-dashboard.component.html'
+  providers: [DialogService],
+    templateUrl: 'inventory-dashboard.component.html'
 })
 export class InventoryDashboardComponent implements OnInit {
   
@@ -57,7 +63,7 @@ export class InventoryDashboardComponent implements OnInit {
   recentActivities: Activity[] = [];
   lowStockItemsList: any[] = [];
 
-  constructor() {
+  constructor(private dialogService: DialogService) {
     this.initializeChartData();
   }
 
@@ -188,6 +194,17 @@ export class InventoryDashboardComponent implements OnInit {
   }
 
   reorderItem(item: any) {
-    // Handle reorder action
+    const ref = this.dialogService.open(ReorderDialogComponent, {
+      header: `Reorder ${item.name}`,
+      width: '500px',
+      data: { item }
+    });
+
+    ref.onClose.subscribe((order: PurchaseOrder) => {
+      if (order) {
+        // Refresh dashboard data
+        this.loadDashboardData();
+      }
+    });
   }
 }

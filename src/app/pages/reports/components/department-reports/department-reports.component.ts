@@ -44,9 +44,7 @@ interface DepartmentMetrics {
     FormsModule,
     ToastModule
   ],
-  template: `
-
-  `
+  templateUrl: 'department-reports.component.html'
 })
 export class DepartmentReportsComponent implements OnInit {
   today = new Date();

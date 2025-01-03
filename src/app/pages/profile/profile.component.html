@@ -1,186 +1,265 @@
 <div class="p-4">
-  <!-- Profile Header -->
-  <div class="mb-6">
-    <p-card>
-      <div class="md:flex items-center gap-8">
-        <div class="flex-shrink-0 text-center mb-4 md:mb-0">
-          <div class="relative inline-block">
-            <p-avatar [image]="profileImage || undefined" size="xlarge" shape="circle"
-              [style]="{'width': '150px', 'height': '150px'}" class="mb-2">
-            </p-avatar>
-            <button class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border"
-              (click)="showPhotoDialog()">
-              <i class="ri-camera-line text-xl text-gray-600"></i>
-            </button>
-          </div>
-          <h2 class="text-xl font-bold mt-2">{{userData?.name}}</h2>
-          <p class="text-gray-600">{{userData?.role}}</p>
+  <!-- Dynamic Profile Header -->
+  <p-card class="mb-6">
+    <div class="md:flex items-center gap-8">
+      <div class="flex-shrink-0 text-center mb-4 md:mb-0">
+        <div class="relative inline-block">
+          <p-avatar [image]="userProfile.profileImage" size="xlarge" shape="circle"
+            [style]="{'width': '150px', 'height': '150px'}" class="mb-2">
+            <ng-container *ngIf="!userProfile.profileImage">
+              {{ userProfile.firstName.charAt(0) }}{{ userProfile.lastName.charAt(0) }}
+            </ng-container>
+          </p-avatar>
+          <button class="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg border hover:bg-gray-50"
+            (click)="showPhotoDialog()">
+            <i class="ri-camera-line text-xl text-gray-600"></i>
+          </button>
         </div>
+        <h2 class="text-xl font-bold mt-2">
+          <ng-container [ngSwitch]="userProfile.role">
+            <span *ngSwitchCase="'doctor'">Dr. </span>
+            <span *ngSwitchCase="'nurse'">Nurse </span>
+          </ng-container>
+          {{userProfile.firstName}} {{userProfile.lastName}}
+        </h2>
+        <p class="text-gray-600">{{getRoleTitle(userProfile.role)}}</p>
+      </div>
 
-        <div class="flex-grow">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="text-center p-4 bg-blue-50 rounded-lg">
-              <h3 class="text-2xl font-bold text-blue-600">{{userData?.stats?.totalPatients}}</h3>
-              <p class="text-gray-600">Total Patients</p>
-            </div>
-            <div class="text-center p-4 bg-green-50 rounded-lg">
-              <h3 class="text-2xl font-bold text-green-600">{{userData?.stats?.appointmentsThisMonth}}</h3>
-              <p class="text-gray-600">Appointments This Month</p>
-            </div>
-            <div class="text-center p-4 bg-purple-50 rounded-lg">
-              <h3 class="text-2xl font-bold text-purple-600">{{userData?.stats?.yearsOfService}}</h3>
-              <p class="text-gray-600">Years of Service</p>
-            </div>
+      <!-- Dynamic Stats -->
+      <div class="flex-grow">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div *ngFor="let stat of statsConfig[userProfile.role] || []"
+            class="text-center p-4 rounded-lg transition-colors"
+            [ngClass]="'bg-' + stat.color + '-50 hover:bg-' + stat.color + '-100'">
+            <h3 class="text-2xl font-bold" [ngClass]="'text-' + stat.color + '-600'">
+              {{userProfile.stats?.[stat.value] || 0}}
+            </h3>
+            <p class="text-gray-600">{{stat.label}}</p>
           </div>
         </div>
       </div>
-    </p-card>
-  </div>
+    </div>
+  </p-card>
 
-  <!-- Main Content -->
+  <!-- Dynamic Tab View -->
   <p-tabView>
     <!-- Personal Information -->
     <p-tabPanel header="Personal Information">
-      <form [formGroup]="personalForm" class="space-y-6" (ngSubmit)="updatePersonalInfo()">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              First Name
-            </label>
-            <input pInputText formControlName="firstName" class="w-full" />
+      <div class="p-4 bg-gray-50 rounded-lg">
+        <form [formGroup]="personalForm" class="space-y-6" (ngSubmit)="updatePersonalInfo()">
+          <!-- Base Fields -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+              <input pInputText formControlName="firstName" class="w-full" />
+              <small class="text-red-500" *ngIf="showFieldError('firstName')">Required</small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+              <input pInputText formControlName="lastName" class="w-full" />
+              <small class="text-red-500" *ngIf="showFieldError('lastName')">Required</small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+              <input pInputText formControlName="email" type="email" class="w-full" />
+              <small class="text-red-500" *ngIf="showFieldError('email')">Valid email required</small>
+            </div>
+
+            <div class="field">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+              <input pInputText formControlName="phone" class="w-full" />
+              <small class="text-red-500" *ngIf="showFieldError('phone')">Required</small>
+            </div>
+
+            <!-- Dynamic Role-Specific Fields -->
+            <ng-container [ngSwitch]="userProfile.role">
+              <!-- Doctor Fields -->
+              <ng-container *ngSwitchCase="'doctor'">
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">License Number</label>
+                  <input pInputText formControlName="licenseNumber" class="w-full" />
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Specialization</label>
+                  <input pInputText formControlName="specialization" class="w-full" />
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Consultation Fee</label>
+                  <p-inputNumber formControlName="consultationFee" mode="currency" currency="USD" class="w-full">
+                  </p-inputNumber>
+                </div>
+              </ng-container>
+
+              <!-- Nurse Fields -->
+              <ng-container *ngSwitchCase="'nurse'">
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">License Number</label>
+                  <input pInputText formControlName="licenseNumber" class="w-full" />
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                  <p-dropdown formControlName="shift" [options]="shifts" class="w-full"></p-dropdown>
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Specializations</label>
+                  <p-chips formControlName="specializations" class="w-full"></p-chips>
+                </div>
+              </ng-container>
+
+              <!-- Patient Fields -->
+              <ng-container *ngSwitchCase="'patient'">
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                  <p-calendar formControlName="dateOfBirth" [showIcon]="true" class="w-full"></p-calendar>
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Blood Group</label>
+                  <p-dropdown formControlName="bloodGroup" [options]="bloodGroups" class="w-full"></p-dropdown>
+                </div>
+
+                <div class="field md:col-span-2" formGroupName="address">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                  <div class="grid grid-cols-2 gap-4">
+                    <input pInputText formControlName="street" placeholder="Street" class="w-full" />
+                    <input pInputText formControlName="city" placeholder="City" class="w-full" />
+                    <input pInputText formControlName="state" placeholder="State" class="w-full" />
+                    <input pInputText formControlName="zipCode" placeholder="Zip Code" class="w-full" />
+                  </div>
+                </div>
+
+                <div class="field md:col-span-2" formGroupName="emergencyContact">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact</label>
+                  <div class="grid grid-cols-3 gap-4">
+                    <input pInputText formControlName="name" placeholder="Name" class="w-full" />
+                    <input pInputText formControlName="relationship" placeholder="Relationship" class="w-full" />
+                    <input pInputText formControlName="phone" placeholder="Phone" class="w-full" />
+                  </div>
+                </div>
+              </ng-container>
+
+              <!-- Admin Fields -->
+              <ng-container *ngSwitchCase="'admin'">
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <input pInputText formControlName="department" class="w-full" />
+                </div>
+                <div class="field">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Access Level</label>
+                  <p-dropdown formControlName="accessLevel" [options]="accessLevels" class="w-full"></p-dropdown>
+                </div>
+                <div class="field md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                  <p-multiSelect formControlName="permissions" [options]="availablePermissions" class="w-full">
+                  </p-multiSelect>
+                </div>
+              </ng-container>
+            </ng-container>
+
+            <!-- Bio Field for All Roles -->
+            <div class="field md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+              <textarea pInputTextarea formControlName="bio" rows="4"
+                class="w-full min-h-[120px] border border-gray-300 rounded-md p-3">
+              </textarea>
+            </div>
           </div>
 
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              Last Name
-            </label>
-            <input pInputText formControlName="lastName" class="w-full" />
+          <div class="flex justify-end pt-4 border-t">
+            <p-button type="submit" label="Save Changes" icon="ri-save-line" [loading]="saving"></p-button>
           </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <input pInputText formControlName="email" type="email" class="w-full" />
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input pInputText formControlName="phone" class="w-full" />
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              Specialization
-            </label>
-            <input pInputText formControlName="specialization" class="w-full" />
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700">
-              Department
-            </label>
-            <input pInputText formControlName="department" class="w-full" />
-          </div>
-
-          <div class="field md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700">
-              Bio
-            </label>
-            <textarea pInputTextarea formControlName="bio" rows="4" class="w-full">
-            </textarea>
-          </div>
-        </div>
-
-        <div class="flex justify-end">
-          <p-button type="submit" label="Save Changes" icon="ri-save-line" [loading]="saving">
-          </p-button>
-        </div>
-      </form>
+        </form>
+      </div>
     </p-tabPanel>
 
-    <!-- Security -->
+    <!-- Dynamic Role-Specific Tabs -->
+    <ng-container *ngFor="let tab of getRoleSpecificTabs()">
+      <p-tabPanel [header]="formatTabHeader(tab)">
+        <ng-container [ngTemplateOutlet]="getTabContent(tab)"></ng-container>
+      </p-tabPanel>
+    </ng-container>
+
+    <!-- Security Tab (Common for all roles) -->
     <p-tabPanel header="Security">
       <div class="space-y-6">
         <!-- Change Password -->
-        <div class="bg-white p-6 rounded-lg border">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Change Password</h3>
+        <div class="p-6 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Change Password</h3>
           <form [formGroup]="passwordForm" class="space-y-4" (ngSubmit)="updatePassword()">
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                Current Password
-              </label>
-              <p-password formControlName="currentPassword" [toggleMask]="true" styleClass="w-full">
-              </p-password>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+              <p-password formControlName="currentPassword" [toggleMask]="true" styleClass="w-full"></p-password>
+              <small class="text-red-500"
+                *ngIf="passwordForm.get('currentPassword')?.errors?.['required'] && passwordForm.get('currentPassword')?.touched">
+                Current password is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                New Password
-              </label>
-              <p-password formControlName="newPassword" [toggleMask]="true" [feedback]="true" styleClass="w-full">
-              </p-password>
+              <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+              <p-password formControlName="newPassword" [toggleMask]="true" [feedback]="true"
+                styleClass="w-full"></p-password>
+              <small class="text-red-500"
+                *ngIf="passwordForm.get('newPassword')?.errors?.['required'] && passwordForm.get('newPassword')?.touched">
+                New password is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                Confirm New Password
-              </label>
-              <p-password formControlName="confirmPassword" [toggleMask]="true" styleClass="w-full">
-              </p-password>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+              <p-password formControlName="confirmPassword" [toggleMask]="true" styleClass="w-full"></p-password>
+              <small class="text-red-500"
+                *ngIf="passwordForm.get('confirmPassword')?.errors?.['required'] && passwordForm.get('confirmPassword')?.touched">
+                Password confirmation is required
+              </small>
             </div>
 
-            <div class="flex justify-end">
-              <p-button type="submit" label="Update Password" icon="ri-lock-password-line" [loading]="updatingPassword">
-              </p-button>
+            <div class="flex justify-end pt-4 border-t">
+              <p-button type="submit" label="Update Password" icon="ri-lock-password-line"
+                [loading]="updatingPassword"></p-button>
             </div>
           </form>
         </div>
 
         <!-- Two-Factor Authentication -->
-        <div class="bg-white p-6 rounded-lg border">
+        <div class="p-6 bg-gray-50 rounded-lg">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
-              <p class="text-gray-600 mt-1">
-                Add additional security to your account using 2FA
-              </p>
+              <p class="text-gray-600 mt-1">Add additional security to your account using 2FA</p>
             </div>
-            <p-inputSwitch [(ngModel)]="twoFactorEnabled" (onChange)="toggleTwoFactor()">
-            </p-inputSwitch>
+            <p-inputSwitch [(ngModel)]="twoFactorEnabled" (onChange)="toggleTwoFactor()"></p-inputSwitch>
           </div>
         </div>
 
         <!-- Login History -->
-        <div class="bg-white p-6 rounded-lg border">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Recent Login Activity</h3>
+        <div class="p-6 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Recent Login Activity</h3>
           <p-timeline [value]="loginHistory" class="w-full">
             <ng-template pTemplate="content" let-login>
-              <div class="flex justify-between items-start">
+              <div class="flex justify-between items-start p-3 hover:bg-gray-100 rounded-lg">
                 <div>
                   <p class="font-medium">{{login.location}}</p>
                   <p class="text-sm text-gray-600">{{login.device}}</p>
+                  <small class="text-gray-500">{{login.timestamp | date:'medium'}}</small>
                 </div>
-                <p-tag [value]="login.status" [severity]="login.status === 'success' ? 'success' : 'danger'">
-                </p-tag>
+                <p-tag [value]="login.status" [severity]="login.status === 'success' ? 'success' : 'danger'"></p-tag>
               </div>
-              <small class="text-gray-500">{{login.timestamp | date:'medium'}}</small>
             </ng-template>
           </p-timeline>
         </div>
       </div>
     </p-tabPanel>
 
-    <!-- Preferences -->
+    <!-- Preferences Tab (Common for all roles) -->
     <p-tabPanel header="Preferences">
       <div class="space-y-6">
         <!-- Notification Preferences -->
-        <div class="bg-white p-6 rounded-lg border">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Notification Preferences</h3>
+        <div class="p-6 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Notification Preferences</h3>
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
               <div>
                 <p class="font-medium">Email Notifications</p>
                 <p class="text-sm text-gray-600">Receive updates via email</p>
@@ -188,7 +267,7 @@
               <p-inputSwitch [(ngModel)]="preferences.emailNotifications"></p-inputSwitch>
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
               <div>
                 <p class="font-medium">SMS Notifications</p>
                 <p class="text-sm text-gray-600">Receive updates via SMS</p>
@@ -196,7 +275,7 @@
               <p-inputSwitch [(ngModel)]="preferences.smsNotifications"></p-inputSwitch>
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
               <div>
                 <p class="font-medium">Appointment Reminders</p>
                 <p class="text-sm text-gray-600">Get reminders before appointments</p>
@@ -207,10 +286,10 @@
         </div>
 
         <!-- Display Preferences -->
-        <div class="bg-white p-6 rounded-lg border">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Display Preferences</h3>
+        <div class="p-6 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Display Preferences</h3>
           <div class="space-y-4">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
               <div>
                 <p class="font-medium">Dark Mode</p>
                 <p class="text-sm text-gray-600">Use dark theme</p>
@@ -218,7 +297,7 @@
               <p-inputSwitch [(ngModel)]="preferences.darkMode"></p-inputSwitch>
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
               <div>
                 <p class="font-medium">Compact View</p>
                 <p class="text-sm text-gray-600">Show more items per page</p>
@@ -230,12 +309,291 @@
 
         <div class="flex justify-end">
           <p-button label="Save Preferences" icon="ri-save-line" (onClick)="savePreferences()"
-            [loading]="savingPreferences">
-          </p-button>
+            [loading]="savingPreferences"></p-button>
         </div>
       </div>
     </p-tabPanel>
   </p-tabView>
+
+
+  <!-- Role-specific tab templates -->
+  <ng-template #appointmentsTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Appointments</h3>
+        <p-button *ngIf="userProfile.role === 'doctor'" label="Set Availability" icon="ri-calendar-line"
+          (onClick)="setAvailability()">
+        </p-button>
+      </div>
+
+      <p-table [value]="appointments" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Date & Time</th>
+            <th>Patient/Doctor</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-appointment>
+          <tr>
+            <td>{{appointment.datetime | date:'medium'}}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <p-avatar [image]="appointment.photo" size="normal"></p-avatar>
+                <span>{{appointment.name}}</span>
+              </div>
+            </td>
+            <td>{{appointment.type}}</td>
+            <td>
+              <p-tag [value]="appointment.status" [severity]="getStatusSeverity(appointment.status)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button icon="ri-eye-line" severity="secondary" (onClick)="viewAppointment(appointment)">
+                </p-button>
+                <p-button *ngIf="canModifyAppointment(appointment)" icon="ri-edit-line"
+                  (onClick)="editAppointment(appointment)">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-template>
+
+  <ng-template #scheduleTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Schedule</h3>
+        <div class="flex gap-2">
+          <p-selectButton [options]="viewOptions" [(ngModel)]="currentView"></p-selectButton>
+          <p-calendar [(ngModel)]="selectedDate" [inline]="true" [showWeek]="true" [showTime]="true"
+            [style]="{'width':'100%'}" (onSelect)="onDateSelect($event)">
+          </p-calendar>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <p-table [value]="getDaySchedule()" [scrollable]="true" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Time</th>
+              <th>Appointment</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-event>
+            <tr>
+              <td>{{event.time | date:'shortTime'}}</td>
+              <td>
+                <div class="flex items-center gap-2">
+                  <p-avatar [image]="event.photo" size="normal"></p-avatar>
+                  <div>
+                    <p class="font-medium">{{event.title}}</p>
+                    <p class="text-sm text-gray-600">{{event.type}}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <p-tag [value]="event.status" [severity]="getStatusSeverity(event.status)"></p-tag>
+              </td>
+              <td>
+                <div class="flex gap-2">
+                  <p-button icon="ri-eye-line" severity="secondary"></p-button>
+                  <p-button icon="ri-edit-line"></p-button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #patientsTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">My Patients</h3>
+        <div class="flex gap-2">
+          <span class="p-input-icon-left">
+            <i class="ri-search-line"></i>
+            <input pInputText placeholder="Search patients" [(ngModel)]="searchTerm" />
+          </span>
+          <p-dropdown [options]="filterOptions" [(ngModel)]="selectedFilter" placeholder="Filter by">
+          </p-dropdown>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div *ngFor="let patient of filteredPatients"
+          class="p-4 bg-white rounded-lg border hover:shadow-md transition-shadow">
+          <div class="flex items-start gap-3">
+            <p-avatar [image]="patient.photo" size="large"></p-avatar>
+            <div class="flex-grow">
+              <h4 class="font-medium">{{patient.name}}</h4>
+              <p class="text-sm text-gray-600">ID: {{patient.id}}</p>
+              <p class="text-sm text-gray-600">Age: {{patient.age}}</p>
+              <div class="flex gap-2 mt-2">
+                <p-button icon="ri-file-list-line" severity="secondary" (onClick)="viewPatientRecords(patient)">
+                </p-button>
+                <p-button icon="ri-calendar-todo-line" (onClick)="scheduleAppointment(patient)">
+                </p-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #prescriptionsTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Prescriptions</h3>
+      </div>
+
+      <p-accordion>
+        <p-accordionTab *ngFor="let prescription of prescriptions">
+          <ng-template pTemplate="header">
+            <div class="flex justify-between items-center w-full">
+              <div>
+                <span class="font-medium">{{prescription.date | date}}</span>
+                <span class="text-gray-600 ml-4">Dr. {{prescription.doctorName}}</span>
+              </div>
+              <p-tag [value]="prescription.status" [severity]="getPrescriptionStatusSeverity(prescription.status)">
+              </p-tag>
+            </div>
+          </ng-template>
+          <div class="space-y-4">
+            <div *ngFor="let medicine of prescription.medicines" class="p-3 bg-white rounded border">
+              <div class="flex justify-between">
+                <div>
+                  <h4 class="font-medium">{{medicine.name}}</h4>
+                  <p class="text-sm text-gray-600">{{medicine.dosage}}</p>
+                  <p class="text-sm text-gray-600">{{medicine.frequency}}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-gray-600">Duration: {{medicine.duration}}</p>
+                  <p class="text-sm text-gray-600">Quantity: {{medicine.quantity}}</p>
+                </div>
+              </div>
+            </div>
+            <div class="text-sm text-gray-600">
+              <strong>Notes:</strong> {{prescription.notes}}
+            </div>
+          </div>
+        </p-accordionTab>
+      </p-accordion>
+    </div>
+  </ng-template>
+
+  <ng-template #medicalHistoryTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg space-y-6">
+      <div *ngFor="let section of medicalHistory" class="bg-white rounded-lg p-4 border">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">{{section.title}}</h3>
+
+        <p-timeline [value]="section.events" align="alternate">
+          <ng-template pTemplate="content" let-event>
+            <div class="p-3 bg-gray-50 rounded-lg">
+              <p class="font-medium">{{event.title}}</p>
+              <p class="text-sm text-gray-600">{{event.description}}</p>
+              <small class="text-gray-500">{{event.date | date}}</small>
+            </div>
+          </ng-template>
+        </p-timeline>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Admin-specific templates -->
+  <ng-template #departmentsTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Departments Overview</h3>
+        <p-button label="Add Department" icon="ri-add-line"></p-button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div *ngFor="let dept of departments" class="bg-white p-4 rounded-lg border">
+          <h4 class="font-medium text-lg">{{dept.name}}</h4>
+          <div class="mt-2 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Staff Count:</span>
+              <span class="font-medium">{{dept.staffCount}}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Active Patients:</span>
+              <span class="font-medium">{{dept.activePatients}}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Occupancy:</span>
+              <span class="font-medium">{{dept.occupancy}}%</span>
+            </div>
+          </div>
+          <div class="mt-4 flex gap-2">
+            <p-button icon="ri-eye-line" severity="secondary"></p-button>
+            <p-button icon="ri-edit-line"></p-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #staffTemplate>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium text-gray-900">Staff Management</h3>
+        <div class="flex gap-2">
+          <span class="p-input-icon-left">
+            <i class="ri-search-line"></i>
+            <input pInputText placeholder="Search staff" />
+          </span>
+          <p-dropdown [options]="staffFilters" placeholder="Department"></p-dropdown>
+        </div>
+      </div>
+
+      <p-table [value]="staffMembers" [paginator]="true" [rows]="10">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-staff>
+          <tr>
+            <td>
+              <div class="flex items-center gap-2">
+                <p-avatar [image]="staff.photo" size="normal"></p-avatar>
+                <span>{{staff.name}}</span>
+              </div>
+            </td>
+            <td>{{staff.role}}</td>
+            <td>{{staff.department}}</td>
+            <td>
+              <p-tag [value]="staff.status" [severity]="getStaffStatusSeverity(staff.status)">
+              </p-tag>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button icon="ri-eye-line" severity="secondary"></p-button>
+                <p-button icon="ri-edit-line"></p-button>
+                <p-button icon="ri-lock-line" severity="warn"></p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </ng-template>
+
 
   <!-- Photo Upload Dialog -->
   <p-dialog [(visible)]="showPhotoUpload" header="Update Profile Photo" [modal]="true" [style]="{width: '450px'}">
@@ -245,4 +603,4 @@
   </p-dialog>
 </div>
 
-<p-toast></p-toast>
+<p-toast position="top-right"></p-toast>

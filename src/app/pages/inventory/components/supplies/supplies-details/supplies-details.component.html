@@ -1,0 +1,171 @@
+<div class="p-4">
+    <p-card>
+      <!-- Header Actions -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Supply Details</h2>
+        <div class="flex gap-2">
+            <p-button 
+            label="Generate Order" 
+            icon="ri-shopping-cart-line"
+            severity="warn"  
+            *ngIf="isLowStock()"
+            (onClick)="generateOrder()">
+          </p-button>
+          <p-button 
+            label="Edit" 
+            icon="ri-edit-line"
+            severity="secondary"
+            [routerLink]="['../../edit', supply?.id]">
+          </p-button>
+          <p-button 
+            label="Back" 
+            icon="ri-arrow-left-line"
+            severity="secondary"
+            (onClick)="goBack()">
+          </p-button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Basic Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Name</div>
+              <div class="font-medium">{{supply?.name}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Code</div>
+              <div class="font-medium">{{supply?.code}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Brand</div>
+              <div class="font-medium">{{supply?.brand}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Category</div>
+              <div>
+                <span [class]="getCategoryClass(supply?.category)"
+                      class="px-2 py-1 rounded-full text-xs font-medium">
+                  {{supply?.category}}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Stock Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Current Stock</div>
+              <div [class]="getStockLevelClass()">
+                {{supply?.quantity}} {{supply?.unit}}
+              </div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Minimum Stock Level</div>
+              <div class="font-medium">{{supply?.minStockLevel}} {{supply?.unit}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Maximum Stock Level</div>
+              <div class="font-medium">{{supply?.maxStockLevel}} {{supply?.unit}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Reorder Level</div>
+              <div class="font-medium">{{supply?.reorderLevel}} {{supply?.unit}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="space-y-4 md:col-span-2">
+          <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <div class="text-sm text-gray-500">Size</div>
+                <div class="font-medium">{{supply?.size || 'N/A'}}</div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500">Material</div>
+                <div class="font-medium">{{supply?.material || 'N/A'}}</div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500">Price per Unit</div>
+                <div class="font-medium">${{supply?.price | number:'1.2-2'}}</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-sm text-gray-500">Location</div>
+                <div class="font-medium">{{supply?.location}}</div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500">Supplier</div>
+                <div class="font-medium">{{supply?.supplier}}</div>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <p-tag 
+                [value]="supply?.sterile ? 'Sterile' : 'Non-Sterile'"
+                [severity]="supply?.sterile ? 'success' : 'info'">
+              </p-tag>
+              <p-tag 
+                [value]="supply?.disposable ? 'Disposable' : 'Reusable'"
+                [severity]="supply?.disposable ? 'warn' : 'info'">
+              </p-tag>
+            </div>
+
+            <div>
+              <div class="text-sm text-gray-500">Notes</div>
+              <div class="font-medium whitespace-pre-line">{{supply?.notes || 'No notes available'}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage History -->
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Usage History</h3>
+        <p-table 
+          [value]="usageHistory" 
+          [rows]="5" 
+          [paginator]="true"
+          styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Department</th>
+              <th>Reference</th>
+              <th>Updated By</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-record>
+            <tr>
+              <td>{{record.date | date:'medium'}}</td>
+              <td>
+                <p-tag 
+                  [value]="record.type"
+                  [severity]="getUsageTypeSeverity(record.type)">
+                </p-tag>
+              </td>
+              <td [class]="record.type === 'IN' ? 'text-green-600' : 'text-red-600'">
+                {{record.type === 'IN' ? '+' : '-'}}{{record.quantity}} {{supply?.unit}}
+              </td>
+              <td>{{record.department}}</td>
+              <td>{{record.reference}}</td>
+              <td>{{record.updatedBy}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-card>
+  </div>
+  <p-toast></p-toast>

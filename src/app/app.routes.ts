@@ -4,6 +4,11 @@ import { AuthGuard } from './guards/auth-guard.guard';
 
 export const routes: Routes = [
   {
+    path: 'auth',
+    loadChildren: () => import('./auth/auth.routes')
+      .then(m => m.AUTH_ROUTES)
+  },
+  {
     path: '',
     loadComponent: () => import('./layouts/main-layout/main-layout.component')
       .then(m => m.MainLayoutComponent),
@@ -72,11 +77,7 @@ export const routes: Routes = [
       }
     ]
   },
-  {
-    path: 'auth',
-    loadChildren: () => import('./auth/auth.routes')
-      .then(m => m.AUTH_ROUTES)
-  },
+
   {
     path: '**',
     loadComponent: () => import('./pages/notfound/notfound.component')

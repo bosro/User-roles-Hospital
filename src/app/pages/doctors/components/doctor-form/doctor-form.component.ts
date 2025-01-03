@@ -2,7 +2,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -33,23 +38,25 @@ import { MessageService } from 'primeng/api';
     MultiSelectModule,
     CalendarModule,
     TextareaModule,
-    ChipModule,  
+    ChipModule,
     FileUploadModule,
-    ToastModule
+    ToastModule,
   ],
-  templateUrl: 'doctor-form.component.html'
+  templateUrl: 'doctor-form.component.html',
 })
 export class DoctorFormComponent implements OnInit {
   doctorForm!: FormGroup;
   isEditMode = false;
   loading = false;
 
+  imagePreview: string | null = null;
+
   prefixes = [
     { label: 'Dr.', value: 'Dr.' },
     { label: 'Prof.', value: 'Prof.' },
     { label: 'Mr.', value: 'Mr.' },
     { label: 'Mrs.', value: 'Mrs.' },
-    { label: 'Ms.', value: 'Ms.' }
+    { label: 'Ms.', value: 'Ms.' },
   ];
 
   specializations = [
@@ -57,14 +64,14 @@ export class DoctorFormComponent implements OnInit {
     { label: 'Neurology', value: 'Neurology' },
     { label: 'Pediatrics', value: 'Pediatrics' },
     { label: 'Orthopedics', value: 'Orthopedics' },
-    { label: 'Dermatology', value: 'Dermatology' }
+    { label: 'Dermatology', value: 'Dermatology' },
   ];
 
   departments = [
     { label: 'Outpatient', value: 'Outpatient' },
     { label: 'Inpatient', value: 'Inpatient' },
     { label: 'Emergency', value: 'Emergency' },
-    { label: 'Surgery', value: 'Surgery' }
+    { label: 'Surgery', value: 'Surgery' },
   ];
 
   workingDays = [
@@ -74,7 +81,7 @@ export class DoctorFormComponent implements OnInit {
     { label: 'Thursday', value: 'thursday' },
     { label: 'Friday', value: 'friday' },
     { label: 'Saturday', value: 'saturday' },
-    { label: 'Sunday', value: 'sunday' }
+    { label: 'Sunday', value: 'sunday' },
   ];
 
   constructor(
@@ -109,13 +116,13 @@ export class DoctorFormComponent implements OnInit {
         street: [''],
         city: [''],
         state: [''],
-        zipCode: ['']
+        zipCode: [''],
       }),
       workingDays: [[], Validators.required],
       startTime: [null, Validators.required],
       endTime: [null, Validators.required],
       about: [''],
-      expertise: [[]]
+      expertise: [[]],
     });
   }
 
@@ -138,10 +145,10 @@ export class DoctorFormComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load doctor details'
+          detail: 'Failed to load doctor details',
         });
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -153,12 +160,15 @@ export class DoctorFormComponent implements OnInit {
       ...this.doctorForm.value,
       workingHours: {
         start: this.formatTime(this.doctorForm.value.startTime),
-        end: this.formatTime(this.doctorForm.value.endTime)
-      }
+        end: this.formatTime(this.doctorForm.value.endTime),
+      },
     };
 
     const operation = this.isEditMode
-      ? this.doctorService.updateDoctor(this.route.snapshot.params['id'], doctorData)
+      ? this.doctorService.updateDoctor(
+          this.route.snapshot.params['id'],
+          doctorData
+        )
       : this.doctorService.createDoctor(doctorData);
 
     operation.subscribe({
@@ -166,7 +176,9 @@ export class DoctorFormComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: `Doctor ${this.isEditMode ? 'updated' : 'created'} successfully`
+          detail: `Doctor ${
+            this.isEditMode ? 'updated' : 'created'
+          } successfully`,
         });
         this.router.navigate(['../'], { relativeTo: this.route });
       },
@@ -174,22 +186,40 @@ export class DoctorFormComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: `Failed to ${this.isEditMode ? 'update' : 'create'} doctor`
+          detail: `Failed to ${this.isEditMode ? 'update' : 'create'} doctor`,
         });
         this.loading = false;
-      }
+      },
     });
   }
 
+  onPhotoSelect(event: any) {
+    const file = event.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   onPhotoUpload(event: any) {
-    // Handle photo upload
+    const file = event.files[0];
+    // Handle the file upload to your server here
+    // You can keep the preview or update it based on the server response
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Photo uploaded successfully',
+    });
   }
 
   private formatTime(date: Date): string {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 
@@ -199,39 +229,39 @@ export class DoctorFormComponent implements OnInit {
       const languages = this.doctorForm.get('languages')?.value || [];
       if (!languages.includes(value)) {
         this.doctorForm.patchValue({
-          languages: [...languages, value]
+          languages: [...languages, value],
         });
       }
       event.target.value = '';
     }
     event.preventDefault();
   }
-  
+
   removeLanguage(language: string) {
     const languages = this.doctorForm.get('languages')?.value || [];
     this.doctorForm.patchValue({
-      languages: languages.filter((l: string) => l !== language)
+      languages: languages.filter((l: string) => l !== language),
     });
   }
-  
+
   addExpertise(event: any) {
     const value = event.target.value.trim();
     if (value) {
       const expertise = this.doctorForm.get('expertise')?.value || [];
       if (!expertise.includes(value)) {
         this.doctorForm.patchValue({
-          expertise: [...expertise, value]
+          expertise: [...expertise, value],
         });
       }
       event.target.value = '';
     }
     event.preventDefault();
   }
-  
+
   removeExpertise(item: string) {
     const expertise = this.doctorForm.get('expertise')?.value || [];
     this.doctorForm.patchValue({
-      expertise: expertise.filter((e: string) => e !== item)
+      expertise: expertise.filter((e: string) => e !== item),
     });
   }
 

@@ -43,3 +43,23 @@ export interface InventoryItem {
     sterile?: boolean;
     disposable: boolean;
   }
+
+  export interface PurchaseOrder {
+    id: string;
+    orderNumber: string;
+    itemId: string;
+    itemType: 'medicine' | 'equipment' | 'supply';
+    itemName: string;
+    quantity: number;
+    unit: string;
+    status: 'draft' | 'pending' | 'approved' | 'ordered' | 'received' | 'cancelled';
+    urgency: 'normal' | 'urgent' | 'critical';
+    requestedBy: string;
+    requestDate: Date;
+    approvedBy?: string;
+    approvalDate?: Date;
+    expectedDelivery?: Date;
+    supplier?: string;
+    notes?: string;
+    totalCost?: number;
+  }

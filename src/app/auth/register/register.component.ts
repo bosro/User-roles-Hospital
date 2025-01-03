@@ -4,11 +4,14 @@ import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule,CardModule, InputTextModule],
   templateUrl: './register.component.html'
 })
 export class RegisterComponent {

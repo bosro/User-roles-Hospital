@@ -23,24 +23,37 @@
           <ng-container *ngFor="let item of menuItems">
             <!-- Menu Item -->
             <div class="menu-item" [class.active]="item.path === currentPath">
-              <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                [class.text-gray-600]="item.path !== currentPath" [class.hover:bg-gray-50]="item.path !== currentPath"
-                [class.hover:text-gray-900]="item.path !== currentPath" [class.bg-blue-50]="item.path === currentPath"
-                [class.text-blue-600]="item.path === currentPath">
-                <svg class="mr-3 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
-                  [class.group-hover:text-gray-500]="item.path !== currentPath"
-                  [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
-                  viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
-                </svg>
-                <span [class.hidden]="isSidebarCollapsed">{{item.title}}</span>
-              </a>
+              <div class="flex items-center">
+                <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  [class.text-gray-600]="item.path !== currentPath" [class.hover:bg-gray-50]="item.path !== currentPath"
+                  [class.hover:text-gray-900]="item.path !== currentPath" [class.bg-blue-50]="item.path === currentPath"
+                  [class.text-blue-600]="item.path === currentPath">
+                  <svg class="mr-3 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
+                    [class.group-hover:text-gray-500]="item.path !== currentPath"
+                    [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                  </svg>
+                  <span>{{item.title}}</span>
+                </a>
+                <button *ngIf="item.children" (click)="item.isExpanded = !item.isExpanded" class="ml-auto p-2">
+                  <svg class="h-4 w-4 transition-transform" [class.rotate-180]="item.isExpanded"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <!-- Submenu Items -->
-            <div *ngIf="item.children && !isSidebarCollapsed" class="ml-8 space-y-1">
+            <!-- Submenu Items -->
+            <div *ngIf="item.children && item.isExpanded && !isSidebarCollapsed" class="ml-8 space-y-1">
               <a *ngFor="let child of item.children" [routerLink]="child.path"
-                class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900">
+                class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md">
+                <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon" />
+                </svg>
                 {{child.title}}
               </a>
             </div>
@@ -81,110 +94,108 @@
           </div>
         </div> -->
 
-        <!-- User Menu -->
-        <div class="ml-4 flex items-center md:ml-6">
-          <!-- Notifications -->
-          <button
-            class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            <span class="sr-only">View notifications</span>
-            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            <span *ngIf="unreadNotificationsCount > 0"
-              class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white">
-            </span>
-          </button>
+      <!-- User Menu -->
+      <div class="ml-4 flex items-center md:ml-6">
+        <!-- Notifications -->
+        <button
+          class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          <span class="sr-only">View notifications</span>
+          <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span *ngIf="unreadNotificationsCount > 0"
+            class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white">
+          </span>
+        </button>
 
-          <!-- Profile Dropdown -->
-          <div class="ml-3 relative">
-            <div>
-              <button
-                class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                (click)="isProfileMenuOpen = !isProfileMenuOpen">
-                <span class="sr-only">Open user menu</span>
-                <img *ngIf="(currentUser$ | async)?.profileImage; else userInitials" class="h-8 w-8 rounded-full"
-                  [src]="(currentUser$ | async)?.profileImage" alt="Profile photo">
-                <ng-template #userInitials>
-                  <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-                    {{(currentUser$ | async)?.firstName?.charAt(0)}}{{(currentUser$ | async)?.lastName?.charAt(0)}}
-                  </div>
-                </ng-template>
-              </button>
-            </div>
+        <!-- Profile Dropdown -->
+        <div class="ml-3 relative">
+          <div>
+            <button
+              class="max-w-xs bg-white flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              (click)="isProfileMenuOpen = !isProfileMenuOpen">
+              <span class="sr-only">Open user menu</span>
+              <img *ngIf="(currentUser$ | async)?.profileImage; else userInitials" class="h-8 w-8 rounded-full"
+                [src]="(currentUser$ | async)?.profileImage" alt="Profile photo">
+              <ng-template #userInitials>
+                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                  {{(currentUser$ | async)?.firstName?.charAt(0)}}{{(currentUser$ | async)?.lastName?.charAt(0)}}
+                </div>
+              </ng-template>
+            </button>
+          </div>
 
-            <!-- Profile Dropdown Menu -->
-            <div *ngIf="isProfileMenuOpen"
-              class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-              role="menu">
-              <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem">Your Profile</a>
-              <a routerLink="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem">Settings</a>
-              <button (click)="logout()"
-                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Sign
-                out</button>
-            </div>
+          <!-- Profile Dropdown Menu -->
+          <div *ngIf="isProfileMenuOpen"
+            class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+            role="menu">
+            <a routerLink="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              role="menuitem">Your Profile</a>
+            <a routerLink="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              role="menuitem">Settings</a>
+            <button (click)="logout()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              role="menuitem">Sign
+              out</button>
           </div>
         </div>
       </div>
-
-      <!-- Mobile Menu -->
-      <div *ngIf="isMobileMenuOpen" class="md:hidden">
-        <div class="fixed inset-0 flex z-40">
-          <!-- Overlay -->
-          <div class="fixed inset-0" (click)="toggleMobileMenu()">
-            <div class="absolute inset-0 bg-gray-600 opacity-75"></div>
-          </div>
-
-          <!-- Menu Content -->
-          <div class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white">
-            <div class="absolute top-0 right-0 -mr-12 pt-2">
-              <button (click)="toggleMobileMenu()"
-                class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
-                <span class="sr-only">Close sidebar</span>
-                <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <!-- Mobile Menu Items -->
-            <div class="flex-shrink-0 flex items-center px-4">
-              <img src="assets/images/logo.png" alt="Logo" class="h-8 w-auto">
-            </div>
-            <div class="mt-5 flex-1 h-0 overflow-y-auto">
-              <nav class="px-2 space-y-1">
-                <ng-container *ngFor="let item of menuItems">
-                  <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-base font-medium rounded-md"
-                    [class.text-gray-600]="item.path !== currentPath"
-                    [class.hover:bg-gray-50]="item.path !== currentPath"
-                    [class.hover:text-gray-900]="item.path !== currentPath"
-                    [class.bg-blue-50]="item.path === currentPath" [class.text-blue-600]="item.path === currentPath">
-                    <svg class="mr-4 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
-                      [class.group-hover:text-gray-500]="item.path !== currentPath"
-                      [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
-                      viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
-                    </svg>
-                    {{item.title}}
-                  </a>
-                </ng-container>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Content Area -->
-      <main class="flex-1 relative overflow-y-auto focus:outline-none">
-        <div class="py-6">
-          <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-            <router-outlet></router-outlet>
-          </div>
-        </div>
-      </main>
     </div>
+
+    <!-- Mobile Menu -->
+    <div *ngIf="isMobileMenuOpen" class="md:hidden">
+      <div class="fixed inset-0 flex z-40">
+        <!-- Overlay -->
+        <div class="fixed inset-0" (click)="toggleMobileMenu()">
+          <div class="absolute inset-0 bg-gray-600 opacity-75"></div>
+        </div>
+
+        <!-- Menu Content -->
+        <div class="relative flex-1 flex flex-col max-w-xs w-full pt-5 pb-4 bg-white">
+          <div class="absolute top-0 right-0 -mr-12 pt-2">
+            <button (click)="toggleMobileMenu()"
+              class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+              <span class="sr-only">Close sidebar</span>
+              <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Mobile Menu Items -->
+          <div class="flex-shrink-0 flex items-center px-4">
+            <img src="assets/images/logo.png" alt="Logo" class="h-8 w-auto">
+          </div>
+          <div class="mt-5 flex-1 h-0 overflow-y-auto">
+            <nav class="px-2 space-y-1">
+              <ng-container *ngFor="let item of menuItems">
+                <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-base font-medium rounded-md"
+                  [class.text-gray-600]="item.path !== currentPath" [class.hover:bg-gray-50]="item.path !== currentPath"
+                  [class.hover:text-gray-900]="item.path !== currentPath" [class.bg-blue-50]="item.path === currentPath"
+                  [class.text-blue-600]="item.path === currentPath">
+                  <svg class="mr-4 h-6 w-6" [class.text-gray-400]="item.path !== currentPath"
+                    [class.group-hover:text-gray-500]="item.path !== currentPath"
+                    [class.text-blue-600]="item.path === currentPath" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                  </svg>
+                  {{item.title}}
+                </a>
+              </ng-container>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 relative overflow-y-auto focus:outline-none">
+      <div class="py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </main>
   </div>
+</div>

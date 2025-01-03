@@ -1,0 +1,21 @@
+@media print {
+    .p-scrollpanel {
+      overflow: visible !important;
+      height: auto !important;
+    }
+    .p-scrollpanel-content {
+      overflow: visible !important;
+      height: auto !important;
+    }
+  }
+  ::ng-deep .custombar1 .p-scrollpanel-wrapper {
+    border-right: none;
+  }
+  ::ng-deep .custombar1 .p-scrollpanel-bar {
+    background-color: #8b8b8b;
+    opacity: 0.5;
+    transition: background-color .3s;
+  }
+  ::ng-deep .custombar1 .p-scrollpanel-bar:hover {
+    background-color: #4a4a4a;
+  }

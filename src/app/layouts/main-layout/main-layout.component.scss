@@ -1,4 +1,3 @@
-// src/app/layouts/main-layout/main-layout.component.scss
 :host {
     display: block;
     height: 100vh;
@@ -22,6 +21,12 @@
     }
   }
   
+  .menu-item
+  {
+    font-size: 26px;
+    font-weight: 500;
+  }    
+
   .menu-item {
     @apply relative;
     

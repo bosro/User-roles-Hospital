@@ -10,11 +10,11 @@ export const APPOINTMENT_ROUTES: Routes = [
         loadComponent: () => import('./appointment-calendar/appointment-calendar.component')
           .then(m => m.AppointmentCalendarComponent)
       },
-      // {
-      //   path: 'list',
-      //   loadComponent: () => import('./appointment-list/appointment-list.component')
-      //     .then(m => m.AppointmentListComponent)
-      // },
+      {
+        path: 'list',
+        loadComponent: () => import('./appointment-list/appointment-list.component')
+          .then(m => m.AppointmentListComponent)
+      },
       {
         path: 'add',
         loadComponent: () => import('./appointment-form/appointment-form.component')

@@ -5,11 +5,11 @@ export const DOCTOR_ROUTES: Routes = [
     path: '',
     children: [
       { path: '', redirectTo: 'list', pathMatch: 'full' },
-      // {
-      //   path: 'list',
-      //   loadComponent: () => import('./components/doctor-list/doctor-list.component')
-      //     .then(m => m.DoctorListComponent)
-      // },
+      {
+        path: 'list',
+        loadComponent: () => import('./components/doctors-list/doctors-list.component')
+          .then(m => m.DoctorListComponent)
+      },
       {
         path: 'add',
         loadComponent: () => import('./components/doctor-form/doctor-form.component')

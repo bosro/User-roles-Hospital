@@ -23,7 +23,7 @@ import { MessageService } from "primeng/api";
     CardModule,
     ButtonModule,
     InputTextModule,
-    InputNumberModule,
+    InputNumberModule, 
     DropdownModule,
     CalendarModule,
     TableModule,

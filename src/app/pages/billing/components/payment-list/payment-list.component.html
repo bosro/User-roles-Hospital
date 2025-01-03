@@ -1,0 +1,176 @@
+<p>payment-list works!</p>
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Payments</h2>
+      <div class="flex gap-2">
+        <p-button 
+          label="Export" 
+          icon="ri-download-line"
+          severity="secondary"
+          (onClick)="exportPayments()">
+        </p-button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <p-card styleClass="mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
+          <p-dropdown 
+            [options]="statusOptions"
+            [(ngModel)]="filters.status"
+            (onChange)="applyFilters()"
+            [style]="{'width':'100%'}"
+            placeholder="All Statuses">
+          </p-dropdown>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Date Range
+          </label>
+          <div class="flex gap-2">
+            <p-calendar 
+              [(ngModel)]="filters.dateFrom"
+              (onSelect)="applyFilters()"
+              [showIcon]="true"
+              placeholder="From"
+              styleClass="w-full">
+            </p-calendar>
+            <p-calendar 
+              [(ngModel)]="filters.dateTo"
+              (onSelect)="applyFilters()"
+              [showIcon]="true"
+              placeholder="To"
+              styleClass="w-full">
+            </p-calendar>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Payment Method
+          </label>
+          <p-dropdown 
+            [options]="paymentMethods"
+            [(ngModel)]="filters.paymentMethod"
+            (onChange)="applyFilters()"
+            [style]="{'width':'100%'}"
+            placeholder="All Methods">
+          </p-dropdown>
+        </div>
+
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Search
+          </label>
+          <span class="p-input-icon-left w-full">
+            <i class="ri-search-line"></i>
+            <input 
+              type="text" 
+              pInputText 
+              [(ngModel)]="filters.search"
+              (input)="applyFilters()"
+              placeholder="Search payments..."
+              class="w-full" />
+          </span>
+        </div>
+      </div>
+    </p-card>
+
+    <!-- Payments Table -->
+    <p-card>
+      <p-table 
+        #dt
+        [value]="payments" 
+        [rows]="10" 
+        [paginator]="true"
+        [globalFilterFields]="['transactionId', 'invoiceNumber', 'patientName']"
+        [loading]="loading"
+        [rowHover]="true"
+        dataKey="id"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} payments"
+        [tableStyle]="{'min-width': '75rem'}">
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="paymentDate">
+              Date <p-sortIcon field="paymentDate"></p-sortIcon>
+            </th>
+            <th pSortableColumn="transactionId">
+              Transaction ID <p-sortIcon field="transactionId"></p-sortIcon>
+            </th>
+            <th pSortableColumn="invoiceNumber">
+              Invoice # <p-sortIcon field="invoiceNumber"></p-sortIcon>
+            </th>
+            <th pSortableColumn="patientName">
+              Patient <p-sortIcon field="patientName"></p-sortIcon>
+            </th>
+            <th pSortableColumn="amount">
+              Amount <p-sortIcon field="amount"></p-sortIcon>
+            </th>
+            <th pSortableColumn="paymentMethod">
+              Method <p-sortIcon field="paymentMethod"></p-sortIcon>
+            </th>
+            <th pSortableColumn="status">
+              Status <p-sortIcon field="status"></p-sortIcon>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-payment>
+          <tr>
+            <td>{{payment.paymentDate | date:'medium'}}</td>
+            <td>{{payment.transactionId}}</td>
+            <td>
+              <a [routerLink]="['/billing/invoices/view', payment.invoiceId]" 
+                 class="text-blue-600 hover:text-blue-800">
+                {{payment.invoiceNumber}}
+              </a>
+            </td>
+            <td>{{payment.patientName}}</td>
+            <td>${{payment.amount.toLocaleString()}}</td>
+            <td>{{payment.paymentMethod}}</td>
+            <td>
+              <span [class]="getStatusClass(payment.status)">
+                {{payment.status}}
+              </span>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <p-button 
+                  icon="ri-eye-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="View Details"
+                  [routerLink]="['/billing/invoices/view', payment.invoiceId]">
+                </p-button>
+                <p-button 
+                  icon="ri-printer-line" 
+                  severity="secondary"
+                  tooltipPosition="top"
+                  pTooltip="Print Receipt"
+                  (onClick)="printReceipt(payment)">
+                </p-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="summary">
+          <div class="flex justify-between items-center">
+            <div>Total Payments: {{payments.length}}</div>
+            <div class="text-sm">
+              Total Amount: ${{getTotalAmount() | number:'1.2-2'}}
+            </div>
+          </div>
+        </ng-template>
+      </p-table>
+    </p-card>
+  </div>

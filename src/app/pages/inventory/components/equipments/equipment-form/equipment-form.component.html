@@ -1,165 +1,196 @@
 <div class="p-4">
-    <p-card [header]="isEditMode ? 'Edit Equipment' : 'Add New Equipment'">
-      <form [formGroup]="equipmentForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Basic Information -->
+  <p-card [header]="isEditMode ? 'Edit Equipment' : 'Add New Equipment'">
+    <form [formGroup]="equipmentForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Basic Information -->
+        <div class="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
+          
           <div class="space-y-4">
-            <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
-            
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Name <span class="text-red-500">*</span>
               </label>
               <input 
                 pInputText 
                 formControlName="name"
+                placeholder="Enter equipment name"
                 class="w-full" />
+              <small class="text-red-500" *ngIf="equipmentForm.get('name')?.errors?.['required'] && equipmentForm.get('name')?.touched">
+                Name is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Model <span class="text-red-500">*</span>
               </label>
               <input 
                 pInputText 
                 formControlName="model"
+                placeholder="Enter model number"
                 class="w-full" />
+              <small class="text-red-500" *ngIf="equipmentForm.get('model')?.errors?.['required'] && equipmentForm.get('model')?.touched">
+                Model is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Serial Number <span class="text-red-500">*</span>
               </label>
               <input 
                 pInputText 
                 formControlName="serialNumber"
+                placeholder="Enter serial number"
                 class="w-full" />
+              <small class="text-red-500" *ngIf="equipmentForm.get('serialNumber')?.errors?.['required'] && equipmentForm.get('serialNumber')?.touched">
+                Serial number is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Manufacturer <span class="text-red-500">*</span>
               </label>
               <input 
                 pInputText 
                 formControlName="manufacturer"
+                placeholder="Enter manufacturer name"
                 class="w-full" />
+              <small class="text-red-500" *ngIf="equipmentForm.get('manufacturer')?.errors?.['required'] && equipmentForm.get('manufacturer')?.touched">
+                Manufacturer is required
+              </small>
             </div>
           </div>
+        </div>
 
-          <!-- Maintenance Information -->
+        <!-- Maintenance Information -->
+        <div class="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Maintenance Information</h3>
+          
           <div class="space-y-4">
-            <h3 class="text-lg font-medium text-gray-900">Maintenance Information</h3>
-            
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Condition <span class="text-red-500">*</span>
               </label>
               <p-dropdown 
                 [options]="conditions"
                 formControlName="condition"
                 [style]="{'width':'100%'}"
-                placeholder="Select Condition">
+                [panelStyle]="{'width':'100%'}"
+                placeholder="Select equipment condition">
               </p-dropdown>
+              <small class="text-red-500" *ngIf="equipmentForm.get('condition')?.errors?.['required'] && equipmentForm.get('condition')?.touched">
+                Condition is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
                 Next Maintenance Date <span class="text-red-500">*</span>
               </label>
               <p-calendar 
                 formControlName="maintenanceDue"
                 [showIcon]="true"
                 dateFormat="dd/mm/yy"
+                [style]="{'width':'100%'}"
                 styleClass="w-full">
               </p-calendar>
+              <small class="text-red-500" *ngIf="equipmentForm.get('maintenanceDue')?.errors?.['required'] && equipmentForm.get('maintenanceDue')?.touched">
+                Maintenance date is required
+              </small>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                Calibration Due Date
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Calibration Due Date</label>
               <p-calendar 
                 formControlName="calibrationDue"
                 [showIcon]="true"
                 dateFormat="dd/mm/yy"
+                [style]="{'width':'100%'}"
                 styleClass="w-full">
               </p-calendar>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                Warranty Expiry
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Warranty Expiry</label>
               <p-calendar 
                 formControlName="warrantyExpiry"
                 [showIcon]="true"
                 dateFormat="dd/mm/yy"
+                [style]="{'width':'100%'}"
                 styleClass="w-full">
               </p-calendar>
             </div>
           </div>
+        </div>
 
-          <!-- Location and Additional Information -->
-          <div class="space-y-4 md:col-span-2">
-            <h3 class="text-lg font-medium text-gray-900">Location and Additional Information</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Location and Additional Information -->
+        <div class="space-y-4 lg:col-span-2 p-4 bg-gray-50 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Location and Additional Information</h3>
+          
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="field">
-                <label class="block text-sm font-medium text-gray-700">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
                   Location <span class="text-red-500">*</span>
                 </label>
                 <input 
                   pInputText 
                   formControlName="location"
+                  placeholder="Enter equipment location"
                   class="w-full" />
+                <small class="text-red-500" *ngIf="equipmentForm.get('location')?.errors?.['required'] && equipmentForm.get('location')?.touched">
+                  Location is required
+                </small>
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-gray-700">
-                  Purchase Price
-                </label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Price</label>
                 <p-inputNumber 
                   formControlName="price"
                   mode="currency" 
                   currency="USD"
                   [minFractionDigits]="2"
+                  placeholder="Enter purchase price"
                   styleClass="w-full">
                 </p-inputNumber>
               </div>
             </div>
 
             <div class="field">
-              <label class="block text-sm font-medium text-gray-700">
-                Notes
-              </label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
               <textarea 
                 pInputTextarea 
                 formControlName="notes"
                 rows="3"
-                class="w-full">
+                placeholder="Enter additional notes"
+                class="w-full min-h-[100px] border border-gray-300 rounded-md p-3">
               </textarea>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-2">
-          <p-button 
-            label="Cancel" 
-            severity="secondary"
-            icon="ri-close-line"
-            (onClick)="cancel()">
-          </p-button>
-          <p-button 
-            [label]="isEditMode ? 'Update' : 'Save'"
-            icon="ri-save-line"
-            type="submit"
-            [loading]="loading"
-            [disabled]="equipmentForm.invalid || loading">
-          </p-button>
-        </div>
-      </form>
-    </p-card>
-  </div>
-  <p-toast></p-toast>
+      <!-- Form Actions -->
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <p-button 
+          label="Cancel" 
+          severity="secondary"
+          icon="ri-close-line"
+          (onClick)="cancel()">
+        </p-button>
+        <p-button 
+          [label]="isEditMode ? 'Update Equipment' : 'Save Equipment'"
+          icon="ri-save-line"
+          type="submit"
+          [loading]="loading"
+          [disabled]="equipmentForm.invalid || loading">
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+</div>
+
+<p-toast position="top-right"></p-toast>

@@ -11,6 +11,7 @@ import { CalendarModule } from "primeng/calendar";
 import { MessageService } from "primeng/api";
 import { PatientService } from "../services/patient.service";
 import { Patient } from "../models/patients.model";
+import { ChipModule } from "primeng/chip";
 
 @Component({
   selector: 'app-patient-form',
@@ -25,6 +26,7 @@ import { Patient } from "../models/patients.model";
     TextareaModule,
     DropdownModule,
     CalendarModule,
+    ChipModule
   ],
   templateUrl:'patient-form.component.html'
 })
@@ -92,6 +94,19 @@ export class PatientFormComponent implements OnInit {
         expiryDate: [null, [Validators.required]]
       })
     });
+  }
+
+  addItem(field: string, value: string) {
+    if (!value.trim()) return;
+    const currentValues = this.patientForm.get(`medicalHistory.${field}`)?.value || [];
+    this.patientForm.get(`medicalHistory.${field}`)?.setValue([...currentValues, value.trim()]);
+  }
+  
+  removeItem(field: string, value: string) {
+    const currentValues = this.patientForm.get(`medicalHistory.${field}`)?.value || [];
+    this.patientForm.get(`medicalHistory.${field}`)?.setValue(
+      currentValues.filter((item: string) => item !== value)
+    );
   }
 
   private loadPatient(id: string) {

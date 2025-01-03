@@ -1,0 +1,148 @@
+<div class="p-4">
+    <p-card>
+      <!-- Header Actions -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Medicine Details</h2>
+        <div class="flex gap-2">
+          <p-button 
+            label="Edit" 
+            icon="ri-edit-line"
+            severity="secondary"
+            [routerLink]="['../../edit', medicine?.id]">
+          </p-button>
+          <p-button 
+            label="Back" 
+            icon="ri-arrow-left-line"
+            severity="secondary"
+            (onClick)="goBack()">
+          </p-button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Basic Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Name</div>
+              <div class="font-medium">{{medicine?.name}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Code</div>
+              <div class="font-medium">{{medicine?.code}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Manufacturer</div>
+              <div class="font-medium">{{medicine?.manufacturer}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Dosage Form</div>
+              <div class="font-medium">{{medicine?.dosageForm}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Strength</div>
+              <div class="font-medium">{{medicine?.strength}}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Information -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-medium text-gray-900">Stock Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Current Stock</div>
+              <div [class]="getStockLevelClass()">
+                {{medicine?.quantity}} {{medicine?.unit}}
+              </div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Batch Number</div>
+              <div class="font-medium">{{medicine?.batchNumber}}</div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Expiry Date</div>
+              <div [class]="getExpiryClass(medicine?.expiryDate)">
+                {{medicine?.expiryDate | date}}
+              </div>
+            </div>
+            <div class="grid grid-cols-2">
+              <div class="text-sm text-gray-500">Price</div>
+              <div class="font-medium">
+                ${{medicine?.price | number:'1.2-2'}}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="space-y-4 md:col-span-2">
+          <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
+          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-sm text-gray-500">Minimum Stock Level</div>
+                <div class="font-medium">{{medicine?.minStockLevel}} {{medicine?.unit}}</div>
+              </div>
+              <div>
+                <div class="text-sm text-gray-500">Reorder Level</div>
+                <div class="font-medium">{{medicine?.reorderLevel}} {{medicine?.unit}}</div>
+              </div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-500">Storage Conditions</div>
+              <div class="font-medium">{{medicine?.storageConditions || 'N/A'}}</div>
+            </div>
+            <div>
+              <div class="text-sm text-gray-500">Notes</div>
+              <div class="font-medium whitespace-pre-line">{{medicine?.notes || 'No notes available'}}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <p-tag 
+                [value]="medicine?.prescriptionRequired ? 'Prescription Required' : 'No Prescription Required'"
+                [severity]="medicine?.prescriptionRequired ? 'danger' : 'success'">
+              </p-tag>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Movement History -->
+      <div class="mt-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Stock Movement History</h3>
+        <p-table 
+          [value]="stockMovements" 
+          [rows]="5" 
+          [paginator]="true"
+          styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Reference</th>
+              <th>Updated By</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-movement>
+            <tr>
+              <td>{{movement.date | date:'medium'}}</td>
+              <td>
+                <p-tag 
+                  [value]="movement.type"
+                  [severity]="getMovementSeverity(movement.type)">
+                </p-tag>
+              </td>
+              <td [class]="movement.type === 'IN' ? 'text-green-600' : 'text-red-600'">
+                {{movement.type === 'IN' ? '+' : '-'}}{{movement.quantity}}
+              </td>
+              <td>{{movement.reference}}</td>
+              <td>{{movement.updatedBy}}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    </p-card>
+  </div>
+  <p-toast></p-toast>
