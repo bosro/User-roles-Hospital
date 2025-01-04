@@ -18,7 +18,9 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { UserService } from '../../services/user.service';
 import { User, UserRole } from '../../models/user.model';
-
+import { DialogService } from 'primeng/dynamicdialog';
+import { PasswordResetDialogComponent } from '../password-reset-dialog/password-reset-dialog.component';
+import { ImportUsersDialogComponent } from '../import-users-dialog/import-users-dialog.component';
 
 @Component({
   selector: 'app-user-management',
@@ -40,16 +42,17 @@ import { User, UserRole } from '../../models/user.model';
     TagModule,
     TimelineModule,
     TooltipModule,
-    FormsModule
+    FormsModule,
   ],
+  providers:[DialogService],
   templateUrl: './user-management.component.html',
-  styleUrl: './user-management.component.scss'
+  styleUrl: './user-management.component.scss',
 })
 export class UserManagementComponent implements OnInit {
   users: User[] = [];
   selectedUser: User | null = null;
   loading = false;
-  
+
   displayUserDialog = false;
   displayImportDialog = false;
   displayViewDialog = false;
@@ -64,14 +67,14 @@ export class UserManagementComponent implements OnInit {
     search: '',
     role: null,
     department: null,
-    status: null
+    status: null,
   };
 
   userStats = {
     totalUsers: 0,
     activeUsers: 0,
     pendingUsers: 0,
-    onlineUsers: 0
+    onlineUsers: 0,
   };
 
   roles = [
@@ -79,27 +82,28 @@ export class UserManagementComponent implements OnInit {
     { label: 'Doctor', value: 'doctor' },
     { label: 'Nurse', value: 'nurse' },
     { label: 'Staff', value: 'staff' },
-    { label: 'Receptionist', value: 'receptionist' }
+    { label: 'Receptionist', value: 'receptionist' },
   ];
 
   departments = [
     { label: 'Cardiology', value: 'cardiology' },
     { label: 'Neurology', value: 'neurology' },
     { label: 'Pediatrics', value: 'pediatrics' },
-    { label: 'Orthopedics', value: 'orthopedics' }
+    { label: 'Orthopedics', value: 'orthopedics' },
   ];
 
   statuses = [
     { label: 'Active', value: 'active' },
     { label: 'Inactive', value: 'inactive' },
     { label: 'Pending', value: 'pending' },
-    { label: 'Blocked', value: 'blocked' }
+    { label: 'Blocked', value: 'blocked' },
   ];
 
   constructor(
     private userService: UserService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private dialogService: DialogService
   ) {}
 
   ngOnInit() {
@@ -118,10 +122,10 @@ export class UserManagementComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load users'
+          detail: 'Failed to load users',
         });
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -129,7 +133,7 @@ export class UserManagementComponent implements OnInit {
     this.userService.getUserStats().subscribe({
       next: (stats) => {
         this.userStats = stats;
-      }
+      },
     });
   }
 
@@ -139,23 +143,25 @@ export class UserManagementComponent implements OnInit {
 
   getRoleClass(role: string): string {
     const classes: { [key: string]: string } = {
-      'admin': 'bg-purple-100 text-purple-800',
-      'doctor': 'bg-blue-100 text-blue-800',
-      'nurse': 'bg-green-100 text-green-800',
-      'staff': 'bg-orange-100 text-orange-800',
-      'receptionist': 'bg-gray-100 text-gray-800'
+      admin: 'bg-purple-100 text-purple-800',
+      doctor: 'bg-blue-100 text-blue-800',
+      nurse: 'bg-green-100 text-green-800',
+      staff: 'bg-orange-100 text-orange-800',
+      receptionist: 'bg-gray-100 text-gray-800',
     };
     return `px-2 py-1 rounded-full text-xs font-medium ${classes[role] || ''}`;
   }
 
   getStatusClass(status: string): string {
     const classes: { [key: string]: string } = {
-      'active': 'bg-green-100 text-green-800',
-      'inactive': 'bg-gray-100 text-gray-800',
-      'pending': 'bg-yellow-100 text-yellow-800',
-      'blocked': 'bg-red-100 text-red-800'
+      active: 'bg-green-100 text-green-800',
+      inactive: 'bg-gray-100 text-gray-800',
+      pending: 'bg-yellow-100 text-yellow-800',
+      blocked: 'bg-red-100 text-red-800',
     };
-    return `px-2 py-1 rounded-full text-xs font-medium ${classes[status] || ''}`;
+    return `px-2 py-1 rounded-full text-xs font-medium ${
+      classes[status] || ''
+    }`;
   }
 
   onSearch(event: Event) {
@@ -192,7 +198,9 @@ export class UserManagementComponent implements OnInit {
 
   toggleUserStatus(user: User) {
     const newStatus = user.status === 'active' ? 'blocked' : 'active';
-    const message = `Are you sure you want to ${newStatus === 'blocked' ? 'block' : 'activate'} this user?`;
+    const message = `Are you sure you want to ${
+      newStatus === 'blocked' ? 'block' : 'activate'
+    } this user?`;
 
     this.confirmationService.confirm({
       message,
@@ -202,7 +210,9 @@ export class UserManagementComponent implements OnInit {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `User ${newStatus === 'blocked' ? 'blocked' : 'activated'} successfully`
+              detail: `User ${
+                newStatus === 'blocked' ? 'blocked' : 'activated'
+              } successfully`,
             });
             this.loadUsers();
             this.updateStats();
@@ -211,11 +221,26 @@ export class UserManagementComponent implements OnInit {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Failed to update user status'
+              detail: 'Failed to update user status',
             });
-          }
+          },
         });
-      }
+      },
+    });
+  }
+
+  openPasswordResetDialog(user: User) {
+    this.dialogService.open(PasswordResetDialogComponent, {
+      header: `Reset Password - ${user.firstName}`,
+      width: '400px',
+      data: { user },
+    });
+  }
+
+  openImportUsersDialog() {
+    this.dialogService.open(ImportUsersDialogComponent, {
+      header: 'Import Users',
+      width: '500px',
     });
   }
 }

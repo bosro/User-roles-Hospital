@@ -1,0 +1,157 @@
+<div class="p-4">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-notification-3-line text-3xl mr-3 text-red-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{emergencyCount}}</h3>
+            <p class="text-gray-600">Emergency Alerts</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-alert-line text-3xl mr-3 text-yellow-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{unreadCount}}</h3>
+            <p class="text-gray-600">Unread Notifications</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-calendar-check-line text-3xl mr-3 text-blue-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{reminderCount}}</h3>
+            <p class="text-gray-600">Active Reminders</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card styleClass="shadow-sm">
+        <div class="flex items-center">
+          <i class="ri-check-double-line text-3xl mr-3 text-green-500"></i>
+          <div>
+            <h3 class="text-xl font-semibold">{{resolvedCount}}</h3>
+            <p class="text-gray-600">Resolved Today</p>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Notifications Tabs -->
+    <p-tabView>
+      <p-tabPanel header="All Notifications">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center mb-4">
+            <div class="flex gap-2">
+              <p-button 
+                label="Mark All Read"
+                icon="ri-check-double-line"
+                severity="secondary"
+                [disabled]="!unreadCount"
+                (onClick)="markAllRead()">
+              </p-button>
+              <p-button 
+                label="Clear All"
+                icon="ri-delete-bin-line"
+                severity="danger"
+                [disabled]="!notifications.length"
+                (onClick)="clearAll()">
+              </p-button>
+            </div>
+            <p-dropdown 
+              [options]="filterOptions"
+              [(ngModel)]="selectedFilter"
+              (onChange)="applyFilter()"
+              placeholder="Filter by type">
+            </p-dropdown>
+          </div>
+
+          <ng-container *ngFor="let notification of filteredNotifications">
+            <div 
+              class="p-4 rounded-lg shadow-sm border-l-4 mb-4"
+              [class.bg-gray-50]="notification.read"
+              [class.border-blue-500]="!notification.read"
+              [class.border-l-red-500]="notification.type === 'emergency'"
+              [class.border-l-yellow-500]="notification.type === 'alert'"
+              [class.border-l-blue-500]="notification.type === 'reminder'"
+              [class.border-l-gray-500]="notification.type === 'info'">
+              
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h4 class="text-lg font-medium">{{notification.title}}</h4>
+                    <p-tag 
+                      [value]="notification.type"
+                      [severity]="getNotificationSeverity(notification.type)">
+                    </p-tag>
+                    <p-badge 
+                      *ngIf="notification.priority === 'high'"
+                      value="High Priority"
+                      severity="danger">
+                    </p-badge>
+                  </div>
+                  <p class="text-gray-600 mt-1">{{notification.message}}</p>
+                  <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <span>{{notification.timestamp | date:'medium'}}</span>
+                    <span>{{notification.category | titlecase}}</span>
+                  </div>
+                </div>
+
+                <div class="flex gap-2">
+                  <p-button 
+                    *ngFor="let action of notification.actions"
+                    [label]="action.label"
+                    [severity]="getActionSeverity(action.type)"
+                    (onClick)="handleAction(notification, action)">
+                  </p-button>
+                  <p-button 
+                    icon="ri-check-line"
+                    severity="secondary"
+                    [outlined]="true"
+                    tooltipPosition="top"
+                    pTooltip="Mark as read"
+                    (onClick)="markAsRead(notification)"
+                    *ngIf="!notification.read">
+                  </p-button>
+                  <p-button 
+                    icon="ri-delete-bin-line"
+                    severity="danger"
+                    [outlined]="true"
+                    tooltipPosition="top"
+                    pTooltip="Delete"
+                    (onClick)="deleteNotification(notification)">
+                  </p-button>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <div *ngIf="!filteredNotifications.length" class="text-center py-8 text-gray-500">
+            No notifications found.
+          </div>
+        </div>
+      </p-tabPanel>
+
+      <p-tabPanel header="Emergency Alerts">
+        <!-- Emergency alerts specific view -->
+        <div class="space-y-4">
+          <!-- Similar structure to all notifications but filtered for emergencies -->
+          <!-- Add additional emergency-specific actions -->
+        </div>
+      </p-tabPanel>
+
+      <p-tabPanel header="Reminders">
+        <!-- Reminders specific view -->
+        <div class="space-y-4">
+          <!-- Similar structure but for reminders -->
+          <!-- Add reminder-specific actions like snooze -->
+        </div>
+      </p-tabPanel>
+    </p-tabView>
+  </div>
+  <p-toast></p-toast>

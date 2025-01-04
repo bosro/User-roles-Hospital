@@ -29,7 +29,12 @@ export const DOCTOR_ROUTES: Routes = [
         path: 'schedule',
         loadComponent: () => import('./components/doctor-schedule/doctor-schedule.component')
           .then(m => m.DoctorScheduleComponent)
-      }
+      },
+      {
+        path: 'schedule',
+        loadComponent: () => import('./components/patient-history/patient-history.component')
+          .then(m => m.PatientHistoryComponent)
+      },
     ]
   }
 ];

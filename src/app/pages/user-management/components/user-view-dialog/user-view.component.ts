@@ -21,9 +21,9 @@ import { AvatarModule } from 'primeng/avatar';
     ButtonModule,
     AvatarModule
   ],
-  templateUrl:'user-view-dialog.component.html'
+  templateUrl:'user-view.component.html'
 })
-export class UserViewDialogComponent {
+export class UserViewComponent {
   @Input() user: User | null = null;
   userActivity: UserActivity[] = [];
 
