@@ -1,4 +1,3 @@
-// src/app/layouts/main-layout/main-layout.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';

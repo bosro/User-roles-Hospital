@@ -1,6 +1,6 @@
 export const environment = {
     prod: false,
-    apiUrl: 'https/dummyUrl/api/get',
+    apiUrl: 'http://localhost:5000/api/v1/',
     wsUrl: 'https/dummyUrl/api/get'
 
 }

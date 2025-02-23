@@ -1,4 +1,3 @@
-// Base interfaces
 interface BaseProfile {
   id: string;
   firstName: string;

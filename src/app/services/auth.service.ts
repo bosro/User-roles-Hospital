@@ -41,6 +41,7 @@ export class AuthService {
           // Store user details and token
           localStorage.setItem('currentUser', JSON.stringify(response.user));
           localStorage.setItem('token', response.token);
+          localStorage.setItem('role', response.user.role)
           this.currentUserSubject.next(response.user);
           this.startRefreshTokenTimer();
           return response;
