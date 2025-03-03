@@ -1,214 +1,236 @@
 <div class="p-4">
-    <p-card [header]="isEditMode ? 'Edit Appointment' : 'New Appointment'">
-      <form
-        [formGroup]="appointmentForm"
-        (ngSubmit)="onSubmit()"
-        class="space-y-6"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Patient Selection -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Patient
-              <span class="text-red-500">*</span>
-            </label>
-            <div class="flex gap-2">
-              <p-dropdown
-                [options]="patients"
-                formControlName="patientId"
-                styleClass="w-full"
-                [filter]="true"
-                placeholder="Select Patient"
-              >
-                <ng-template pTemplate="item" let-patient>
-                  <div>
-                    <div class="font-medium">{{ patient.name }}</div>
-                    <div class="text-sm text-gray-500">
-                      ID: {{ patient.id }}
-                    </div>
-                  </div>
-                </ng-template>
-              </p-dropdown>
-              <p-button
-                icon="ri-add-line"
-                severity="secondary"
-                (onClick)="navigateToNewPatient()"
-              >
-              </p-button>
-            </div>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('patientId')?.errors?.['required'] && 
-                          appointmentForm.get('patientId')?.touched"
-            >
-              Patient is required
-            </small>
-          </div>
-
-          <!-- Doctor Selection -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Doctor
-              <span class="text-red-500">*</span>
-            </label>
+  <p-card [header]="isEditMode ? 'Edit Appointment' : 'New Appointment'">
+    <p-toast></p-toast>
+    
+    <div *ngIf="loading" class="flex justify-center my-4">
+      <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+    </div>
+    
+    <form
+      [formGroup]="appointmentForm"
+      (ngSubmit)="onSubmit()"
+      class="space-y-6"
+      *ngIf="!loading || isEditMode"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Patient Selection -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Patient
+            <span class="text-red-500">*</span>
+          </label>
+          <div class="flex gap-2">
             <p-dropdown
-              [options]="doctors"
-              formControlName="doctorId"
+              [options]="patients"
+              formControlName="patientId"
               styleClass="w-full"
               [filter]="true"
-              placeholder="Select Doctor"
-              (onChange)="onDoctorChange()"
+              placeholder="Select Patient"
+              [showClear]="true"
+              optionLabel="label"
+              [filterBy]="'label'"
             >
-              <ng-template pTemplate="item" let-doctor>
+              <ng-template pTemplate="item" let-patient>
                 <div>
-                  <div class="font-medium">{{ doctor.name }}</div>
-                  <div class="text-sm text-gray-500">
-                    {{ doctor.department }}
-                  </div>
+                  <div class="font-medium">{{ patient.name }}</div>
+                  <!-- <div class="text-sm text-gray-500">
+                    ID: {{ patient.id }}
+                  </div> -->
                 </div>
               </ng-template>
             </p-dropdown>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('doctorId')?.errors?.['required'] && 
-                          appointmentForm.get('doctorId')?.touched"
+            <p-button
+              icon="ri-add-line"
+              severity="secondary"
+              (onClick)="navigateToNewPatient()"
+              pTooltip="Add new patient"
             >
-              Doctor is required
-            </small>
+            </p-button>
           </div>
-
-          <!-- Date Selection -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Date
-              <span class="text-red-500">*</span>
-            </label>
-            <p-calendar
-              formControlName="date"
-              [showTime]="false"
-              [minDate]="minDate"
-              [readonlyInput]="true"
-              styleClass="w-full"
-              (onSelect)="onDateSelect()"
-            >
-            </p-calendar>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('date')?.errors?.['required'] && 
-                          appointmentForm.get('date')?.touched"
-            >
-              Date is required
-            </small>
-          </div>
-
-          <!-- Time Slot Selection -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Time Slot
-              <span class="text-red-500">*</span>
-            </label>
-            <p-dropdown
-              [options]="availableTimeSlots"
-              formControlName="timeSlot"
-              styleClass="w-full"
-              placeholder="Select Time Slot"
-              [disabled]="
-                !appointmentForm.get('date')?.value ||
-                !appointmentForm.get('doctorId')?.value
-              "
-            >
-              <ng-template pTemplate="item" let-slot>
-                {{ slot.label }}
-              </ng-template>
-            </p-dropdown>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('timeSlot')?.errors?.['required'] && 
-                          appointmentForm.get('timeSlot')?.touched"
-            >
-              Time slot is required
-            </small>
-          </div>
-
-          <!-- Appointment Type -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Type
-              <span class="text-red-500">*</span>
-            </label>
-            <p-dropdown
-              [options]="appointmentTypes"
-              formControlName="type"
-              styleClass="w-full"
-              placeholder="Select Type"
-            >
-            </p-dropdown>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('type')?.errors?.['required'] && 
-                          appointmentForm.get('type')?.touched"
-            >
-              Appointment type is required
-            </small>
-          </div>
-
-          <!-- Status -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Status
-              <span class="text-red-500">*</span>
-            </label>
-            <p-dropdown
-              [options]="appointmentStatuses"
-              formControlName="status"
-              styleClass="w-full"
-              placeholder="Select Status"
-            >
-            </p-dropdown>
-            <small
-              class="text-red-500"
-              *ngIf="appointmentForm.get('status')?.errors?.['required'] && 
-                          appointmentForm.get('status')?.touched"
-            >
-              Status is required
-            </small>
-          </div>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('patientId')?.errors?.['required'] && 
+                        appointmentForm.get('patientId')?.touched"
+          >
+            Patient is required
+          </small>
         </div>
 
-        <!-- Notes -->
+        <!-- Doctor Selection -->
         <div class="field">
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Notes</label
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Doctor
+            <span class="text-red-500">*</span>
+          </label>
+          <p-dropdown
+            [options]="doctors"
+            formControlName="doctorId"
+            styleClass="w-full"
+            [filter]="true"
+            placeholder="Select Doctor"
+            [showClear]="true"
+            optionLabel="label"
+            [filterBy]="'label'"
+            (onChange)="onDoctorChange()"
           >
-          <textarea
-            pInputTextarea
-            formControlName="notes"
-            rows="4"
-            class="w-full"
-            placeholder="Add any additional notes..."
+            <ng-template pTemplate="item" let-doctor>
+              <div>
+                <div class="font-medium">{{ doctor.name }}</div>
+
+              </div>
+            </ng-template>
+          </p-dropdown>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('doctorId')?.errors?.['required'] && 
+                        appointmentForm.get('doctorId')?.touched"
           >
-          </textarea>
+            Doctor is required
+          </small>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex justify-end gap-2">
-          <p-button
-            label="Cancel"
-            severity="secondary"
-            icon="ri-close-line"
-            (onClick)="cancel()"
+        <!-- Date Selection -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Date
+            <span class="text-red-500">*</span>
+          </label>
+          <p-calendar
+            formControlName="date"
+            [showTime]="false"
+            [minDate]="minDate"
+            [readonlyInput]="true"
+            styleClass="w-full"
+            [showIcon]="true"
+            dateFormat="yy-mm-dd"
+            (onSelect)="onDateSelect()"
           >
-          </p-button>
-          <p-button
-            [label]="isEditMode ? 'Update' : 'Create'"
-            icon="ri-save-line"
-            type="submit"
-            [loading]="loading"
-            [disabled]="appointmentForm.invalid || loading"
+          </p-calendar>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('date')?.errors?.['required'] && 
+                        appointmentForm.get('date')?.touched"
           >
-          </p-button>
+            Date is required
+          </small>
         </div>
-      </form>
-    </p-card>
-  </div>
-  <p-toast></p-toast>
+
+        <!-- Time Slot Selection -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Time Slot
+            <span class="text-red-500">*</span>
+          </label>
+          <p-dropdown
+            [options]="availableTimeSlots"
+            formControlName="timeSlot"
+            styleClass="w-full"
+            placeholder="Select Time Slot"
+            [disabled]="
+              !appointmentForm.get('date')?.value ||
+              !appointmentForm.get('doctorId')?.value
+            "
+            optionLabel="label"
+          >
+          </p-dropdown>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('timeSlot')?.errors?.['required'] && 
+                        appointmentForm.get('timeSlot')?.touched"
+          >
+            Time slot is required
+          </small>
+          <small class="text-gray-500" *ngIf="!availableTimeSlots.length && appointmentForm.get('doctorId')?.value && appointmentForm.get('date')?.value">
+            No available time slots. Please select a different date.
+          </small>
+          <small class="text-gray-500" *ngIf="!appointmentForm.get('doctorId')?.value || !appointmentForm.get('date')?.value">
+            Please select both doctor and date to view available time slots.
+          </small>
+        </div>
+
+        <!-- Appointment Type -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Type
+            <span class="text-red-500">*</span>
+          </label>
+          <p-dropdown
+            [options]="appointmentTypes"
+            formControlName="type"
+            styleClass="w-full"
+            placeholder="Select Type"
+            optionLabel="label"
+            optionValue="value"
+          >
+          </p-dropdown>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('type')?.errors?.['required'] && 
+                        appointmentForm.get('type')?.touched"
+          >
+            Appointment type is required
+          </small>
+        </div>
+
+        <!-- Status -->
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Status
+            <span class="text-red-500">*</span>
+          </label>
+          <p-dropdown
+            [options]="appointmentStatuses"
+            formControlName="status"
+            styleClass="w-full"
+            placeholder="Select Status"
+            optionLabel="label"
+            optionValue="value"
+          >
+          </p-dropdown>
+          <small
+            class="text-red-500"
+            *ngIf="appointmentForm.get('status')?.errors?.['required'] && 
+                        appointmentForm.get('status')?.touched"
+          >
+            Status is required
+          </small>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="field">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Notes</label
+        >
+        <textarea
+          pInputTextarea
+          formControlName="notes"
+          rows="4"
+          class="w-full"
+          placeholder="Add any additional notes..."
+        >
+        </textarea>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex justify-end gap-2">
+        <p-button
+          label="Cancel"
+          severity="secondary"
+          icon="ri-close-line"
+          (onClick)="cancel()"
+          [disabled]="loading"
+        >
+        </p-button>
+        <p-button
+          [label]="isEditMode ? 'Update' : 'Create'"
+          icon="ri-save-line"
+          type="submit"
+          [loading]="loading"
+          [disabled]="appointmentForm.invalid || loading"
+        >
+        </p-button>
+      </div>
+    </form>
+  </p-card>
+</div>

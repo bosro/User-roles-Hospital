@@ -23,6 +23,7 @@ interface MenuItem {
   styleUrls: ['./main-layout.component.scss'],
 })
 export class MainLayoutComponent implements OnInit {
+  currentPageTitle: string = 'Dashboard'; 
   isSidebarCollapsed = false;
   isMobileMenuOpen = false;
   currentUser$: Observable<User>;
@@ -178,9 +179,10 @@ export class MainLayoutComponent implements OnInit {
     },
     
   ];
+  // currentUserSubject: any;
 
   constructor(private authService: AuthService, private router: Router) {
-    this.currentUser$ = this.authService.currentUser$ as Observable<User>;
+    this.currentUser$ = this.authService.currentUser as Observable<User>;
   }
 
   ngOnInit(): void {
@@ -211,9 +213,22 @@ export class MainLayoutComponent implements OnInit {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
   }
 
-  logout(): void {
-    this.authService.logout();
+  // logout() {
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('refreshToken');
+  //   localStorage.removeItem('user');
+  //   this.currentUserSubject.next(null);
+  //   this.router.navigate(['/login']);
+  // }
+
+  logout() {
+    localStorage.clear(); // Clear all stored items
+    // this.currentUserSubject.next(null);
+    this.router.navigate(['auth/login']).then(() => {
+      window.location.reload(); // Refresh the page after navigation
+    });
   }
+  
 
   private loadNotifications(): void {
     // Implement notification loading logic

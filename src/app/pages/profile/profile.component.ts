@@ -7,7 +7,8 @@ import {
   Validators,
   FormsModule,
 } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+// import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -29,6 +30,9 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
+import { InputNumberModule } from 'primeng/inputnumber';
+// import { ChipsModule } from 'primeng/chips';
+import { ProfileService } from './services/profile.service';
 
 interface StatConfig {
   label: string;
@@ -63,6 +67,8 @@ interface StatConfig {
     FullCalendarModule,
     DropdownModule,
     CalendarModule,
+    InputNumberModule,
+    // ChipsModule
   ],
   templateUrl: 'profile.component.html',
 })
@@ -72,6 +78,7 @@ export class ProfileComponent implements OnInit {
 
   personalForm!: FormGroup;
   passwordForm!: FormGroup;
+  addressForm!: FormGroup;
 
   profileImage: string = '';
   showPhotoUpload = false;
@@ -153,7 +160,7 @@ export class ProfileComponent implements OnInit {
 
   userProfile!: UserProfile;
 
-  statsConfig: Record<UserProfile['role'], StatConfig[]> = {
+  statsConfig: Record<string, StatConfig[]> = {
     doctor: [
       { label: 'Total Patients', value: 'totalPatients', color: 'blue' },
       { label: 'Appointments', value: 'appointmentsThisMonth', color: 'green' },
@@ -214,7 +221,13 @@ export class ProfileComponent implements OnInit {
     { label: 'Manage Settings', value: 'manage_settings' },
   ];
 
-  constructor(private fb: FormBuilder, private messageService: MessageService) {
+  constructor(
+    private fb: FormBuilder, 
+    private messageService: MessageService,
+    private profileService: ProfileService,
+    private route: ActivatedRoute,
+    private router: Router,
+  ) {
     this.userProfile = {
       id: '',
       role: 'doctor',
@@ -233,7 +246,6 @@ export class ProfileComponent implements OnInit {
         startTime: '',
         endTime: '',
       },
-      // Add the required preferences property
       preferences: {
         emailNotifications: true,
         smsNotifications: true,
@@ -261,10 +273,22 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadUserData();
+
+    const id = this.route.snapshot.params['id'];
+    if (id) {
+      this.loadUserData(id);
+    }
+    
   }
 
   private initializeForms() {
+    this.addressForm = this.fb.group({
+      street: ['', Validators.required],
+      city: ['', Validators.required],
+      state: ['', Validators.required],
+      zipCode: ['', Validators.required],
+    });
+
     this.personalForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
@@ -275,6 +299,11 @@ export class ProfileComponent implements OnInit {
       bio: [''],
       licenseNumber: [''],
       consultationFee: [''],
+      address: this.addressForm,
+      workingDays: [[]],
+      startTime: [''],
+      endTime: [''],
+      languages: [[]]
     });
 
     this.passwordForm = this.fb.group(
@@ -295,31 +324,94 @@ export class ProfileComponent implements OnInit {
       : { mismatch: true };
   }
 
-  private loadUserData() {
-    // Simulating API call to load user data
-    const userData = {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@hospital.com',
-      phone: '+1 (555) 123-4567',
-      specialization: 'Cardiology',
-      department: 'Cardiology Department',
-      bio: 'Experienced cardiologist with over 8 years of practice...',
-      // Add preferences when loading user data
-      preferences: {
-        emailNotifications: true,
-        smsNotifications: true,
-        appointmentReminders: true,
-        darkMode: false,
-        compactView: false,
-      },
-    };
+  private loadUserData(id:any) {
+    const user =localStorage.getItem('user')
+    console.log(user)
+    this.profileService.getUserProfile(id).subscribe({
+      next: (data) => {
+        // Map the API response to our UserProfile model
+        this.userProfile = {
+          id: data.id || '',
+          role: data.role?.toLowerCase() || 'doctor',
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          profileImage: data.profilePhoto || '',
+          prefix: data.prefix || 'Dr.',
+          specialization: data.specialization || '',
+          department: data.department || '',
+          licenseNumber: data.licenseNumber || '',
+          consultationFee: data.consultationFee || 0,
+          availability: {
+            workingDays: data.workingDays || [],
+            startTime: data.startTime || '',
+            endTime: data.endTime || '',
+          },
+          preferences: {
+            emailNotifications: true,
+            smsNotifications: true,
+            appointmentReminders: true,
+            darkMode: false,
+            compactView: false,
+          },
+          stats: {
+            totalPatients: 0,
+            appointmentsThisMonth: 0,
+            yearsOfService: data.experience || 0,
+            totalAppointments: 0,
+            completedProcedures: 0,
+            assignedPatients: 0,
+            admittedPatients: 0,
+            dischargedPatients: 0,
+            admittedDays: 0,
+            lastVisit: new Date(),
+            totalDepartments: 0,
+            totalStaff: 0,
+            activePatients: 0,
+          },
+        };
 
-    this.userProfile = {
-      ...this.userProfile,
-      ...userData,
-    };
-    this.personalForm.patchValue(userData);
+        // Update the form with the user data
+        this.personalForm.patchValue({
+          firstName: this.userProfile.firstName,
+          lastName: this.userProfile.lastName,
+          email: this.userProfile.email,
+          phone: this.userProfile.phone,
+          specialization: this.userProfile.specialization,
+          department: this.userProfile.department,
+          bio: data.about || '',
+          licenseNumber: this.userProfile.licenseNumber,
+          consultationFee: this.userProfile.consultationFee,
+          // workingDays: this.userProfile.availability.workingDays,
+          // startTime: this.userProfile.availability.startTime,
+          // endTime: this.userProfile.availability.endTime,
+          languages: data.languages || []
+        });
+
+        if (data.address) {
+          this.addressForm.patchValue({
+            street: data.address.street || '',
+            city: data.address.city || '',
+            state: data.address.state || '',
+            zipCode: data.address.zipCode || '',
+          });
+        }
+
+        // Set profile image if available
+        if (this.userProfile.profileImage) {
+          this.profileImage = this.userProfile.profileImage;
+        }
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load profile data',
+        });
+        console.error('Error loading profile data:', error);
+      }
+    });
   }
 
   showPhotoDialog() {
@@ -328,53 +420,172 @@ export class ProfileComponent implements OnInit {
 
   onPhotoUpload(event: { files: File[] }) {
     const file = event.files[0];
-    const reader = new FileReader();
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      if (e.target?.result) {
-        // Type assertion since we know it will be a string
-        this.profileImage = e.target.result as string;
+    if (!file) return;
+    
+    this.profileService.updatePhoto(file).subscribe({
+      next: (response) => {
+        // Update profile image with the URL returned from the server
+        if (response && response.profilePhoto) {
+          this.profileImage = response.profilePhoto;
+          this.userProfile.profileImage = response.profilePhoto;
+        } else {
+          // If no URL is returned, create a temporary URL for preview
+          const reader = new FileReader();
+          reader.onload = (e: ProgressEvent<FileReader>) => {
+            if (e.target?.result) {
+              this.profileImage = e.target.result as string;
+              this.userProfile.profileImage = this.profileImage;
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+        
         this.showPhotoUpload = false;
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
           detail: 'Profile photo updated successfully',
         });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update profile photo',
+        });
+        console.error('Error updating profile photo:', error);
       }
-    };
-
-    reader.readAsDataURL(file);
+    });
   }
 
   updatePersonalInfo() {
-    if (this.personalForm.invalid) return;
+    if (this.personalForm.invalid) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please fill all required fields correctly',
+      });
+      return;
+    }
 
     this.saving = true;
-    // Simulating API call to update user data
-    setTimeout(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Personal information updated successfully',
-      });
-      this.saving = false;
-    }, 1000);
+    
+    // Prepare the data to be sent to the API
+    const formData = this.personalForm.value;
+    const profileData = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      specialization: formData.specialization,
+      department: formData.department,
+      about: formData.bio,
+      licenseNumber: formData.licenseNumber,
+      consultationFee: formData.consultationFee,
+      address: formData.address,
+      workingDays: formData.workingDays,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      languages: formData.languages
+    };
+
+    this.profileService.updateProfile(profileData).subscribe({
+      next: (response) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Personal information updated successfully',
+        });
+        
+        // Update local user profile data with the response
+        if (response) {
+          this.userProfile.firstName = response.firstName || this.userProfile.firstName;
+          this.userProfile.lastName = response.lastName || this.userProfile.lastName;
+          this.userProfile.email = response.email || this.userProfile.email;
+          this.userProfile.phone = response.phone || this.userProfile.phone;
+          // this.userProfile.specialization = response.specialization || this.userProfile.specialization;
+          // this.userProfile.department = response.department || this.userProfile.department;
+          // this.userProfile.licenseNumber = response.licenseNumber || this.userProfile.licenseNumber;
+          // this.userProfile.consultationFee = response.consultationFee || this.userProfile.consultationFee;
+          
+          // if (response.availability) {
+          //   this.userProfile.availability = {
+          //     workingDays: response.workingDays || this.userProfile.availability.workingDays,
+          //     startTime: response.startTime || this.userProfile.availability.startTime,
+          //     endTime: response.endTime || this.userProfile.availability.endTime,
+          //   };
+          // }
+        }
+        
+        this.saving = false;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update personal information',
+        });
+        console.error('Error updating profile:', error);
+        this.saving = false;
+      }
+    });
   }
 
   updatePassword() {
-    if (this.passwordForm.invalid) return;
+    if (this.passwordForm.invalid) {
+      // Check for specific validation errors
+      if (this.passwordForm.hasError('mismatch')) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Passwords do not match',
+        });
+      } else {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Please fill all required password fields',
+        });
+      }
+      return;
+    }
 
     this.updatingPassword = true;
-    // Simulating API call to update password
-    setTimeout(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Password updated successfully',
-      });
-      this.passwordForm.reset();
-      this.updatingPassword = false;
-    }, 1000);
+    
+    const passwordData = {
+      currentPassword: this.passwordForm.value.currentPassword,
+      newPassword: this.passwordForm.value.newPassword,
+    };
+
+    this.profileService.updatePassword(passwordData).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Password updated successfully',
+        });
+        this.passwordForm.reset();
+        this.updatingPassword = false;
+      },
+      error: (error) => {
+        let errorMessage = 'Failed to update password';
+        
+        // Check for specific error responses from the API
+        if (error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error.status === 401) {
+          errorMessage = 'Current password is incorrect';
+        }
+        
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: errorMessage,
+        });
+        console.error('Error updating password:', error);
+        this.updatingPassword = false;
+      }
+    });
   }
 
   toggleTwoFactor() {
@@ -386,38 +597,72 @@ export class ProfileComponent implements OnInit {
   }
 
   private setupTwoFactor() {
-    // Implement 2FA setup logic
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Setup Required',
-      detail: 'Please complete two-factor authentication setup',
+    this.profileService.setupTwoFactor().subscribe({
+      next: (response) => {
+        // Typically, the API would return a QR code or setup key
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Setup Required',
+          detail: 'Please complete two-factor authentication setup',
+        });
+        // Here you would show the QR code to the user
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to setup two-factor authentication',
+        });
+        console.error('Error setting up 2FA:', error);
+        this.twoFactorEnabled = false; // Reset the toggle
+      }
     });
-    // Here you would typically:
-    // 1. Generate QR code
-    // 2. Show setup instructions
-    // 3. Verify setup with a test code
   }
 
   private disableTwoFactor() {
-    // Implement 2FA disable logic
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Disabled',
-      detail: 'Two-factor authentication has been disabled',
+    this.profileService.disableTwoFactor().subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Disabled',
+          detail: 'Two-factor authentication has been disabled',
+        });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to disable two-factor authentication',
+        });
+        console.error('Error disabling 2FA:', error);
+        this.twoFactorEnabled = true; // Reset the toggle
+      }
     });
   }
 
   savePreferences() {
     this.savingPreferences = true;
-    // Simulating API call to save preferences
-    setTimeout(() => {
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: 'Preferences saved successfully',
-      });
-      this.savingPreferences = false;
-    }, 1000);
+    
+    this.profileService.updatePreferences(this.preferences).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Preferences saved successfully',
+        });
+        this.userProfile.preferences = { ...this.preferences };
+        this.savingPreferences = false;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to save preferences',
+        });
+        console.error('Error saving preferences:', error);
+        this.savingPreferences = false;
+      }
+    });
   }
 
   getRoleSpecificFields(): { [key: string]: any } {
@@ -478,13 +723,13 @@ export class ProfileComponent implements OnInit {
   }
 
   getRoleTitle(role?: string): string {
-    const titles = {
+    const titles: {[key: string]: string} = {
       doctor: 'Medical Doctor',
       nurse: 'Registered Nurse',
       patient: 'Patient',
       admin: 'System Administrator',
     };
-    return role ? titles[role as keyof typeof titles] : '';
+    return role ? titles[role.toLowerCase()] || '' : '';
   }
 
   showFieldError(fieldName: string): boolean {
@@ -513,14 +758,14 @@ export class ProfileComponent implements OnInit {
   }
 
   getRoleSpecificTabs() {
-    const tabs = {
+    const tabs: {[key: string]: string[]} = {
       doctor: ['appointments', 'patients', 'schedule'],
       nurse: ['assignments', 'schedule', 'procedures'],
       patient: ['appointments', 'prescriptions', 'medical-history'],
       admin: ['departments', 'staff', 'reports'],
     };
 
-    return tabs[this.userProfile.role] || [];
+    return tabs[this.userProfile.role.toLowerCase()] || [];
   }
 
   // Helper methods
@@ -570,14 +815,39 @@ export class ProfileComponent implements OnInit {
   // Action methods
   setAvailability() {
     // Implement availability setting logic
+    const availabilityData = {
+      workingDays: this.personalForm.value.workingDays,
+      startTime: this.personalForm.value.startTime,
+      endTime: this.personalForm.value.endTime
+    };
+    
+    this.profileService.updateProfile(availabilityData).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Availability updated successfully',
+        });
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update availability',
+        });
+        console.error('Error updating availability:', error);
+      }
+    });
   }
 
   viewAppointment(appointment: any) {
     // Implement view logic
+    console.log('Viewing appointment:', appointment);
   }
 
   editAppointment(appointment: any) {
     // Implement edit logic
+    console.log('Editing appointment:', appointment);
   }
 
   canModifyAppointment(appointment: any): boolean {
@@ -587,10 +857,12 @@ export class ProfileComponent implements OnInit {
 
   viewPatientRecords(patient: any) {
     // Implement record viewing logic
+    console.log('Viewing patient records:', patient);
   }
 
   scheduleAppointment(patient: any) {
     // Implement scheduling logic
+    console.log('Scheduling appointment for patient:', patient);
   }
 
   getDaySchedule() {
@@ -610,5 +882,4 @@ export class ProfileComponent implements OnInit {
     // Clean up resources associated with TabView
     this.scheduleEvents = []; // Clear any events or data bound to TabView
   }
-
 }

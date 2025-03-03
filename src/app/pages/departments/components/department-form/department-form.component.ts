@@ -1,251 +1,361 @@
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ActivatedRoute, Router, RouterModule } from "@angular/router";
-import { MessageService } from "primeng/api";
-import { DepartmentService } from "../../services/department.service";
-import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { CardModule } from "primeng/card";
-import { ButtonModule } from "primeng/button";
-import { InputTextModule } from "primeng/inputtext";
-import { InputNumberModule } from "primeng/inputnumber";
-import { DropdownModule } from "primeng/dropdown";
-import { MultiSelectModule } from "primeng/multiselect";
-import { CalendarModule } from "primeng/calendar";
-import { ToastModule } from "primeng/toast";
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { DropdownModule } from 'primeng/dropdown';
+// import { InputTextareaModule } from 'primeng/inputtextarea';
+// import { ChipsModule } from 'primeng/chips';
+import { CalendarModule } from 'primeng/calendar';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { DividerModule } from 'primeng/divider';
+import { ChipModule } from 'primeng/chip';
+import { MultiSelectModule } from 'primeng/multiselect';
+
+import { Department } from '../../department.model';
+import { DepartmentService } from '../../services/department.service';
 
 @Component({
   selector: 'app-department-form',
   standalone: true,
   imports: [
-    ToastModule,
     CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    ButtonModule,
+    CardModule,
     InputTextModule,
     InputNumberModule,
     DropdownModule,
-    MultiSelectModule,
+    // InputTextareaModule,
+    // ChipsModule,
     CalendarModule,
-    ButtonModule,
-    CardModule,
-    ReactiveFormsModule
+    ToastModule,
+    DividerModule,
+    ChipModule,
+    MultiSelectModule
   ],
-  templateUrl: 'department-form.component.html'
+  templateUrl: './department-form.component.html'
 })
-
 export class DepartmentFormComponent implements OnInit {
   departmentForm!: FormGroup;
   isEditMode = false;
+  departmentId: string = '';
   loading = false;
+  submitting = false;
+  formErrors: any = {};
 
-  doctors: any[] = [];
   workingDays = [
-    { label: 'Monday', value: 'monday' },
-    { label: 'Tuesday', value: 'tuesday' },
-    { label: 'Wednesday', value: 'wednesday' },
-    { label: 'Thursday', value: 'thursday' },
-    { label: 'Friday', value: 'friday' },
-    { label: 'Saturday', value: 'saturday' },
-    { label: 'Sunday', value: 'sunday' }
+    { label: 'Monday', value: 'Monday' },
+    { label: 'Tuesday', value: 'Tuesday' },
+    { label: 'Wednesday', value: 'Wednesday' },
+    { label: 'Thursday', value: 'Thursday' },
+    { label: 'Friday', value: 'Friday' },
+    { label: 'Saturday', value: 'Saturday' },
+    { label: 'Sunday', value: 'Sunday' }
   ];
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
     private departmentService: DepartmentService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
-    this.initializeForm();
+    this.initForm();
   }
 
   ngOnInit() {
-    this.loadDoctors();
-    this.checkEditMode();
+    this.departmentId = this.route.snapshot.params['id'];
+    if (this.departmentId) {
+      this.isEditMode = true;
+      this.loadDepartment();
+    }
   }
 
-  private initializeForm() {
+
+  this.doctorService.getDoctors().subscribe({
+    next: (doctors) => {
+      this.doctors = doctors.map(doctor => ({
+        label: `${doctor.firstName} ${doctor.lastName}`,
+        value: doctor.id,
+        name: `${doctor.firstName} ${doctor.lastName}`,
+        id: doctor.id,
+        department: doctor.department
+      }));
+    },
+    error: (error) => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to load doctors: ' + (error.message || 'Unknown error')
+      });
+    }
+  });
+
+
+
+  private initForm() {
     this.departmentForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3)]],
-      code: ['', [Validators.required, Validators.pattern('^[A-Z0-9]+$')]],
-      description: [''],
-      headOfDepartment: this.fb.group({
-        id: ['', Validators.required],
-        name: [''],
-        email: [''],
-        phone: ['']
-      }),
-      location: this.fb.group({
-        building: ['', Validators.required],
-        floor: ['', [Validators.required, Validators.min(0)]],
-        roomNumbers: [[]]
-      }),
-      capacity: this.fb.group({
-        beds: [0, [Validators.required, Validators.min(1)]],
-        currentOccupancy: [0, [Validators.min(0)]],
-        staffCount: [0, [Validators.min(0)]]
-      }),
-      operatingHours: this.fb.group({
-        start: [null, Validators.required],
-        end: [null, Validators.required]
-      }),
-      workingDays: [[], [Validators.required, Validators.minLength(1)]],
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      code: ['', [Validators.required, Validators.maxLength(10), Validators.pattern(/^[A-Z0-9]+$/)]],
+      description: ['', [Validators.maxLength(500)]],
+      headOfDepartment: ['', [Validators.required]],
+      email: ['', [Validators.email]],
+      phone: [''],
       facilities: [[]],
       specialties: [[]],
+      
+      location: this.fb.group({
+        building: [''],
+        floor: [null],
+        roomNumbers: [[]]
+      }),
+      
+      capacity: this.fb.group({
+        totalBeds: [0, [Validators.required, Validators.min(0)]],
+        currentOccupancy: [0, [Validators.required, Validators.min(0)]],
+        staffCount: [0, [Validators.required, Validators.min(0)]]
+      }),
+      
+      schedule: this.fb.group({
+        workingDays: [['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']],
+        startTime: [new Date('2023-01-01T08:00:00')],
+        endTime: [new Date('2023-01-01T17:00:00')]
+      }),
+      
       contactInfo: this.fb.group({
-        email: ['', [Validators.required, Validators.email]],
-        phone: ['', [Validators.required, Validators.pattern('^[0-9+-]+$')]],
-        emergencyContact: ['', Validators.pattern('^[0-9+-]+$')]
+        email: ['', [Validators.email]],
+        phone: [''],
+        emergencyContact: ['']
       })
-    }, { validators: this.validateOperatingHours });
+    }, { validators: [this.validateOccupancy] });
+
+    // Monitor changes to show live validation
+    this.departmentForm.valueChanges.subscribe(() => {
+      this.formErrors = this.getFormValidationErrors();
+    });
   }
 
-  private validateOperatingHours(group: FormGroup) {
-    const start = group.get('operatingHours.start')?.value;
-    const end = group.get('operatingHours.end')?.value;
-    
-    if (start && end) {
-      const startTime = new Date(start).getTime();
-      const endTime = new Date(end).getTime();
-      
-      if (startTime >= endTime) {
-        return { invalidOperatingHours: true };
-      }
+  validateOccupancy(group: FormGroup) {
+    const totalBeds = group.get('capacity.totalBeds')?.value;
+    const currentOccupancy = group.get('capacity.currentOccupancy')?.value;
+
+    if (totalBeds != null && currentOccupancy != null && currentOccupancy > totalBeds) {
+      return { occupancyExceedsBeds: true };
     }
     return null;
   }
 
-  private loadDoctors() {
-    // Assuming you have a method to load doctors
-    // this.doctorService.getDoctors().subscribe({
-    //   next: (doctors) => {
-    //     this.doctors = doctors.map(doctor => ({
-    //       id: doctor.id,
-    //       name: `${doctor.prefix} ${doctor.firstName} ${doctor.lastName}`,
-    //       email: doctor.email,
-    //       phone: doctor.phone
-    //     }));
-    //   },
-    //   error: () => {
-    //     this.messageService.add({
-    //       severity: 'error',
-    //       summary: 'Error',
-    //       detail: 'Failed to load doctors'
-    //     });
-    //   }
-    // });
-  }
-
-  private checkEditMode() {
-    const id = this.route.snapshot.params['id'];
-    if (id) {
-      this.isEditMode = true;
-      this.loadDepartment(id);
-    }
-  }
-
-  private loadDepartment(id: string) {
+  private loadDepartment() {
     this.loading = true;
-    this.departmentService.getDepartmentById(id).subscribe({
+    this.departmentService.getDepartmentById(this.departmentId).subscribe({
       next: (department) => {
-        this.departmentForm.patchValue(department);
+        // Format the times correctly for the calendar component
+        const startTime = department.schedule?.startTime 
+          ? new Date(`2023-01-01T${department.schedule.startTime}`) 
+          : new Date('2023-01-01T08:00:00');
+        
+        const endTime = department.schedule?.endTime 
+          ? new Date(`2023-01-01T${department.schedule.endTime}`) 
+          : new Date('2023-01-01T17:00:00');
+
+        // Update the form with the department data
+        this.departmentForm.patchValue({
+          name: department.name,
+          code: department.code,
+          description: department.description,
+          headOfDepartment: department.headOfDepartment,
+          email: department.email,
+          phone: department.phone,
+          facilities: department.facilities,
+          specialties: department.specialties,
+          
+          location: {
+            building: department.location?.building,
+            floor: department.location?.floor,
+            roomNumbers: department.location?.roomNumbers
+          },
+          
+          capacity: {
+            totalBeds: department.capacity?.totalBeds,
+            currentOccupancy: department.capacity?.currentOccupancy,
+            staffCount: department.capacity?.staffCount
+          },
+          
+          schedule: {
+            workingDays: department.schedule?.workingDays,
+            startTime: startTime,
+            endTime: endTime
+          },
+          
+          contactInfo: {
+            email: department.contactInfo?.email,
+            phone: department.contactInfo?.phone,
+            emergencyContact: department.contactInfo?.emergencyContact
+          }
+        });
+        
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading department:', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load department'
+          detail: 'Failed to load department details',
+          life: 5000
         });
         this.loading = false;
-        this.router.navigate(['../'], { relativeTo: this.route });
+        this.router.navigate(['/departments']);
       }
     });
   }
 
-  onHeadOfDepartmentChange(event: any) {
-    const doctor = this.doctors.find(d => d.id === event.value);
-    if (doctor) {
-      const headOfDepartment = this.departmentForm.get('headOfDepartment');
-      headOfDepartment?.patchValue({
-        name: doctor.name,
-        email: doctor.email,
-        phone: doctor.phone
-      });
-    }
+  getFormValidationErrors() {
+    let errors: any = {};
+    Object.keys(this.departmentForm.controls).forEach(key => {
+      const control = this.departmentForm.get(key);
+      if (control && control.errors) {
+        errors[key] = control.errors;
+      }
+      
+      // Check for nested form groups
+      if (control instanceof FormGroup) {
+        const nestedErrors = this.getNestedFormValidationErrors(control, key);
+        if (Object.keys(nestedErrors).length > 0) {
+          errors = { ...errors, ...nestedErrors };
+        }
+      }
+    });
+    return errors;
   }
 
-  validateCapacity() {
-    const capacity = this.departmentForm.get('capacity');
-    const beds = capacity?.get('beds')?.value || 0;
-    const currentOccupancy = capacity?.get('currentOccupancy')?.value || 0;
-
-    if (currentOccupancy > beds) {
-      capacity?.get('currentOccupancy')?.setErrors({ exceedsCapacity: true });
-    }
+  getNestedFormValidationErrors(formGroup: FormGroup, parentKey: string) {
+    let errors: any = {};
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      if (control && control.errors) {
+        errors[`${parentKey}.${key}`] = control.errors;
+      }
+    });
+    return errors;
   }
 
   onSubmit() {
     if (this.departmentForm.invalid) {
-      Object.keys(this.departmentForm.controls).forEach(key => {
-        const control = this.departmentForm.get(key);
-        if (control?.invalid) {
-          control.markAsTouched();
-        }
-      });
+      this.markFormGroupTouched(this.departmentForm);
+      
+      // Check if occupancy exceeds beds
+      if (this.departmentForm.hasError('occupancyExceedsBeds')) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Validation Error',
+          detail: 'Current occupancy cannot exceed total beds',
+          life: 5000
+        });
+        return;
+      }
+      
       this.messageService.add({
         severity: 'error',
         summary: 'Validation Error',
-        detail: 'Please check all required fields'
+        detail: 'Please fill all required fields correctly',
+        life: 5000
       });
       return;
     }
 
-    this.loading = true;
-    const departmentData = {
-      ...this.departmentForm.value,
-      operatingHours: {
-        start: this.formatTime(this.departmentForm.value.operatingHours.start),
-        end: this.formatTime(this.departmentForm.value.operatingHours.end)
-      }
-    };
+    // Format the data before submission
+    const formData = this.departmentForm.value;
+    
+    // Format time values
+    if (formData.schedule?.startTime instanceof Date) {
+      formData.schedule.startTime = this.formatTime(formData.schedule.startTime);
+    }
+    
+    if (formData.schedule?.endTime instanceof Date) {
+      formData.schedule.endTime = this.formatTime(formData.schedule.endTime);
+    }
 
-    const operation = this.isEditMode
-      ? this.departmentService.updateDepartment(this.route.snapshot.params['id'], departmentData)
-      : this.departmentService.createDepartment(departmentData);
+    this.submitting = true;
 
-    operation.subscribe({
-      next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: `Department ${this.isEditMode ? 'updated' : 'created'} successfully`
-        });
-        this.router.navigate(['../'], { relativeTo: this.route });
-      },
-      error: (error) => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: `Failed to ${this.isEditMode ? 'update' : 'create'} department: ${error.message}`
-        });
-        this.loading = false;
+    if (this.isEditMode) {
+      this.departmentService.updateDepartment(this.departmentId, formData).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Department updated successfully',
+            life: 3000
+          });
+          setTimeout(() => this.router.navigate(['/departments']), 1500);
+        },
+        error: (err) => {
+          console.error('Error updating department:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to update department: ' + (err.message || 'Unknown error'),
+            life: 5000
+          });
+          this.submitting = false;
+        }
+      });
+    } else {
+      this.departmentService.createDepartment(formData).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'Department created successfully',
+            life: 3000
+          });
+          setTimeout(() => this.router.navigate(['/departments']), 1500);
+        },
+        error: (err) => {
+          console.error('Error creating department:', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to create department: ' + (err.message || 'Unknown error'),
+            life: 5000
+          });
+          this.submitting = false;
+        }
+      });
+    }
+  }
+
+  formatTime(date: Date): string {
+    if (!date) return '';
+    return date.toTimeString().substring(0, 5); // Get HH:MM format
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if ((control as any).controls) {
+        this.markFormGroupTouched(control as FormGroup);
       }
     });
   }
 
-  private formatTime(date: Date): string {
-    return date.toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+  isFieldInvalid(field: string): boolean {
+    const control = this.departmentForm.get(field);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.departmentForm.get(fieldName);
-    return field ? field.invalid && (field.dirty || field.touched) : false;
+  isNestedFieldInvalid(parent: string, field: string): boolean {
+    const control = this.departmentForm.get(`${parent}.${field}`);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  cancel() {
-    this.router.navigate(['../'], { relativeTo: this.route });
+  goBack() {
+    this.router.navigate(['/departments']);
   }
 }

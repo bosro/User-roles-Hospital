@@ -1,35 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+// import { RouterModule } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { ConfirmationService } from 'primeng/api';
-import { ReorderDialogComponent } from './reorder-dialog/reorder-dialog.component';
-import { PurchaseOrder } from '../models/inventory.model';
 import { DialogModule } from 'primeng/dialog';
 import { DialogService } from 'primeng/dynamicdialog';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { ReorderDialogComponent } from './reorder-dialog/reorder-dialog.component';
+import { Alert, Activity, PurchaseOrder } from '../models/inventory.model';
+import { DashboardService } from '../inventory-dashboard/dashboard.servie';
+import { SkeletonModule } from 'primeng/skeleton';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 
 type AlertType = 'expiry' | 'stock' | 'maintenance';
-type ActivityStatus = 'completed' | 'pending' | 'failed';
 type ButtonSeverity = 'success' | 'info' | 'warn' | 'danger' | 'help' | 'primary' | 'secondary' | 'contrast';
-
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
 
-interface Alert {
-  type: 'expiry' | 'stock' | 'maintenance';
-  title: string;
-  message: string;
-}
-
-interface Activity {
-  timestamp: Date;
-  description: string;
-  user: string;
-  status: 'completed' | 'pending' | 'failed';
-}
 @Component({
   selector: 'app-inventory-dashboard',
   standalone: true,
@@ -41,10 +31,13 @@ interface Activity {
     ChartModule,
     TableModule,
     TagModule,
-    DialogModule
+    DialogModule,
+    // DynamicDialogModule,
+    ToastModule,
+    SkeletonModule
   ],
-  providers: [DialogService],
-    templateUrl: 'inventory-dashboard.component.html'
+  providers: [DialogService, MessageService],
+  templateUrl: 'inventory-dashboard.component.html'
 })
 export class InventoryDashboardComponent implements OnInit {
   
@@ -63,7 +56,15 @@ export class InventoryDashboardComponent implements OnInit {
   recentActivities: Activity[] = [];
   lowStockItemsList: any[] = [];
 
-  constructor(private dialogService: DialogService) {
+  // Loading state
+  loading = true;
+
+  constructor(
+    private dashboardService: DashboardService,
+    private dialogService: DialogService,
+    private messageService: MessageService,
+    private router: Router,
+  ) {
     this.initializeChartData();
   }
 
@@ -72,17 +73,18 @@ export class InventoryDashboardComponent implements OnInit {
   }
 
   private initializeChartData() {
+    // Initialize with placeholder data, will be updated when real data loads
     this.stockChartData = {
       labels: ['Medicines', 'Equipment', 'Supplies'],
       datasets: [
         {
           label: 'Current Stock',
-          data: [65, 59, 80],
+          data: [0, 0, 0],
           backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
         },
         {
           label: 'Reorder Level',
-          data: [40, 30, 45],
+          data: [0, 0, 0],
           backgroundColor: ['#90CAF9', '#A5D6A7', '#FFB74D']
         }
       ]
@@ -105,39 +107,73 @@ export class InventoryDashboardComponent implements OnInit {
   }
 
   private loadDashboardData() {
-    // Load data from service
-    // This is mock data for demonstration
-    this.criticalAlerts = [
-      {
-        type: 'expiry',
-        title: 'Expiring Items',
-        message: '5 medicines expiring within 30 days'
+    this.loading = true;
+    
+    this.dashboardService.getDashboardData().subscribe({
+      next: (data) => {
+        // Update quick stats
+        this.totalMedicines = data.totalMedicines;
+        this.totalEquipment = data.totalEquipment;
+        this.totalSupplies = data.totalSupplies || 0; // Default to 0 if not provided
+        this.lowStockItems = data.lowStockItems;
+        
+        // Update alerts
+        this.criticalAlerts = data.criticalAlerts;
+        
+        // Update recent activities
+        this.recentActivities = data.recentActivities;
+        
+        // Update low stock items list
+        if (data.lowestStockMedicine) {
+          this.lowStockItemsList = [data.lowestStockMedicine];
+        }
+        
+        // Update chart data
+        this.updateChartData(data);
+        
+        this.loading = false;
       },
-      {
-        type: 'stock',
-        title: 'Low Stock Alert',
-        message: '3 items below reorder level'
+      error: (error) => {
+        console.error('Error loading dashboard data:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load dashboard data'
+        });
+        this.loading = false;
       }
-    ];
+    });
+  }
 
-    this.recentActivities = [
-      {
-        timestamp: new Date(),
-        description: 'Restocked Paracetamol',
-        user: 'John Doe',
-        status: 'completed'
-      }
-    ];
+  private updateChartData(data: any) {
+    // Create more realistic chart data based on API response
+    this.stockChartData = {
+      labels: ['Medicines', 'Equipment', 'Supplies'],
+      datasets: [
+        {
+          label: 'Current Items',
+          data: [
+            data.totalMedicines || 0, 
+            data.totalEquipment || 0, 
+            data.totalSupplies || 0
+          ],
+          backgroundColor: ['#42A5F5', '#66BB6A', '#FFA726']
+        },
+        {
+          label: 'Critical Items',
+          data: [
+            this.countAlertsByType('expiry') + this.countAlertsByType('stock'),
+            0, // No equipment alerts in sample data
+            0  // No supplies alerts in sample data
+          ],
+          backgroundColor: ['#90CAF9', '#A5D6A7', '#FFB74D']
+        }
+      ]
+    };
+  }
 
-    this.lowStockItemsList = [
-      {
-        name: 'Paracetamol 500mg',
-        code: 'MED001',
-        quantity: 50,
-        unit: 'tablets',
-        reorderLevel: 100
-      }
-    ];
+  private countAlertsByType(type: string): number {
+    return this.criticalAlerts.filter(alert => alert.type === type).length;
   }
 
   getAlertClass(type: AlertType): string {
@@ -158,8 +194,6 @@ export class InventoryDashboardComponent implements OnInit {
     return icons[type] || 'ri-information-line text-gray-500';
   }
 
- 
-
   getAlertSeverity(type: Alert['type']): ButtonSeverity {
     const severities: Record<Alert['type'], ButtonSeverity> = {
       'expiry': 'danger',
@@ -178,19 +212,31 @@ export class InventoryDashboardComponent implements OnInit {
     return severities[status];
   }
 
-
   getStockLevelClass(item: any): string {
-    if (item.quantity <= item.reorderLevel * 0.5) {
+    const reorderLevel = item.reorderLevel || 50; // Default if not provided
+    
+    if (item.quantity <= reorderLevel * 0.5) {
       return 'text-red-500 font-medium';
     }
-    if (item.quantity <= item.reorderLevel) {
+    if (item.quantity <= reorderLevel) {
       return 'text-yellow-500 font-medium';
     }
     return 'text-green-500 font-medium';
   }
 
   handleAlert(alert: any) {
-    // Handle alert action
+    // Handle alert action based on type
+    switch (alert.type) {
+      case 'expiry':
+        this.router.navigate(['/inventory/medicines'], { queryParams: { filter: 'expiring' } });
+        break;
+      case 'stock':
+        this.router.navigate(['/inventory/medicines'], { queryParams: { filter: 'low-stock' } });
+        break;
+      case 'maintenance':
+        this.router.navigate(['/inventory/equipment'], { queryParams: { filter: 'maintenance-due' } });
+        break;
+    }
   }
 
   reorderItem(item: any) {
@@ -202,9 +248,20 @@ export class InventoryDashboardComponent implements OnInit {
 
     ref.onClose.subscribe((order: PurchaseOrder) => {
       if (order) {
+        // Show success message
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Order Placed',
+          detail: `Ordered ${order.quantity} units of ${item.name}`
+        });
+        
         // Refresh dashboard data
         this.loadDashboardData();
       }
     });
+  }
+
+  refreshDashboard() {
+    this.loadDashboardData();
   }
 }

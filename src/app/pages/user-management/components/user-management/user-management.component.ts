@@ -17,7 +17,6 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { UserService } from '../../services/user.service';
-import { User, UserRole } from '../../models/user.model';
 import { DialogService } from 'primeng/dynamicdialog';
 import { PasswordResetDialogComponent } from '../password-reset-dialog/password-reset-dialog.component';
 import { ImportUsersDialogComponent } from '../import-users-dialog/import-users-dialog.component';
@@ -44,13 +43,13 @@ import { ImportUsersDialogComponent } from '../import-users-dialog/import-users-
     TooltipModule,
     FormsModule,
   ],
-  providers:[DialogService],
+  providers: [DialogService],
   templateUrl: './user-management.component.html',
   styleUrl: './user-management.component.scss',
 })
 export class UserManagementComponent implements OnInit {
-  users: User[] = [];
-  selectedUser: User | null = null;
+  users: any[] = [];
+  selectedUser: any | null = null;
   loading = false;
 
   displayUserDialog = false;
@@ -78,11 +77,12 @@ export class UserManagementComponent implements OnInit {
   };
 
   roles = [
-    { label: 'Admin', value: 'admin' },
-    { label: 'Doctor', value: 'doctor' },
-    { label: 'Nurse', value: 'nurse' },
-    { label: 'Staff', value: 'staff' },
-    { label: 'Receptionist', value: 'receptionist' },
+    { label: 'Super Admin', value: 'SUPER_ADMIN' },
+    { label: 'Admin', value: 'ADMIN' },
+    { label: 'Doctor', value: 'DOCTOR' },
+    { label: 'Nurse', value: 'NURSE' },
+    { label: 'Staff', value: 'STAFF' },
+    { label: 'Receptionist', value: 'RECEPTIONIST' },
   ];
 
   departments = [
@@ -114,11 +114,33 @@ export class UserManagementComponent implements OnInit {
   loadUsers() {
     this.loading = true;
     this.userService.getUsers(this.filters).subscribe({
-      next: (users) => {
-        this.users = users;
+      next: (response) => {
+        // Map backend data to our component's format
+        this.users = response.data.map((user: any) => ({
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          department: user.department || 'N/A',
+          status: user.available ? 'active' : 'inactive',
+          lastLogin: new Date(), // Use a placeholder if backend doesn't provide this
+          profileImage: user.profilePhoto,
+          languages: user.languages || [],
+          workingDays: user.workingDays || [],
+          createdAt: user.createdAt,
+          // Keep all original properties too
+          ...user
+        }));
+        
+        // Update stats
+        this.userStats.totalUsers = this.users.length;
+        this.userStats.activeUsers = this.users.filter(u => u.available || u.status === 'active').length;
+        
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load users:', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -134,22 +156,26 @@ export class UserManagementComponent implements OnInit {
       next: (stats) => {
         this.userStats = stats;
       },
+      error: (err) => {
+        console.error('Failed to load user stats:', err);
+      }
     });
   }
 
-  getUserInitials(user: User): string {
+  getUserInitials(user: any): string {
     return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
   }
 
   getRoleClass(role: string): string {
     const classes: { [key: string]: string } = {
-      admin: 'bg-purple-100 text-purple-800',
-      doctor: 'bg-blue-100 text-blue-800',
-      nurse: 'bg-green-100 text-green-800',
-      staff: 'bg-orange-100 text-orange-800',
-      receptionist: 'bg-gray-100 text-gray-800',
+      'SUPER_ADMIN': 'bg-purple-100 text-purple-800',
+      'ADMIN': 'bg-purple-100 text-purple-800',
+      'DOCTOR': 'bg-blue-100 text-blue-800',
+      'NURSE': 'bg-green-100 text-green-800',
+      'STAFF': 'bg-orange-100 text-orange-800',
+      'RECEPTIONIST': 'bg-gray-100 text-gray-800',
     };
-    return `px-2 py-1 rounded-full text-xs font-medium ${classes[role] || ''}`;
+    return `px-2 py-1 rounded-full text-xs font-medium ${classes[role] || 'bg-gray-100 text-gray-800'}`;
   }
 
   getStatusClass(status: string): string {
@@ -160,7 +186,7 @@ export class UserManagementComponent implements OnInit {
       blocked: 'bg-red-100 text-red-800',
     };
     return `px-2 py-1 rounded-full text-xs font-medium ${
-      classes[status] || ''
+      classes[status] || 'bg-gray-100 text-gray-800'
     }`;
   }
 
@@ -181,22 +207,22 @@ export class UserManagementComponent implements OnInit {
     this.displayImportDialog = true;
   }
 
-  viewUser(user: User) {
+  viewUser(user: any) {
     this.selectedUser = user;
     this.displayViewDialog = true;
   }
 
-  editUser(user: User) {
+  editUser(user: any) {
     this.selectedUser = user;
     this.displayUserDialog = true;
   }
 
-  resetPassword(user: User) {
+  resetPassword(user: any) {
     this.selectedUser = user;
     this.displayResetDialog = true;
   }
 
-  toggleUserStatus(user: User) {
+  toggleUserStatus(user: any) {
     const newStatus = user.status === 'active' ? 'blocked' : 'active';
     const message = `Are you sure you want to ${
       newStatus === 'blocked' ? 'block' : 'activate'
@@ -205,19 +231,18 @@ export class UserManagementComponent implements OnInit {
     this.confirmationService.confirm({
       message,
       accept: () => {
-        this.userService.updateUserStatus(user.id, newStatus).subscribe({
+        this.userService.updateUserStatus(user.id, newStatus === 'active').subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
               summary: 'Success',
-              detail: `User ${
-                newStatus === 'blocked' ? 'blocked' : 'activated'
-              } successfully`,
+              detail: `User ${newStatus === 'blocked' ? 'blocked' : 'activated'} successfully`,
             });
             this.loadUsers();
             this.updateStats();
           },
-          error: () => {
+          error: (err) => {
+            console.error('Failed to update user status:', err);
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
@@ -229,7 +254,7 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  openPasswordResetDialog(user: User) {
+  openPasswordResetDialog(user: any) {
     this.dialogService.open(PasswordResetDialogComponent, {
       header: `Reset Password - ${user.firstName}`,
       width: '400px',

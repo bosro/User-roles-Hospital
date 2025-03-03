@@ -1,16 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Table } from 'primeng/table';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { MessageService } from 'primeng/api';
 import { Medicine } from '../../../models/inventory.model';
 import { InventoryService } from '../../../services/inventory.service';
-import { Dialog } from 'primeng/dialog';
+import { StockAdjustmentComponent } from '../Stock-adjustment';
 
 type MedicineStatus = 'in-stock' | 'low-stock' | 'out-of-stock' | 'expired';
 type TagSeverityType = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | undefined;
@@ -27,8 +29,10 @@ type TagSeverityType = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'c
     ToastModule,
     InputTextModule,
     TagModule,
-    Dialog
+    DialogModule,
+    StockAdjustmentComponent
   ],
+  providers: [MessageService],
   templateUrl: 'medicine-list.component.html'
 })
 export class MedicinesListComponent implements OnInit {
@@ -45,7 +49,11 @@ export class MedicinesListComponent implements OnInit {
     'expired': 'danger'
   };
 
-  constructor(private inventoryService: InventoryService) {}
+  constructor(
+    private inventoryService: InventoryService,
+    private router: Router,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     this.loadMedicines();
@@ -60,6 +68,11 @@ export class MedicinesListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading medicines:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load medicines'
+        });
         this.loading = false;
       }
     });
@@ -73,10 +86,10 @@ export class MedicinesListComponent implements OnInit {
   }
 
   getStockLevelClass(medicine: Medicine): string {
-    if (medicine.quantity <= medicine.reorderLevel) {
+    if (medicine.quantity <= medicine.minStockLevel) {
       return 'text-red-500 font-medium';
     }
-    if (medicine.quantity <= medicine.minStockLevel) {
+    if (medicine.quantity <= medicine.reorderLevel) {
       return 'text-yellow-500 font-medium';
     }
     return 'text-green-500 font-medium';
@@ -86,7 +99,7 @@ export class MedicinesListComponent implements OnInit {
     return this.severities[status as MedicineStatus] || 'info';
   }
 
-  getExpiryClass(expiryDate: Date): string {
+  getExpiryClass(expiryDate: Date | string): string {
     const daysToExpiry = Math.ceil((new Date(expiryDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     
     if (daysToExpiry < 0) {
@@ -99,15 +112,19 @@ export class MedicinesListComponent implements OnInit {
   }
 
   viewDetails(medicine: Medicine) {
-    // Navigate to details view
+    this.router.navigate(['/inventory/medicines/view', medicine._id]);
   }
 
   editMedicine(medicine: Medicine) {
-    // Navigate to edit form
+    this.router.navigate(['/inventory/medicines/edit', medicine._id]);
   }
 
   adjustStock(medicine: Medicine) {
     this.selectedMedicine = medicine;
     this.showStockDialog = true;
+  }
+  
+  onStockUpdated() {
+    this.loadMedicines();
   }
 }

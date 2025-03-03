@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 import { UserActivity } from '../models/user.model';
@@ -25,15 +25,21 @@ export interface ImportResult {
   errors?: string[];
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = `${environment.apiUrl}/users`;
+  private apiUrl = `${environment.apiUrl}/admin`;
 
   constructor(private http: HttpClient) {}
 
-  getUsers(filters?: UserFilters): Observable<User[]> {
+  getUsers(filters?: UserFilters): Observable<ApiResponse<any[]>> {
     let params = new HttpParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
@@ -42,39 +48,51 @@ export class UserService {
         }
       });
     }
-    return this.http.get<User[]>(this.apiUrl, { params });
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/get`, { params });
   }
 
-  getUser(id: string): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  getUser(id: string): Observable<ApiResponse<any>> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/users/${id}`);
   }
 
-  createUser(user: Partial<User>): Observable<User> {
-    return this.http.post<User>(this.apiUrl, user);
+  createUser(user: Partial<User>): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/users`, user);
   }
 
-  updateUser(id: string, user: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}`, user);
+  updateUser(id: string, user: Partial<User>): Observable<ApiResponse<any>> {
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/users/${id}`, user);
   }
 
-  deleteUser(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteUser(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/users/${id}`);
   }
 
   getUserStats(): Observable<UserStats> {
-    return this.http.get<UserStats>(`${this.apiUrl}/stats`);
+    return this.http.get<ApiResponse<UserStats>>(`${this.apiUrl}/stats`).pipe(
+      map(response => response.data)
+    );
   }
 
-  updateUserStatus(id: string, status: string): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}/status`, { status });
+  updateUserStatus(id: string, available: boolean): Observable<ApiResponse<any>> {
+    return this.http.patch<ApiResponse<any>>(`${this.apiUrl}/users/${id}/status`, { available });
+  }
+
+  resetPassword(id: string, password: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/users/${id}/reset-password`, { password });
   }
 
   getUserActivity(userId: string): Observable<UserActivity[]> {
-    return this.http.get<UserActivity[]>(`${this.apiUrl}/${userId}/activity`);
+    return this.http.get<ApiResponse<UserActivity[]>>(`${this.apiUrl}/users/${userId}/activity`).pipe(
+      map(response => response.data)
+    );
   }
 
-
-  importUsers(csvData: string): Observable<ImportResult> {
-    return this.http.post<ImportResult>(`${this.apiUrl}/import`, { data: csvData });
+  importUsers(csvData: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', csvData);
+    
+    return this.http.post<ApiResponse<ImportResult>>(`${this.apiUrl}/users/import`, formData).pipe(
+      map(response => response.data)
+    );
   }
 }

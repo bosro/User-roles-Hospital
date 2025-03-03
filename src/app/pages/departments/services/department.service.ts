@@ -1,46 +1,51 @@
-import { Injectable } from '@angular/core';
+// src/app/pages/departments/services/department.service.ts
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Injectable } from '@angular/core';
+import { Observable, map } from 'rxjs';
 import { Department } from '../department.model';
+
+
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class DepartmentService {
-  private apiUrl = `${environment.apiUrl}/departments`;
+  private apiUrl = 'http://localhost:5000/api/v1/department';
 
   constructor(private http: HttpClient) {}
 
   getDepartments(): Observable<Department[]> {
-    return this.http.get<Department[]>(this.apiUrl);
+    return this.http.get<any>(`${this.apiUrl}/get`).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        return [];
+      })
+    );
   }
 
   getDepartmentById(id: string): Observable<Department> {
-    return this.http.get<Department>(`${this.apiUrl}/${id}`);
+    return this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          return response.data;
+        }
+        throw new Error('Department not found');
+      })
+    );
   }
 
-  createDepartment(department: Omit<Department, 'id'>): Observable<Department> {
-    return this.http.post<Department>(this.apiUrl, department);
+  createDepartment(department: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/add`, department);
   }
 
-  updateDepartment(id: string, department: Partial<Department>): Observable<Department> {
-    return this.http.put<Department>(`${this.apiUrl}/${id}`, department);
+  updateDepartment(id: string, department: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/edit/${id}`, department);
   }
 
-  deleteDepartment(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  getDepartmentStats(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}/stats`);
-  }
-
-  getDepartmentStaff(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}/staff`);
-  }
-
-  updateDepartmentStatus(id: string, status: Department['status']): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/status`, { status });
+  deleteDepartment(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/delete/${id}`);
   }
 }

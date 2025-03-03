@@ -1,7 +1,8 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './guards/auth-guard.guard';
 import { RoleGuard } from './guards/role-guard.guard';
-// import { adminGuard } from './core/guards/admin.guard';
+// import AuthGuard from '../../'
+// import { adminGuard } from '../../g';
 
 export const routes: Routes = [
   {
@@ -34,8 +35,8 @@ export const routes: Routes = [
           import('./pages/patients/patients.routes').then(
             (m) => m.PATIENT_ROUTES
           ),
-        canActivate: [RoleGuard],
-        data: { roles: ['admin', 'doctor'] }, // Allow only admins and doctors
+        // canActivate: [RoleGuard],
+        // data: { roles: ['admin', 'doctor'] }, // Allow only admins and doctors
       },
       {
         path: 'appointments',
@@ -43,15 +44,15 @@ export const routes: Routes = [
           import('./pages/appointments/appointments.routes').then(
             (m) => m.APPOINTMENT_ROUTES
           ),
-        canActivate: [RoleGuard],
-        data: { roles: ['doctor', 'nurse'] }, // Allow doctors and nurses
+        // canActivate: [RoleGuard],
+        // data: { roles: ['doctor', 'nurse'] }, // Allow doctors and nurses
       },
       {
         path: 'doctors',
         loadChildren: () =>
           import('./pages/doctors/doctors.routes').then((m) => m.DOCTOR_ROUTES),
-        canActivate: [RoleGuard],
-        data: { roles: ['admin'] }, // Admin-only access
+        // canActivate: [RoleGuard],
+        // data: { roles: ['admin'] }, // Admin-only access
       },
       {
         path: 'settings',
@@ -59,8 +60,8 @@ export const routes: Routes = [
           import('./pages/settings/settings.routes').then(
             (m) => m.SETTINGS_ROUTES
           ),
-        canActivate: [RoleGuard],
-        data: { roles: ['admin'] }, // Admin-only access
+        // canActivate: [RoleGuard],
+        // data: { roles: ['admin'] }, // Admin-only access
       },
       {
         path: 'profile',
@@ -70,21 +71,42 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'departments',
+        loadChildren: () => import('./pages/departments/department.routes')
+          .then(m => m.DEPARTMENT_ROUTES)
+      },
+      {
+        path: 'inventory',
+        loadChildren: () => import('./pages/inventory/inventory.routes')
+          .then(m => m.INVENTORY_ROUTES)
+      },
+      {
+        path: 'billing',
+        loadChildren: () => import('./pages/billing/billing.routes')
+          .then(m => m.BILLING_ROUTES)
+      },
+      {
+        path: 'reports',
+        loadChildren: () => import('./pages/reports/reports.routes')
+          .then(m => m.REPORT_ROUTES)
+      },
+      
+      {
         path: 'user-management',
         loadChildren: () =>
           import('./pages/user-management/user-management.route').then(
             (m) => m.USER_MANAGEMENT_ROUTES
           ),
-        canActivate: [RoleGuard],
-        data: { roles: ['admin'] }, // Admin-only access
+        // canActivate: [RoleGuard],
+        // data: { roles: ['admin'] }, // Admin-only access
       },
     ],
   },
-  {
-    path: '**',
-    loadComponent: () =>
-      import('./pages/notfound/notfound.component').then(
-        (m) => m.NotFoundComponent
-      ),
-  },
+  // {
+  //   path: '**',
+  //   loadComponent: () =>
+  //     import('./pages/notfound/notfound.component').then(
+  //       (m) => m.NotFoundComponent
+  //     ),
+  // },
 ];

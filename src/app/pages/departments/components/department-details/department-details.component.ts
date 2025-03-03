@@ -162,7 +162,7 @@ export class DepartmentDetailsComponent implements OnInit {
   getOccupancyRate(): number {
     if (!this.department?.capacity) return 0;
     return Math.round(
-      (this.department.capacity.currentOccupancy / this.department.capacity.beds) * 100
+      (this.department.capacity.currentOccupancy ) * 100
     );
   }
 

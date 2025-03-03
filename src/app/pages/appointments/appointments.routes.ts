@@ -26,6 +26,11 @@ export const APPOINTMENT_ROUTES: Routes = [
           .then(m => m.AppointmentFormComponent)
       },
       {
+        path: 'view/:id',
+        loadComponent: () => import('./appointment-form/appointment-form.component')
+          .then(m => m.AppointmentFormComponent)
+      },
+      {
         path: 'waiting-list',
         loadComponent: () => import('./waiting-list/waiting-list.component')
           .then(m => m.WaitingListComponent)

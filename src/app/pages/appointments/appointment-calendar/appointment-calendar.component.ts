@@ -46,6 +46,25 @@ export class AppointmentCalendarComponent implements OnInit {
   selectedAppointment: Appointment | null = null;
   displayEventDialog = false;
   selectedDepartment: string = '';
+
+  private statusMap: { [key in AppointmentStatus]: string } = {
+    Scheduled: 'scheduled',
+    Confirmed: 'confirmed',
+    'In Progress': 'in-progress',
+    Completed: 'completed',
+    Cancelled: 'cancelled',
+    'No Show': 'no-show',
+    scheduled: '',
+    confirmed: '',
+    'in-progress': '',
+    completed: '',
+    cancelled: '',
+    'no-show': ''
+  };
+
+  getStatusClass(status: AppointmentStatus): string {
+    return this.statusMap[status];
+  }
   
   departments = [
     { label: 'All Departments', value: '' },
@@ -188,17 +207,18 @@ export class AppointmentCalendarComponent implements OnInit {
     this.updateCalendarEvents();
   }
 
-  getStatusClass(status: AppointmentStatus): string {
-    const classes = {
-      'scheduled': 'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium',
-      'confirmed': 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium',
-      'in-progress': 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium',
-      'completed': 'bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium',
-      'cancelled': 'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium',
-      'no-show': 'bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium'
-    };
-    return classes[status] || classes['scheduled'];
-  }
+  private classes = {
+    'scheduled': 'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium',
+    'confirmed': 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium',
+    'in-progress': 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium',
+    'completed': 'bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium',
+    'cancelled': 'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium',
+    'no-show': 'bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium'
+  };
+
+  // getStatusClass(status: keyof typeof this.classes): string {
+  //   return this.classes[status];
+  // }
 
   getStatusColor(status: AppointmentStatus): string {
     const colors = {
@@ -209,6 +229,6 @@ export class AppointmentCalendarComponent implements OnInit {
       'cancelled': '#EF4444',
       'no-show': '#6B7280'
     };
-    return colors[status] || colors['scheduled'];
+    return colors['scheduled'];
   }
 }

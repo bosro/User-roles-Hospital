@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Medicine, Equipment, Supply, PurchaseOrder } from '../models/inventory.model';
+import { Medicine, Equipment, Supply, PurchaseOrder, ApiResponse } from '../models/inventory.model';
 
 interface StockMovement {
+  
   id: string;
   date: Date;
   type: 'IN' | 'OUT' | 'ADJUSTMENT';
@@ -14,13 +15,14 @@ interface StockMovement {
 }
 
 interface MaintenanceRecord {
-  id: string;
+  _id: string;
   date: Date;
   type: 'Preventive' | 'Corrective' | 'Calibration' | 'Emergency';
   performedBy: string;
   status: 'Completed' | 'Pending' | 'In Progress' | 'Overdue';
   notes: string;
 }
+
 
 interface UsageRecord {
   id: string;
@@ -41,54 +43,277 @@ export class InventoryService {
   constructor(private http: HttpClient) {}
 
   // Medicine endpoints
-  getMedicines(): Observable<Medicine[]> {
-    return this.http.get<Medicine[]>(`${this.apiUrl}/medicines`);
-  }
+ // Get all medicines
+ getMedicines(): Observable<Medicine[]> {
+  return this.http.get<ApiResponse<Medicine[]>>(`${this.apiUrl}/medicine/get`)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          // Add a computed status property to each medicine
+          return response.data.map(medicine => ({
+            ...medicine,
+            status: this.computeMedicineStatus(medicine)
+          }));
+        }
+        return [];
+      })
+    );
+}
 
-  getMedicineById(id: string): Observable<Medicine> {
-    return this.http.get<Medicine>(`${this.apiUrl}/medicines/${id}`);
-  }
+// Get medicine by ID
+getMedicineById(id: string): Observable<Medicine> {
+  return this.http.get<ApiResponse<Medicine>>(`${this.apiUrl}/medicine/${id}`)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          return {
+            ...response.data,
+            status: this.computeMedicineStatus(response.data)
+          };
+        }
+        throw new Error('Medicine not found');
+      })
+    );
+}
 
-  createMedicine(medicine: Omit<Medicine, 'id'>): Observable<Medicine> {
-    return this.http.post<Medicine>(`${this.apiUrl}/medicines`, medicine);
-  }
+// Create new medicine
+createMedicine(medicine: Omit<Medicine, '_id'>): Observable<Medicine> {
+  return this.http.post<ApiResponse<Medicine>>(`${this.apiUrl}/medicine/create`, medicine)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error('Failed to create medicine');
+      })
+    );
+}
 
-  updateMedicine(
-    id: string,
-    medicine: Partial<Medicine>
-  ): Observable<Medicine> {
-    return this.http.put<Medicine>(`${this.apiUrl}/medicines/${id}`, medicine);
-  }
+// Update medicine
+updateMedicine(id: string, medicine: Partial<Medicine>): Observable<Medicine> {
+  return this.http.put<ApiResponse<Medicine>>(`${this.apiUrl}/medicine/update/${id}`, medicine)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error('Failed to update medicine');
+      })
+    );
+}
 
-  deleteMedicine(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/medicines/${id}`);
+// Delete medicine
+deleteMedicine(id: string): Observable<boolean> {
+  return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/medicine/delete/${id}`)
+    .pipe(
+      map(response => {
+        return response.success;
+      })
+    );
+}
+
+// Get stock movements for a medicine
+getMedicineStockMovements(medicineId: string): Observable<StockMovement[]> {
+  return this.http.get<ApiResponse<StockMovement[]>>(`${this.apiUrl}/medicine/stock-movements/${medicineId}`)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          return response.data;
+        }
+        return [];
+      })
+    );
+}
+
+// Add stock movement
+addStockMovement(movement: Omit<StockMovement, '_id'>): Observable<StockMovement> {
+  return this.http.post<ApiResponse<StockMovement>>(`${this.apiUrl}/medicine/stock-movement`, movement)
+    .pipe(
+      map(response => {
+        if (response.success) {
+          return response.data;
+        }
+        throw new Error('Failed to add stock movement');
+      })
+    );
+}
+
+// Compute medicine status based on quantity and expiry date
+private computeMedicineStatus(medicine: Medicine): 'in-stock' | 'low-stock' | 'out-of-stock' | 'expired' {
+  const expiryDate = new Date(medicine.expiryDate);
+  const today = new Date();
+  
+  // Check if medicine is expired
+  if (expiryDate < today) {
+    return 'expired';
   }
+  
+  // Check stock levels
+  if (medicine.quantity <= 0) {
+    return 'out-of-stock';
+  }
+  
+  if (medicine.quantity <= medicine.minStockLevel) {
+    return 'low-stock';
+  }
+  
+  return 'in-stock';
+}
+
 
   // Equipment endpoints
   getEquipment(): Observable<Equipment[]> {
-    return this.http.get<Equipment[]>(`${this.apiUrl}/equipment`);
+    return this.http.get<ApiResponse<Equipment[]>>(`${this.apiUrl}/equipment/get`)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            // Map API fields to component fields and add status
+            return response.data.map(equipment => this.mapEquipmentFields(equipment));
+          }
+          return [];
+        })
+      );
   }
 
+  // Get equipment by ID
   getEquipmentById(id: string): Observable<Equipment> {
-    return this.http.get<Equipment>(`${this.apiUrl}/equipment/${id}`);
+    return this.http.get<ApiResponse<Equipment>>(`${this.apiUrl}/equipment/${id}`)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.mapEquipmentFields(response.data);
+          }
+          throw new Error('Equipment not found');
+        })
+      );
   }
 
-  createEquipment(equipment: Omit<Equipment, 'id'>): Observable<Equipment> {
-    return this.http.post<Equipment>(`${this.apiUrl}/equipment`, equipment);
+  // Create new equipment
+  createEquipment(equipment: Omit<Equipment, '_id'>): Observable<Equipment> {
+    // Map component fields to API fields
+    const apiEquipment = {
+      name: equipment.name,
+      equipmentModel: equipment.model,
+      serialNumber: equipment.serialNumber,
+      manufacturer: equipment.manufacturer,
+      condition: equipment.condition,
+      nextMaintenanceDate: equipment.maintenanceDue,
+      calibrationDueDate: equipment.calibrationDue,
+      warrantyExpiry: equipment.warrantyExpiry,
+      location: equipment.location,
+      purchasePrice: equipment.price,
+      notes: equipment.notes,
+      image: equipment.image
+    };
+
+    return this.http.post<ApiResponse<Equipment>>(`${this.apiUrl}/equipment/add`, apiEquipment)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.mapEquipmentFields(response.data);
+          }
+          throw new Error('Failed to create equipment');
+        })
+      );
   }
 
-  updateEquipment(
-    id: string,
-    equipment: Partial<Equipment>
-  ): Observable<Equipment> {
-    return this.http.put<Equipment>(
-      `${this.apiUrl}/equipment/${id}`,
-      equipment
-    );
+  // Update equipment
+  updateEquipment(id: string, equipment: Partial<Equipment>): Observable<Equipment> {
+    // Map component fields to API fields
+    const apiEquipment: any = {};
+    if (equipment.name) apiEquipment.name = equipment.name;
+    if (equipment.model) apiEquipment.equipmentModel = equipment.model;
+    if (equipment.serialNumber) apiEquipment.serialNumber = equipment.serialNumber;
+    if (equipment.manufacturer) apiEquipment.manufacturer = equipment.manufacturer;
+    if (equipment.condition) apiEquipment.condition = equipment.condition;
+    if (equipment.maintenanceDue) apiEquipment.nextMaintenanceDate = equipment.maintenanceDue;
+    if (equipment.calibrationDue) apiEquipment.calibrationDueDate = equipment.calibrationDue;
+    if (equipment.warrantyExpiry) apiEquipment.warrantyExpiry = equipment.warrantyExpiry;
+    if (equipment.location) apiEquipment.location = equipment.location;
+    if (equipment.price) apiEquipment.purchasePrice = equipment.price;
+    if (equipment.notes) apiEquipment.notes = equipment.notes;
+    if (equipment.image) apiEquipment.image = equipment.image;
+
+    return this.http.put<ApiResponse<Equipment>>(`${this.apiUrl}/equipment/update/${id}`, apiEquipment)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.mapEquipmentFields(response.data);
+          }
+          throw new Error('Failed to update equipment');
+        })
+      );
   }
 
-  deleteEquipment(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/equipment/${id}`);
+  // Delete equipment
+  deleteEquipment(id: string): Observable<boolean> {
+    return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/equipment/delete/${id}`)
+      .pipe(
+        map(response => {
+          return response.success;
+        })
+      );
+  }
+
+  // Get maintenance history for equipment
+  // getMaintenanceHistory(equipmentId: string): Observable<MaintenanceRecord[]> {
+  //   return this.http.get<ApiResponse<MaintenanceRecord[]>>(`${this.apiUrl}/inventory/equipment/maintenance/${equipmentId}`)
+  //     .pipe(
+  //       map(response => {
+  //         if (response.success) {
+  //           return response.data;
+  //         }
+  //         return [];
+  //       })
+  //     );
+  // }
+
+  
+
+  // Schedule maintenance for equipment
+  scheduleMaintenance(maintenance: Omit<MaintenanceRecord, '_id'>): Observable<MaintenanceRecord> {
+    return this.http.post<ApiResponse<MaintenanceRecord>>(`${this.apiUrl}/equipment/maintenance/add`, maintenance)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return response.data;
+          }
+          throw new Error('Failed to schedule maintenance');
+        })
+      );
+  }
+
+  // ---------- HELPER METHODS ----------
+
+  // Map API equipment fields to component fields
+  private mapEquipmentFields(equipment: any): Equipment {
+    // Create a status property based on condition and maintenance dates
+    const status = this.computeEquipmentStatus(equipment);
+
+    return {
+      ...equipment,
+      model: equipment.equipmentModel || equipment.model,
+      maintenanceDue: equipment.nextMaintenanceDate || equipment.maintenanceDue,
+      calibrationDue: equipment.calibrationDueDate || equipment.calibrationDue,
+      price: equipment.purchasePrice || equipment.price,
+      status
+    };
+  }
+
+
+
+  // Compute equipment status based on condition and maintenance dates
+  private computeEquipmentStatus(equipment: Equipment): string {
+    const maintenanceDate = new Date(equipment.nextMaintenanceDate || equipment.maintenanceDue || '');
+    const today = new Date();
+    
+    // If maintenance is overdue, return 'maintenance-due'
+    if (maintenanceDate < today) {
+      return 'maintenance-due';
+    }
+    
+    // Otherwise return the condition
+    return equipment.condition.toLowerCase();
   }
 
   // Supply endpoints
@@ -140,11 +365,11 @@ export class InventoryService {
     return this.http.get<Medicine[]>(`${this.apiUrl}/medicines/expiring`);
   }
 
-  getMedicineStockMovements(medicineId: string): Observable<StockMovement[]> {
-    return this.http.get<StockMovement[]>(
-      `${this.apiUrl}/medicines/${medicineId}/stock-movements`
-    );
-  }
+  // getMedicineStockMovements(medicineId: string): Observable<StockMovement[]> {
+  //   return this.http.get<StockMovement[]>(
+  //     `${this.apiUrl}/medicines/${medicineId}/stock-movements`
+  //   );
+  // }
 
   // Equipment maintenance history
   getMaintenanceHistory(equipmentId: string): Observable<MaintenanceRecord[]> {
@@ -287,3 +512,5 @@ export class InventoryService {
     return this.http.get<PurchaseOrder[]>(`${this.apiUrl}/purchase-orders`, { params });
   }
 }
+
+

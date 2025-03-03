@@ -1,4 +1,4 @@
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { PatientService } from '../services/patient.service';
 import { Component, OnInit } from '@angular/core';
 import { Patient } from '../models/patients.model';
@@ -12,6 +12,10 @@ import { Button } from 'primeng/button';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { DropdownModule } from "primeng/dropdown";
+import { DialogModule } from 'primeng/dialog';
+import { TabViewModule } from 'primeng/tabview';
+import { ChipModule } from 'primeng/chip';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 interface Filters {
   search: string;
@@ -34,13 +38,20 @@ interface Filters {
     CommonModule,
     RouterModule,
     DropdownModule,
+    DialogModule,
+    TabViewModule,
+    ChipModule,
+    ConfirmDialogModule
   ],
+  providers: [ConfirmationService],
   templateUrl: 'patient-list.component.html',
 })
 export class PatientListComponent implements OnInit {
-  patients: Patient[] = [];
+  patients: any[] = [];
   loading = false;
   today = new Date();
+  displayPatientDetails = false;
+  selectedPatient: any = null;
 
   stats = {
     totalPatients: 0,
@@ -75,7 +86,9 @@ export class PatientListComponent implements OnInit {
 
   constructor(
     private patientService: PatientService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +104,7 @@ export class PatientListComponent implements OnInit {
       next: (data) => {
         this.patients = data;
         this.loading = false;
+        this.updateStats();
       },
       error: () => {
         this.messageService.add({
@@ -103,8 +117,27 @@ export class PatientListComponent implements OnInit {
     });
   }
 
+  private updateStats() {
+    // Calculate stats based on loaded patients
+    this.stats.totalPatients = this.patients.length;
+    this.stats.activePatients = this.patients.filter(p => p.admitted).length;
+    
+    // Calculate new patients this month
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    
+    this.stats.newPatients = this.patients.filter(p => 
+      new Date(p.createdAt) >= startOfMonth
+    ).length;
+    
+    // Placeholder for appointments (would come from a different API endpoint in real app)
+    this.stats.todayAppointments = Math.floor(Math.random() * 10) + 1; // Placeholder value
+  }
+
   private loadStats() {
-    // Implement stats loading logic
+    // In a real app, you would load stats from an API
+    // For now, we'll calculate them from the loaded patients in updateStats()
   }
 
   private getFilterParams(): any {
@@ -129,6 +162,11 @@ export class PatientListComponent implements OnInit {
 
     if (this.filters.status) {
       params.status = this.filters.status;
+      if (this.filters.status === 'active') {
+        params.admitted = true;
+      } else if (this.filters.status === 'inactive') {
+        params.admitted = false;
+      }
     }
 
     return params;
@@ -174,9 +212,13 @@ export class PatientListComponent implements OnInit {
     | undefined {
     const severities: Record<string, 'success' | 'info' | 'warn' | 'danger'> = {
       active: 'success',
+      Active: 'success',
       inactive: 'danger',
+      Inactive: 'danger',
       new: 'info',
+      New: 'info',
       pending: 'warn',
+      Chronic: 'warn',
     };
     return severities[status] || 'secondary';
   }
@@ -199,5 +241,57 @@ export class PatientListComponent implements OnInit {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD'];
     const index = parseInt(id.substring(id.length - 2), 16) % colors.length;
     return colors[index];
+  }
+
+  viewDetails(patientId: string): void {
+    // Find the patient and show the details dialog
+    this.selectedPatient = this.patients.find(p => p._id === patientId);
+    if (this.selectedPatient) {
+      this.displayPatientDetails = true;
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Patient details not found',
+      });
+    }
+  }
+
+  editPatient(patientId: string): void {
+    this.router.navigate(['/patients/edit', patientId]);
+  }
+
+  confirmDelete(patient: any): void {
+    this.confirmationService.confirm({
+      message: `Are you sure you want to delete ${patient.firstName} ${patient.lastName}'s record? This action cannot be undone.`,
+      accept: () => {
+        this.deletePatient(patient._id);
+      }
+    });
+  }
+
+  deletePatient(patientId: string): void {
+    this.patientService.deletePatient(patientId).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Patient deleted successfully',
+        });
+        this.loadPatients();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to delete patient',
+        });
+      },
+    });
+  }
+
+  printPatientDetails(): void {
+    // In a real app, you'd implement proper printing
+    window.print();
   }
 }

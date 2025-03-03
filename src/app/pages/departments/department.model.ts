@@ -1,54 +1,59 @@
+// src/app/pages/departments/department.model.ts
 export interface Department {
+  _id?: string;
   id?: string;
   name: string;
   code: string;
   description?: string;
-  headOfDepartment: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
+  headOfDepartment: any;
+  email?: string;
+  phone?: string;
+  status?: string;
+  facilities?: string[];
+  specialties?: string[];
+  
+  // Nested objects
+  location?: {
+    building?: string;
+    floor?: number;
+    roomNumbers?: string[];
   };
-  location: {
-    building: string;
-    floor: string;
-    roomNumbers: string[];
-  };
+  
   capacity: {
-    beds: number;
+    totalBeds: number;
     currentOccupancy: number;
     staffCount: number;
+    beds?: number; // For UI compatibility
   };
-  status: 'active' | 'inactive' | 'maintenance';
-  operatingHours: {
-    start: string;
-    end: string;
+  
+  schedule?: {
+    workingDays: string[];
+    startTime: string;
+    endTime: string;
   };
-  workingDays: string[];
-  facilities: string[];
-  specialties: string[];
-  stats: {
-    patientCount: number;
-    appointmentsPerDay: number;
-    averageWaitTime: number;
-    satisfactionRate: number;
+  
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    emergencyContact?: string;
   };
-  budget: {
-    allocated: number;
-    utilized: number;
-    fiscalYear: string;
-  };
-  contactInfo: {
-    email: string;
-    phone: string;
-    emergencyContact: string;
-  };
-  staff: {
+  
+  // UI specific properties
+  staff?: {
     doctors: number;
     nurses: number;
-    technicians: number;
     support: number;
   };
-  createdAt?: Date;
-  updatedAt?: Date;
+   budget: {
+
+    allocated: number;
+
+    utilized: number;
+
+  };
+  
+  stats?: {
+    patientCount: number;
+    satisfactionRate: number;
+  };
 }

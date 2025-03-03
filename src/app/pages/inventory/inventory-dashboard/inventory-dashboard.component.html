@@ -1,54 +1,98 @@
 <div class="p-4">
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-medicine-bottle-line text-3xl mr-3 text-blue-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{totalMedicines}}</h3>
-            <p class="text-gray-600">Total Medicines</p>
-          </div>
+  <!-- Header with refresh button -->
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Inventory Dashboard</h2>
+    <p-button 
+      icon="ri-refresh-line" 
+      label="Refresh" 
+      severity="secondary"
+      [loading]="loading"
+      (onClick)="refreshDashboard()">
+    </p-button>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- Medicines Card -->
+    <p-card styleClass="shadow-sm border-left-blue">
+      <div class="flex items-center">
+        <div class="bg-blue-100 p-3 rounded-full mr-4">
+          <i class="ri-medicine-bottle-line text-2xl text-blue-500"></i>
         </div>
-      </p-card>
-
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-stethoscope-line text-3xl mr-3 text-green-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{totalEquipment}}</h3>
-            <p class="text-gray-600">Total Equipment</p>
-          </div>
+        <div>
+          <h3 class="text-xl font-semibold">
+            <ng-container *ngIf="!loading">{{totalMedicines}}</ng-container>
+            <p-skeleton width="3rem" height="1.5rem" *ngIf="loading"></p-skeleton>
+          </h3>
+          <p class="text-gray-600">Total Medicines</p>
         </div>
-      </p-card>
+      </div>
+    </p-card>
 
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-box-3-line text-3xl mr-3 text-orange-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{totalSupplies}}</h3>
-            <p class="text-gray-600">Total Supplies</p>
-          </div>
+    <!-- Equipment Card -->
+    <p-card styleClass="shadow-sm border-left-green">
+      <div class="flex items-center">
+        <div class="bg-green-100 p-3 rounded-full mr-4">
+          <i class="ri-stethoscope-line text-2xl text-green-500"></i>
         </div>
-      </p-card>
-
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-alert-line text-3xl mr-3 text-red-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{lowStockItems}}</h3>
-            <p class="text-gray-600">Low Stock Alerts</p>
-          </div>
+        <div>
+          <h3 class="text-xl font-semibold">
+            <ng-container *ngIf="!loading">{{totalEquipment}}</ng-container>
+            <p-skeleton width="3rem" height="1.5rem" *ngIf="loading"></p-skeleton>
+          </h3>
+          <p class="text-gray-600">Total Equipment</p>
         </div>
-      </p-card>
-    </div>
+      </div>
+    </p-card>
 
-    <!-- Stock Level Chart and Alerts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <p-card header="Stock Levels" styleClass="shadow-sm">
-        <p-chart type="bar" [data]="stockChartData" [options]="chartOptions"></p-chart>
-      </p-card>
+    <!-- Supplies Card -->
+    <p-card styleClass="shadow-sm border-left-orange">
+      <div class="flex items-center">
+        <div class="bg-orange-100 p-3 rounded-full mr-4">
+          <i class="ri-box-3-line text-2xl text-orange-500"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold">
+            <ng-container *ngIf="!loading">{{totalSupplies}}</ng-container>
+            <p-skeleton width="3rem" height="1.5rem" *ngIf="loading"></p-skeleton>
+          </h3>
+          <p class="text-gray-600">Total Supplies</p>
+        </div>
+      </div>
+    </p-card>
 
-      <p-card header="Critical Alerts" styleClass="shadow-sm">
+    <!-- Low Stock Card -->
+    <p-card styleClass="shadow-sm border-left-red">
+      <div class="flex items-center">
+        <div class="bg-red-100 p-3 rounded-full mr-4">
+          <i class="ri-alert-line text-2xl text-red-500"></i>
+        </div>
+        <div>
+          <h3 class="text-xl font-semibold">
+            <ng-container *ngIf="!loading">{{lowStockItems}}</ng-container>
+            <p-skeleton width="3rem" height="1.5rem" *ngIf="loading"></p-skeleton>
+          </h3>
+          <p class="text-gray-600">Low Stock Alerts</p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Stock Level Chart and Alerts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Stock Level Chart -->
+    <p-card header="Inventory Status" styleClass="shadow-sm">
+      <ng-container *ngIf="!loading">
+        <p-chart type="bar" [data]="stockChartData" [options]="chartOptions" height="300px"></p-chart>
+      </ng-container>
+      <div *ngIf="loading" class="flex flex-col items-center justify-center h-[300px]">
+        <p-skeleton width="100%" height="300px"></p-skeleton>
+      </div>
+    </p-card>
+
+    <!-- Critical Alerts -->
+    <p-card header="Critical Alerts" styleClass="shadow-sm">
+      <ng-container *ngIf="!loading && criticalAlerts.length > 0">
         <div class="space-y-4">
           <div *ngFor="let alert of criticalAlerts" 
                class="flex items-center justify-between p-3 rounded-lg"
@@ -67,12 +111,30 @@
             </p-button>
           </div>
         </div>
-      </p-card>
-    </div>
+      </ng-container>
+      
+      <!-- Empty state for alerts -->
+      <div *ngIf="!loading && criticalAlerts.length === 0" class="flex flex-col items-center justify-center p-8 text-center">
+        <i class="ri-check-double-line text-4xl text-green-500 mb-3"></i>
+        <h4 class="font-medium text-lg">All Clear!</h4>
+        <p class="text-sm text-gray-500">No critical alerts at the moment.</p>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="loading" class="space-y-4 p-4">
+        <div *ngFor="let i of [1, 2]" class="flex items-center justify-between">
+          <p-skeleton width="70%" height="4rem" styleClass="mb-2"></p-skeleton>
+          <p-skeleton width="15%" height="2.5rem"></p-skeleton>
+        </div>
+      </div>
+    </p-card>
+  </div>
 
-    <!-- Recent Activities and Low Stock -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <p-card header="Recent Activities" styleClass="shadow-sm">
+  <!-- Recent Activities and Low Stock -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Activities -->
+    <p-card header="Recent Activities" styleClass="shadow-sm">
+      <ng-container *ngIf="!loading && recentActivities.length > 0">
         <p-table [value]="recentActivities" [rows]="5" [paginator]="true" responsiveLayout="stack">
           <ng-template pTemplate="header">
             <tr>
@@ -96,10 +158,26 @@
             </tr>
           </ng-template>
         </p-table>
-      </p-card>
+      </ng-container>
+      
+      <!-- Empty state for activities -->
+      <div *ngIf="!loading && recentActivities.length === 0" class="flex flex-col items-center justify-center p-8 text-center">
+        <i class="ri-history-line text-4xl text-gray-400 mb-3"></i>
+        <h4 class="font-medium text-lg">No Recent Activities</h4>
+        <p class="text-sm text-gray-500">Activities will appear here when inventory changes occur.</p>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="loading" class="p-4">
+        <p-skeleton height="2rem" styleClass="mb-2"></p-skeleton>
+        <p-skeleton height="10rem"></p-skeleton>
+      </div>
+    </p-card>
 
-      <p-card header="Low Stock Items" styleClass="shadow-sm">
-        <p-table [value]="lowStockItemsList" [rows]="5" [paginator]="true" responsiveLayout="stack">
+    <!-- Low Stock Items -->
+    <p-card header="Low Stock Items" styleClass="shadow-sm">
+      <ng-container *ngIf="!loading && lowStockItemsList.length > 0">
+        <p-table [value]="lowStockItemsList" responsiveLayout="stack">
           <ng-template pTemplate="header">
             <tr>
               <th>Item</th>
@@ -112,7 +190,7 @@
             <tr>
               <td>
                 <div class="font-medium">{{item.name}}</div>
-                <div class="text-sm text-gray-500">{{item.code}}</div>
+                <div class="text-sm text-gray-500">{{item.code || item.batchNumber}}</div>
               </td>
               <td>
                 <div [class]="getStockLevelClass(item)">
@@ -122,15 +200,32 @@
               <td>{{item.reorderLevel}} {{item.unit}}</td>
               <td>
                 <p-button 
-                label="Reorder" 
-                icon="ri-shopping-cart-line"
-                severity="warn"
-                (onClick)="reorderItem(item)">
-              </p-button>
+                  label="Reorder" 
+                  icon="ri-shopping-cart-line"
+                  severity="warn"
+                  (onClick)="reorderItem(item)">
+                </p-button>
               </td>
             </tr>
           </ng-template>
         </p-table>
-      </p-card>
-    </div>
+      </ng-container>
+      
+      <!-- Empty state for low stock -->
+      <div *ngIf="!loading && lowStockItemsList.length === 0" class="flex flex-col items-center justify-center p-8 text-center">
+        <i class="ri-inbox-archive-line text-4xl text-gray-400 mb-3"></i>
+        <h4 class="font-medium text-lg">No Low Stock Items</h4>
+        <p class="text-sm text-gray-500">All inventory items are at adequate stock levels.</p>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="loading" class="p-4">
+        <p-skeleton height="2rem" styleClass="mb-2"></p-skeleton>
+        <p-skeleton height="10rem"></p-skeleton>
+      </div>
+    </p-card>
   </div>
+</div>
+
+<!-- Toast messages -->
+<p-toast></p-toast>

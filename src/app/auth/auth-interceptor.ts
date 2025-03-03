@@ -1,30 +1,49 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
+import { 
+  HttpInterceptorFn, 
+  HttpRequest, 
+  HttpHandlerFn,
+  HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
+import { environment } from '../environments/environment';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
-
-  intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    const token = localStorage.getItem('token');
-
-    const modifiedRequest = token
-      ? req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      : req;
-    return next.handle(modifiedRequest);
+export const secureHttpInterceptor: HttpInterceptorFn = (
+  request: HttpRequest<unknown>, 
+  next: HttpHandlerFn
+) => {
+  console.log('Interceptor running for URL:', request.url);
+  
+  // Get token from localStorage directly for simplicity
+  const token = localStorage.getItem('token');
+  
+  // Prepare the URL
+  let url = request.url;
+  if (!url.includes('http')) {
+    url = `${environment.apiUrl}${url}`;
   }
-}
+  
+  console.log('Using URL:', url);
+  
+  // Create a new request with the token
+  let modifiedRequest = request.clone({ url });
+  
+  // Only add Authorization header if token exists
+  if (token) {
+    console.log('Adding token to request');
+    modifiedRequest = modifiedRequest.clone({
+      headers: modifiedRequest.headers.set('Authorization', `Bearer ${token}`)
+    });
+  }
+  
+  // Log the final request configuration
+  console.log('Final request headers:', modifiedRequest.headers);
+  
+  // Pass the modified request to the next handler
+  return next(modifiedRequest).pipe(
+    catchError((error: HttpErrorResponse) => {
+      console.error('HTTP error in interceptor:', error);
+      return throwError(() => error);
+    })
+  );
+};

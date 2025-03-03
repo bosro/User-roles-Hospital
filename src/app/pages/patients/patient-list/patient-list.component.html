@@ -76,15 +76,15 @@
       </p-calendar>
 
       <p-dropdown 
-      [options]="bloodGroups"
-      [(ngModel)]="filters.bloodGroup"
-      (onChange)="filterPatients()"
-      placeholder="Blood Group"
-      [showClear]="true"
-      styleClass="w-full"
-      optionLabel="label"
-      optionValue="value">
-    </p-dropdown>
+        [options]="bloodGroups"
+        [(ngModel)]="filters.bloodGroup"
+        (onChange)="filterPatients()"
+        placeholder="Blood Group"
+        [showClear]="true"
+        styleClass="w-full"
+        optionLabel="label"
+        optionValue="value">
+      </p-dropdown>
 
       <p-dropdown 
         [options]="statuses"
@@ -103,9 +103,9 @@
       [paginator]="true"
       [loading]="loading"
       [rowHover]="true"
-      dataKey="id"
+      dataKey="_id"
       [showCurrentPageReport]="true"
-      [globalFilterFields]="['firstName', 'lastName', 'email', 'phone']"
+      [globalFilterFields]="['firstName', 'lastName', 'contactInfo.email', 'contactInfo.phone']"
       currentPageReportTemplate="Showing {first} to {last} of {totalRecords} patients">
 
       <ng-template pTemplate="header">
@@ -133,7 +133,7 @@
               <p-avatar 
                 [label]="getInitials(patient)"
                 shape="circle"
-                [style]="{'background-color': getAvatarColor(patient.id!)}"
+                [style]="{'background-color': getAvatarColor(patient._id)}"
                 class="mr-2">
               </p-avatar>
               <div>
@@ -141,14 +141,14 @@
                   {{patient.firstName}} {{patient.lastName}}
                 </div>
                 <div class="text-sm text-gray-500">
-                  ID: {{patient.id}}
+                  ID: {{patient._id.substr(0, 8)}}
                 </div>
               </div>
             </div>
           </td>
           <td>
-            <div>{{patient.phone}}</div>
-            <div class="text-sm text-gray-500">{{patient.email}}</div>
+            <div>{{patient.contactInfo?.phone}}</div>
+            <div class="text-sm text-gray-500">{{patient.contactInfo?.email}}</div>
           </td>
           <td>
             <div>{{calculateAge(patient.dateOfBirth)}} years</div>
@@ -156,20 +156,20 @@
           </td>
           <td>
             <span class="px-2 py-1 rounded-full text-xs font-medium"
-                  [style.backgroundColor]="getBloodGroupColor(patient.bloodGroup)">
-              {{patient.bloodGroup}}
+                  [style.backgroundColor]="getBloodGroupColor(patient.bloodGroup || 'O+')">
+              {{patient.bloodGroup || 'O+'}}
             </span>
           </td>
           <td>
-            <div>{{patient.lastVisit | date}}</div>
+            <div>{{patient.updatedAt | date}}</div>
             <div class="text-sm text-gray-500">
-              {{getTimeSince(patient.lastVisit)}}
+              {{getTimeSince(patient.updatedAt)}}
             </div>
           </td>
           <td>
             <p-tag 
-              [value]="patient.status"
-              [severity]="getStatusSeverity(patient.status)">
+              [value]="patient.admitted ? 'Active' : 'Inactive'"
+              [severity]="patient.admitted ? 'success' : 'danger'">
             </p-tag>
           </td>
           <td>
@@ -179,21 +179,21 @@
                 severity="secondary"
                 tooltipPosition="top"
                 pTooltip="View Profile"
-                [routerLink]="['/patients/profile', patient.id]">
-              </p-button>
-              <p-button 
-                icon="ri-calendar-line" 
-                severity="secondary"
-                tooltipPosition="top"
-                pTooltip="Appointments"
-                [routerLink]="['/patients/appointments', patient.id]">
+                (click)="viewDetails(patient._id)">
               </p-button>
               <p-button 
                 icon="ri-edit-line" 
                 severity="secondary"
                 tooltipPosition="top"
                 pTooltip="Edit Patient"
-                [routerLink]="['/patients/edit', patient.id]">
+                (click)="editPatient(patient._id)">
+              </p-button>
+              <p-button 
+                icon="ri-medicine-bottle-line"
+                severity="danger"
+                tooltipPosition="top"
+                pTooltip="Delete Patient"
+                (click)="confirmDelete(patient)">
               </p-button>
             </div>
           </td>
@@ -203,10 +203,247 @@
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="7" class="text-center p-4">
-            No patients found.
+            <div class="flex flex-col items-center py-6">
+              <i class="ri-file-list-3-line text-4xl text-gray-400 mb-2"></i>
+              <p class="text-gray-600">No patients found.</p>
+              <p-button 
+                label="Add New Patient" 
+                icon="ri-user-add-line"
+                severity="secondary"
+                styleClass="mt-3"
+                routerLink="/patients/add">
+              </p-button>
+            </div>
           </td>
         </tr>
       </ng-template>
     </p-table>
   </p-card>
 </div>
+
+<!-- Patient Details Dialog -->
+<p-dialog 
+  [(visible)]="displayPatientDetails" 
+  [style]="{width: '70vw'}" 
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  header="Patient Details">
+  <div *ngIf="selectedPatient" class="patient-details">
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- Patient Basic Info -->
+      <div class="md:w-1/3">
+        <div class="flex flex-col items-center mb-4">
+          <p-avatar 
+            [label]="getInitials(selectedPatient)"
+            styleClass="mr-2 patient-avatar"
+            [style]="{'background-color': getAvatarColor(selectedPatient._id), 'width': '100px', 'height': '100px', 'font-size': '2.5rem'}"
+            shape="circle">
+          </p-avatar>
+          <h3 class="text-xl font-bold mt-3">{{selectedPatient.firstName}} {{selectedPatient.lastName}}</h3>
+          <p-tag 
+            [value]="selectedPatient.admitted ? 'Active' : 'Inactive'"
+            [severity]="selectedPatient.admitted ? 'success' : 'danger'"
+            styleClass="mt-2">
+          </p-tag>
+        </div>
+
+        <p-card styleClass="mb-4">
+          <div class="patient-info-list">
+            <div class="info-item">
+              <span class="label"><i class="ri-calendar-line mr-2"></i>Age</span>
+              <span class="value">{{calculateAge(selectedPatient.dateOfBirth)}} years</span>
+            </div>
+            <div class="info-item">
+              <span class="label"><i class="ri-user-line mr-2"></i>Gender</span>
+              <span class="value">{{selectedPatient.gender}}</span>
+            </div>
+            <div class="info-item">
+              <span class="label"><i class="ri-drop-line mr-2"></i>Blood Group</span>
+              <span class="value">{{selectedPatient.bloodGroup || 'Not specified'}}</span>
+            </div>
+            <div class="info-item">
+              <span class="label"><i class="ri-hospital-line mr-2"></i>Admitted</span>
+              <span class="value">{{selectedPatient.admitted ? 'Yes' : 'No'}}</span>
+            </div>
+            <div *ngIf="selectedPatient.roomNumber" class="info-item">
+              <span class="label"><i class="ri-hotel-bed-line mr-2"></i>Room</span>
+              <span class="value">{{selectedPatient.roomNumber}}</span>
+            </div>
+          </div>
+        </p-card>
+      </div>
+
+      <!-- Patient Detailed Info -->
+      <div class="md:w-2/3">
+        <p-tabView>
+          <!-- Contact Information -->
+          <p-tabPanel header="Contact" leftIcon="ri-contacts-line">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <p-card header="Personal Contact">
+                <div class="info-item">
+                  <span class="label"><i class="ri-phone-line mr-2"></i>Phone</span>
+                  <span class="value">{{selectedPatient.contactInfo?.phone || 'Not specified'}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-mail-line mr-2"></i>Email</span>
+                  <span class="value">{{selectedPatient.contactInfo?.email || 'Not specified'}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-map-pin-line mr-2"></i>Address</span>
+                  <span class="value">{{selectedPatient.contactInfo?.address || 'Not specified'}}</span>
+                </div>
+              </p-card>
+
+              <p-card header="Emergency Contact">
+                <div class="info-item">
+                  <span class="label"><i class="ri-user-heart-line mr-2"></i>Name</span>
+                  <span class="value">{{selectedPatient.emergencyContact?.name || 'Not specified'}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-phone-line mr-2"></i>Phone</span>
+                  <span class="value">{{selectedPatient.emergencyContact?.phone || 'Not specified'}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-user-follow-line mr-2"></i>Relationship</span>
+                  <span class="value">{{selectedPatient.emergencyContact?.relationship || 'Not specified'}}</span>
+                </div>
+              </p-card>
+            </div>
+          </p-tabPanel>
+
+          <!-- Medical Information -->
+          <p-tabPanel header="Medical" leftIcon="ri-heart-pulse-line">
+            <div class="grid grid-cols-1 gap-4">
+              <p-card header="Medical History">
+                <div *ngIf="selectedPatient.medicalHistory && selectedPatient.medicalHistory.length > 0">
+                  <div *ngFor="let history of selectedPatient.medicalHistory" class="mb-2 pb-2 border-bottom-1 border-gray-200">
+                    <div class="flex justify-between">
+                      <span class="font-medium">{{history.condition}}</span>
+                      <p-tag [value]="history.status" [severity]="getStatusSeverity(history.status)"></p-tag>
+                    </div>
+                    <div class="text-sm text-gray-600">Diagnosed: {{history.diagnosedOn | date}}</div>
+                  </div>
+                </div>
+                <div *ngIf="!selectedPatient.medicalHistory || selectedPatient.medicalHistory.length === 0" class="text-center py-4 text-gray-500">
+                  <i class="ri-file-list-3-line text-3xl mb-2 block"></i>
+                  No medical history records found
+                </div>
+              </p-card>
+
+              <p-card header="Allergies">
+                <div *ngIf="selectedPatient.allergies && selectedPatient.allergies.length > 0" class="flex flex-wrap gap-2">
+                  <p-chip *ngFor="let allergy of selectedPatient.allergies" [label]="allergy" styleClass="bg-red-100 text-red-800"></p-chip>
+                </div>
+                <div *ngIf="!selectedPatient.allergies || selectedPatient.allergies.length === 0" class="text-center py-4 text-gray-500">
+                  <i class="ri-emotion-happy-line text-3xl mb-2 block"></i>
+                  No allergies recorded
+                </div>
+              </p-card>
+
+              <p-card header="Current Medications">
+                <div *ngIf="selectedPatient.medications && selectedPatient.medications.length > 0">
+                  <div *ngFor="let medication of selectedPatient.medications" class="mb-2 pb-2 border-bottom-1 border-gray-200">
+                    <div class="flex justify-between">
+                      <span class="font-medium">{{medication.name}}</span>
+                      <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">{{medication.dosage}}</span>
+                    </div>
+                    <div *ngIf="medication.prescribedBy" class="text-sm text-gray-600">Prescribed by: Dr. {{medication.prescribedBy}}</div>
+                  </div>
+                </div>
+                <div *ngIf="!selectedPatient.medications || selectedPatient.medications.length === 0" class="text-center py-4 text-gray-500">
+                  <i class="ri-medicine-bottle-line text-3xl mb-2 block"></i>
+                  No medications currently prescribed
+                </div>
+              </p-card>
+            </div>
+          </p-tabPanel>
+
+          <!-- Insurance Information -->
+          <p-tabPanel header="Insurance" leftIcon="ri-shield-check-line">
+            <div *ngIf="selectedPatient.insurance">
+              <p-card>
+                <div class="info-item">
+                  <span class="label"><i class="ri-building-line mr-2"></i>Provider</span>
+                  <span class="value">{{selectedPatient.insurance.provider}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-file-list-line mr-2"></i>Policy Number</span>
+                  <span class="value">{{selectedPatient.insurance.policyNumber}}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label"><i class="ri-calendar-check-line mr-2"></i>Valid Till</span>
+                  <span class="value">{{selectedPatient.insurance.validTill | date}}</span>
+                </div>
+              </p-card>
+            </div>
+            <div *ngIf="!selectedPatient.insurance" class="text-center py-4 text-gray-500">
+              <i class="ri-shield-cross-line text-3xl mb-2 block"></i>
+              No insurance information available
+            </div>
+          </p-tabPanel>
+        </p-tabView>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between w-full">
+      <p-button 
+        icon="ri-edit-line" 
+        label="Edit Patient" 
+        (click)="editPatient(selectedPatient._id); displayPatientDetails = false">
+      </p-button>
+      <div>
+        <p-button 
+          icon="ri-close-line" 
+          label="Close" 
+          severity="secondary" 
+          (click)="displayPatientDetails = false"
+          styleClass="mr-2">
+        </p-button>
+        <p-button 
+          icon="ri-printer-line" 
+          label="Print" 
+          severity="secondary" 
+          (click)="printPatientDetails()">
+        </p-button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-confirmDialog 
+  header="Confirm Delete" 
+  icon="ri-error-warning-line" 
+  acceptLabel="Yes, Delete" 
+  rejectLabel="Cancel"
+  acceptButtonStyleClass="p-button-danger"
+  rejectButtonStyleClass="p-button-secondary">
+</p-confirmDialog>
+
+<style>
+  .patient-details .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .patient-details .info-item:last-child {
+    border-bottom: none;
+  }
+  
+  .patient-details .label {
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .patient-details .value {
+    font-weight: 400;
+  }
+  
+  .patient-avatar {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+</style>

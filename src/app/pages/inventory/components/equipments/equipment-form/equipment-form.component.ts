@@ -30,6 +30,7 @@ import { InventoryService } from '../../../services/inventory.service';
     TextareaModule,
     ToastModule
   ],
+  providers: [MessageService],
   templateUrl: 'equipment-form.component.html'
 })
 export class EquipmentFormComponent implements OnInit {
@@ -38,10 +39,10 @@ export class EquipmentFormComponent implements OnInit {
   loading = false;
 
   conditions = [
-    { label: 'New', value: 'new' },
-    { label: 'Good', value: 'good' },
-    { label: 'Fair', value: 'fair' },
-    { label: 'Poor', value: 'poor' }
+    { label: 'New', value: 'New' },
+    { label: 'Good', value: 'Good' },
+    { label: 'Fair', value: 'Fair' },
+    { label: 'Poor', value: 'Poor' }
   ];
 
   constructor(
@@ -86,10 +87,23 @@ export class EquipmentFormComponent implements OnInit {
     this.loading = true;
     this.inventoryService.getEquipmentById(id).subscribe({
       next: (equipment) => {
-        this.equipmentForm.patchValue(equipment);
+        // Form expects specific field names
+        this.equipmentForm.patchValue({
+          name: equipment.name,
+          model: equipment.model,
+          serialNumber: equipment.serialNumber,
+          manufacturer: equipment.manufacturer,
+          condition: equipment.condition,
+          maintenanceDue: equipment.maintenanceDue ? new Date(equipment.maintenanceDue) : null,
+          calibrationDue: equipment.calibrationDue ? new Date(equipment.calibrationDue) : null,
+          warrantyExpiry: equipment.warrantyExpiry ? new Date(equipment.warrantyExpiry) : null,
+          location: equipment.location,
+          price: equipment.price || 0,
+          notes: equipment.notes || ''
+        });
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -119,7 +133,7 @@ export class EquipmentFormComponent implements OnInit {
         });
         this.router.navigate(['../'], { relativeTo: this.route });
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

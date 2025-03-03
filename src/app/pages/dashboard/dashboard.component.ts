@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { SidenavComponent } from '../../components/sidenav/sidenav.component';
 import { HeaderComponent } from '../../components/header/header.component';
+import { DashboardService } from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,25 +17,19 @@ import { HeaderComponent } from '../../components/header/header.component';
   styleUrl: './dashboard.component.scss'
 })
 export class DashboardComponent implements OnInit {
+[x: string]: any;
   menuItems: MenuItem[] = [];
-  stats = [
-    { label: 'Total Users', value: '1,234', icon: 'ri-user-line', color: '#4CAF50' },
-    { label: 'Active Sessions', value: '56', icon: 'ri-timer-line', color: '#2196F3' },
-    { label: 'Failed Logins', value: '12', icon: 'ri-error-warning-line', color: '#F44336' },
-    { label: 'System Load', value: '67%', icon: 'ri-cpu-line', color: '#FF9800' }
-  ];
-  
+  stats: any[] = [];
   chartData: any;
   chartOptions: any;
+  recentPatients: any[] = [];
   recentActivities: any[] = [];
 
-  constructor(private authService: AuthService) {
-    this.initializeChartData();
-    this.initializeActivities();
-  }
+  constructor(private authService: AuthService, private dashboardService: DashboardService) {}
 
   ngOnInit() {
     this.initializeMenu();
+    this.loadDashboardData();
   }
 
   private initializeMenu() {
@@ -54,6 +49,18 @@ export class DashboardComponent implements OnInit {
     ];
   }
 
+  private loadDashboardData() {
+    this.dashboardService.getDashboardData().subscribe(data => {
+      this.stats = [
+        { label: 'Total Patients', value: data.totalPatients, icon: 'ri-user-line', color: '#4CAF50' },
+        { label: 'Admitted Patients', value: data.admittedPatients, icon: 'ri-hospital-line', color: '#2196F3' },
+        { label: 'Chronic Patients', value: data.chronicPatients, icon: 'ri-heart-pulse-line', color: '#F44336' }
+      ];
+      this.recentPatients = data.recentPatients;
+      this.initializeChartData();
+    });
+  }
+
   private initializeChartData() {
     this.chartData = {
       labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
@@ -71,18 +78,5 @@ export class DashboardComponent implements OnInit {
       responsive: true,
       maintainAspectRatio: false
     };
-  }
-
-  private initializeActivities() {
-    this.recentActivities = [
-      {
-        user: 'John Doe',
-        action: 'Logged in',
-        time: new Date(),
-        status: 'Success',
-        statusClass: 'bg-green-100 text-green-800'
-      },
-      // Add more activities
-    ];
   }
 }

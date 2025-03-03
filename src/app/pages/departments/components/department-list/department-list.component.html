@@ -1,202 +1,661 @@
-<div class="p-4">
-    <!-- Department Statistics Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-building-2-line text-3xl mr-3 text-blue-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{stats.totalDepartments}}</h3>
-            <p class="text-gray-600">Total Departments</p>
-          </div>
+<div class="p-4 bg-gray-50 min-h-screen">
+  <p-toast position="top-right" styleClass="shadow-md"></p-toast>
+  
+  <!-- Department Statistics Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <p-card styleClass="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center">
+        <div class="bg-blue-100 rounded-full p-3 mr-3">
+          <i class="ri-building-2-line text-2xl text-blue-600"></i>
         </div>
-      </p-card>
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800">{{stats.totalDepartments}}</h3>
+          <p class="text-gray-600">Total Departments</p>
+        </div>
+      </div>
+    </p-card>
 
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-user-heart-line text-3xl mr-3 text-green-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{stats.totalPatients}}</h3>
-            <p class="text-gray-600">Active Patients</p>
-          </div>
+    <p-card styleClass="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center">
+        <div class="bg-green-100 rounded-full p-3 mr-3">
+          <i class="ri-user-heart-line text-2xl text-green-600"></i>
         </div>
-      </p-card>
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800">{{stats.totalPatients}}</h3>
+          <p class="text-gray-600">Active Patients</p>
+        </div>
+      </div>
+    </p-card>
 
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-team-line text-3xl mr-3 text-orange-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{stats.totalStaff}}</h3>
-            <p class="text-gray-600">Total Staff</p>
-          </div>
+    <p-card styleClass="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center">
+        <div class="bg-orange-100 rounded-full p-3 mr-3">
+          <i class="ri-team-line text-2xl text-orange-600"></i>
         </div>
-      </p-card>
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800">{{stats.totalStaff}}</h3>
+          <p class="text-gray-600">Total Staff</p>
+        </div>
+      </div>
+    </p-card>
 
-      <p-card styleClass="shadow-sm">
-        <div class="flex items-center">
-          <i class="ri-hospital-line text-3xl mr-3 text-purple-500"></i>
-          <div>
-            <h3 class="text-xl font-semibold">{{stats.occupancyRate}}%</h3>
-            <p class="text-gray-600">Bed Occupancy</p>
-          </div>
+    <p-card styleClass="shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="flex items-center">
+        <div class="bg-purple-100 rounded-full p-3 mr-3">
+          <i class="ri-hospital-line text-2xl text-purple-600"></i>
         </div>
-      </p-card>
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800">{{stats.occupancyRate}}%</h3>
+          <p class="text-gray-600">Bed Occupancy</p>
+        </div>
+      </div>
+    </p-card>
+  </div>
+
+  <!-- Departments Table -->
+  <p-card styleClass="shadow-sm">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Departments</h2>
+      <p-button 
+        label="Add Department" 
+        icon="ri-add-line"
+        styleClass="p-button-rounded"
+        routerLink="/departments/add">
+      </p-button>
     </div>
 
-    <!-- Departments Table -->
-    <p-card>
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-2xl font-bold">Departments</h2>
-        <p-button 
-          label="Add Department" 
-          icon="ri-add-line"
-          routerLink="/departments/add">
-        </p-button>
-      </div>
+    <p-table 
+      #dt 
+      [value]="departments" 
+      [rows]="10" 
+      [paginator]="true"
+      [globalFilterFields]="['name', 'code', 'headOfDepartment.name']"
+      [tableStyle]="{'min-width': '75rem'}"
+      [loading]="loading"
+      dataKey="id"
+      [rowHover]="true"
+      styleClass="p-datatable-sm p-datatable-gridlines"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} departments">
 
-      <p-table 
-        #dt 
-        [value]="departments" 
-        [rows]="10" 
-        [paginator]="true"
-        [globalFilterFields]="['name', 'code', 'headOfDepartment.name']"
-        [tableStyle]="{'min-width': '75rem'}"
-        [loading]="loading"
-        dataKey="id"
-        [rowHover]="true"
-        [showCurrentPageReport]="true"
-        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} departments">
-
-        <ng-template pTemplate="caption">
-          <div class="flex items-center justify-between">
-            <span class="p-input-icon-left">
-              <i class="ri-search-line"></i>
-              <input 
+      <ng-template pTemplate="caption">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-3 p-2">
+          <span class="p-input-icon-left w-full md:w-auto">
+            <i class="ri-search-line"></i>
+            <input 
               pInputText 
               type="text" 
               (input)="onSearch($event)" 
-              placeholder="Search departments..." />
-            </span>
+              placeholder="Search departments..." 
+              class="p-inputtext-sm w-full md:w-auto" />
+          </span>
 
-            <div class="flex gap-2">
-              <p-button 
-                label="Export" 
-                icon="ri-download-line"
-                severity="secondary"
-                (onClick)="exportData()">
-              </p-button>
-            </div>
+          <div class="flex gap-2">
+            <p-button 
+              label="Export" 
+              icon="ri-download-line"
+              severity="secondary"
+              styleClass="p-button-sm p-button-rounded"
+              (onClick)="exportData()">
+            </p-button>
           </div>
-        </ng-template>
+        </div>
+      </ng-template>
 
-        <ng-template pTemplate="header">
-          <tr>
-            <th pSortableColumn="name">Department <p-sortIcon field="name"></p-sortIcon></th>
-            <th pSortableColumn="headOfDepartment.name">Head of Department <p-sortIcon field="headOfDepartment.name"></p-sortIcon></th>
-            <th>Staff</th>
-            <th>Capacity</th>
-            <th>Status</th>
-            <th>Performance</th>
-            <th>Actions</th>
-          </tr>
-        </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="name" class="text-gray-700">Department <p-sortIcon field="name"></p-sortIcon></th>
+          <th pSortableColumn="headOfDepartment.name" class="text-gray-700">Head of Department <p-sortIcon field="headOfDepartment.name"></p-sortIcon></th>
+          <th class="text-gray-700">Staff</th>
+          <th class="text-gray-700">Capacity</th>
+          <th class="text-gray-700">Status</th>
+          <th class="text-gray-700">Performance</th>
+          <th class="text-center text-gray-700">Actions</th>
+        </tr>
+      </ng-template>
 
-        <ng-template pTemplate="body" let-department>
-          <tr>
-            <td>
-              <div class="font-medium">{{department.name}}</div>
-              <div class="text-sm text-gray-500">{{department.code}}</div>
-            </td>
-            <td>
-              <div class="font-medium">{{department.headOfDepartment.name}}</div>
-              <div class="text-sm text-gray-500">{{department.headOfDepartment.email}}</div>
-            </td>
-            <td>
-              <div class="space-y-1">
-                <div class="text-sm">
-                  Doctors: {{department.staff.doctors}}
-                </div>
-                <div class="text-sm">
-                  Nurses: {{department.staff.nurses}}
-                </div>
-                <div class="text-sm">
-                  Support: {{department.staff.support}}
-                </div>
+      <ng-template pTemplate="body" let-department>
+        <tr class="hover:bg-blue-50 transition-colors duration-150">
+          <td>
+            <div class="font-medium text-gray-800">{{department.name}}</div>
+            <div class="text-sm text-gray-500">{{department.code}}</div>
+          </td>
+          <td>
+            <div class="flex items-center">
+              <p-avatar 
+                icon="ri-user-line" 
+                shape="circle" 
+                [style]="{'width': '32px', 'height': '32px'}" 
+                styleClass="mr-2 bg-blue-100 text-blue-600">
+              </p-avatar>
+              <div>
+                <div class="font-medium text-gray-800">{{department.headOfDepartment.name}}</div>
+                <div class="text-xs text-gray-500">{{department.headOfDepartment.email}}</div>
               </div>
-            </td>
-            <td>
-              <div class="space-y-1">
-                <div class="text-sm">
-                  Beds: {{department.capacity.beds}}
-                </div>
-                <div class="flex items-center">
-                  <div class="w-24 h-2 bg-gray-200 rounded mr-2">
-                    <div 
-                      class="h-full bg-blue-500 rounded"
-                      [style.width.%]="getOccupancyRate(department)">
-                    </div>
-                  </div>
-                  <span class="text-sm">
-                    {{getOccupancyRate(department)}}% Occupied
-                  </span>
-                </div>
+            </div>
+          </td>
+          <td>
+            <div class="space-y-1">
+              <div class="text-sm flex justify-between">
+                <span>Doctors:</span>
+                <span class="font-medium">{{department.staff.doctors}}</span>
               </div>
-            </td>
-            <td>
-              <p-tag 
-                [value]="department.status"
-                [severity]="getStatusSeverity(department.status)">
-              </p-tag>
-            </td>
-            <td>
-              <div class="space-y-1">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm">Satisfaction</span>
-                  <span class="text-sm font-medium">
-                    {{department.stats.satisfactionRate}}%
-                  </span>
+              <div class="text-sm flex justify-between">
+                <span>Nurses:</span>
+                <span class="font-medium">{{department.staff.nurses}}</span>
+              </div>
+              <div class="text-sm flex justify-between">
+                <span>Support:</span>
+                <span class="font-medium">{{department.staff.support}}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="space-y-2">
+              <div class="text-sm flex justify-between">
+                <span>Beds:</span>
+                <span class="font-medium">{{department.capacity.beds}}</span>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-gray-600">Occupancy</span>
+                  <span class="text-xs font-medium">{{getOccupancyRate(department)}}%</span>
                 </div>
-                <div class="w-full h-1 bg-gray-200 rounded">
+                <div class="w-full h-2 bg-gray-200 rounded overflow-hidden">
                   <div 
-                    class="h-full bg-green-500 rounded"
+                    class="h-full rounded transition-all duration-500"
+                    [ngClass]="{
+                      'bg-red-500': getOccupancyRate(department) > 90,
+                      'bg-yellow-500': getOccupancyRate(department) > 70 && getOccupancyRate(department) <= 90,
+                      'bg-green-500': getOccupancyRate(department) <= 70
+                    }"
+                    [style.width.%]="getOccupancyRate(department)">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <p-tag 
+              [value]="getStatusLabel(department.status)"
+              [severity]="getStatusSeverity(department.status)"
+              [rounded]="true">
+            </p-tag>
+          </td>
+          <td>
+            <div class="space-y-2">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-gray-600">Satisfaction</span>
+                  <span class="text-xs font-medium">{{department.stats.satisfactionRate}}%</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded overflow-hidden">
+                  <div 
+                    class="h-full bg-green-500 rounded transition-all duration-500"
                     [style.width.%]="department.stats.satisfactionRate">
                   </div>
                 </div>
               </div>
-            </td>
-            <td>
-              <div class="flex gap-2">
-                <p-button 
-                  icon="ri-eye-line" 
-                  severity="secondary"
-                  tooltipPosition="top"
-                  pTooltip="View Details"
-                  (onClick)="viewDetails(department)">
-                </p-button>
-                <p-button 
-                  icon="ri-edit-line" 
-                  severity="secondary"
-                  tooltipPosition="top"
-                  pTooltip="Edit Department"
-                  (onClick)="editDepartment(department)">
-                </p-button>
-                <p-button 
-                  icon="ri-delete-bin-line" 
-                  severity="danger"
-                  tooltipPosition="top"
-                  pTooltip="Delete Department"
-                  (onClick)="confirmDelete(department)">
-                </p-button>
+              
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-gray-600">Budget</span>
+                  <span class="text-xs font-medium">{{getBudgetUtilization(department)}}%</span>
+                </div>
+                <div class="w-full h-2 bg-gray-200 rounded overflow-hidden">
+                  <div 
+                    class="h-full rounded transition-all duration-500"
+                    [ngClass]="getBudgetUtilizationClass(getBudgetUtilization(department))"
+                    [style.width.%]="getBudgetUtilization(department)">
+                  </div>
+                </div>
               </div>
-            </td>
-          </tr>
-        </ng-template>
+            </div>
+          </td>
+          <td>
+            <div class="flex justify-center gap-1">
+              <button 
+                pButton 
+                pRipple 
+                icon="ri-eye-line" 
+                class="p-button-rounded p-button-text p-button-info"
+                pTooltip="View Details" 
+                tooltipPosition="top"
+                (click)="viewDetails(department)">
+              </button>
+              <button 
+                pButton 
+                pRipple 
+                icon="ri-edit-line" 
+                class="p-button-rounded p-button-text p-button-success"
+                pTooltip="Edit Department" 
+                tooltipPosition="top"
+                (click)="editDepartment(department)">
+              </button>
+              <button 
+                pButton 
+                pRipple 
+                icon="ri-delete-bin-line" 
+                class="p-button-rounded p-button-text p-button-danger"
+                pTooltip="Delete Department" 
+                tooltipPosition="top"
+                (click)="confirmDelete(department)">
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
 
-        <ng-template pTemplate="summary">
-          <div class="flex justify-between">
-            <div>Total Departments: {{departments.length}}</div>
-            <div>Average Occupancy: {{getAverageOccupancy()}}%</div>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-6">
+            <div class="flex flex-col items-center py-6">
+              <i class="ri-hospital-line text-6xl text-gray-300 mb-4"></i>
+              <p class="text-gray-500 mb-4">No departments found</p>
+              <p-button 
+                label="Add Department" 
+                icon="ri-add-line"
+                styleClass="p-button-rounded p-button-primary"
+                routerLink="/main/departments/add">
+              </p-button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="summary">
+        <div class="flex justify-between text-sm text-gray-600 p-2">
+          <div>Total Departments: <span class="font-medium">{{departments.length}}</span></div>
+          <div>Average Occupancy: <span class="font-medium">{{getAverageOccupancy()}}%</span></div>
+        </div>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Department Details Modal -->
+  <p-dialog 
+    [(visible)]="displayDetailModal" 
+    [style]="{width: '85vw', maxWidth: '1100px'}" 
+    [modal]="true"
+    [resizable]="false"
+    [draggable]="false"
+    styleClass="p-fluid department-details-modal"
+    [closeOnEscape]="true"
+    [dismissableMask]="true"
+    header="Department Details">
+    
+    <div *ngIf="selectedDepartment" class="department-details">
+      <!-- Header with key details -->
+      <div class="flex flex-col md:flex-row gap-6 mb-6">
+        <div class="md:w-1/4 flex flex-col items-center justify-center bg-blue-50 p-6 rounded-lg shadow-sm">
+          <div class="text-center mb-6">
+            <div class="bg-blue-100 inline-flex p-4 rounded-full mb-3">
+              <i class="ri-hospital-line text-5xl text-blue-600"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-1">{{selectedDepartment.name}}</h2>
+            <p class="text-gray-600 mb-2">Code: {{selectedDepartment.code}}</p>
+            <p-tag 
+              [value]="getStatusLabel(selectedDepartment.status || '')" 
+              [severity]="getStatusSeverity(selectedDepartment.status || '')"
+              [rounded]="true"
+              styleClass="mt-2">
+            </p-tag>
           </div>
-        </ng-template>
-      </p-table>
-    </p-card>
-  </div>
+          
+          <div class="w-full">
+            <div class="text-center mb-2">
+              <span class="text-2xl font-semibold text-gray-800">{{getOccupancyRate(selectedDepartment)}}%</span>
+              <p class="text-sm text-gray-600">Occupancy Rate</p>
+            </div>
+            <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden mt-2">
+              <div 
+                class="h-full rounded-full transition-all duration-500"
+                [style.width.%]="getOccupancyRate(selectedDepartment)"
+                [ngClass]="{
+                  'bg-red-500': getOccupancyRate(selectedDepartment) > 90,
+                  'bg-yellow-500': getOccupancyRate(selectedDepartment) > 70 && getOccupancyRate(selectedDepartment) <= 90,
+                  'bg-green-500': getOccupancyRate(selectedDepartment) <= 70
+                }">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="md:w-3/4">
+          <div class="bg-white p-5 rounded-lg shadow-sm mb-5">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">About</h3>
+            <p class="text-gray-700 leading-relaxed">
+              {{selectedDepartment.description || 'No description available for this department.'}}
+            </p>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 class="font-medium mb-3 flex items-center text-gray-800">
+                <i class="ri-team-line text-xl mr-2 text-orange-500"></i> Staff
+              </h3>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Doctors:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.staff?.doctors || 0}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Nurses:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.staff?.nurses || 0}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Support:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.staff?.support || 0}}</span>
+                </div>
+                <p-divider styleClass="my-2"></p-divider>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Total:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.capacity.staffCount}}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 class="font-medium mb-3 flex items-center text-gray-800">
+                <i class="ri-hospital-line text-xl mr-2 text-blue-500"></i> Capacity
+              </h3>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Total Beds:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.capacity.totalBeds}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Occupied:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.capacity.currentOccupancy}}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">Available:</span>
+                  <span class="font-medium text-gray-800">{{selectedDepartment.capacity.totalBeds - selectedDepartment.capacity.currentOccupancy}}</span>
+                </div>
+                <p-divider styleClass="my-2"></p-divider>
+                <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    class="h-full rounded-full transition-all duration-500"
+                    [style.width.%]="getOccupancyRate(selectedDepartment)"
+                    [ngClass]="{
+                      'bg-red-500': getOccupancyRate(selectedDepartment) > 90,
+                      'bg-yellow-500': getOccupancyRate(selectedDepartment) > 70 && getOccupancyRate(selectedDepartment) <= 90,
+                      'bg-green-500': getOccupancyRate(selectedDepartment) <= 70
+                    }">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 class="font-medium mb-3 flex items-center text-gray-800">
+                <i class="ri-user-line text-xl mr-2 text-green-500"></i> Head of Department
+              </h3>
+              <div class="flex items-center mb-3">
+                <p-avatar 
+                  icon="ri-user-line" 
+                  shape="circle" 
+                  styleClass="mr-2 bg-green-100 text-green-600">
+                </p-avatar>
+                <div>
+                  <div class="font-medium text-gray-800">{{selectedDepartment.headOfDepartment.name}}</div>
+                  <div class="text-xs text-gray-500">Department Head</div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center">
+                  <i class="ri-mail-line mr-2 text-gray-500"></i>
+                  <span class="text-sm text-gray-600">{{selectedDepartment.headOfDepartment.email}}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="ri-id-card-line mr-2 text-gray-500"></i>
+                  <span class="text-sm text-gray-600">ID: {{selectedDepartment.headOfDepartment || 'Not specified'}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Detailed information tabs -->
+      <p-tabView styleClass="department-tabs">
+        <p-tabPanel header="Contact Information" leftIcon="ri-contacts-line">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Primary Contact</h3>
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="bg-blue-100 p-2 rounded-full mr-3">
+                    <i class="ri-mail-line text-blue-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Email</p>
+                    <p>{{selectedDepartment.email || selectedDepartment.contactInfo?.email || 'Not specified'}}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start">
+                  <div class="bg-green-100 p-2 rounded-full mr-3">
+                    <i class="ri-phone-line text-green-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Phone</p>
+                    <p>{{selectedDepartment.phone || selectedDepartment.contactInfo?.phone || 'Not specified'}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Emergency Contact</h3>
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="bg-red-100 p-2 rounded-full mr-3">
+                    <i class="ri-alarm-warning-line text-red-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Emergency Number</p>
+                    <p class="text-red-600 font-medium">{{selectedDepartment.contactInfo?.emergencyContact || 'Not specified'}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+        
+        <p-tabPanel header="Location" leftIcon="ri-map-pin-line">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Building Information</h3>
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="bg-purple-100 p-2 rounded-full mr-3">
+                    <i class="ri-building-line text-purple-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Building</p>
+                    <p>{{selectedDepartment.location?.building || 'Not specified'}}</p>
+                  </div>
+                </div>
+                
+                <div class="flex items-start">
+                  <div class="bg-blue-100 p-2 rounded-full mr-3">
+                    <i class="ri-arrow-up-line text-blue-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Floor</p>
+                    <p>{{selectedDepartment.location?.floor || 'Not specified'}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Room Information</h3>
+              <p class="font-medium text-gray-700 mb-3">Room Numbers:</p>
+              <div class="flex flex-wrap gap-2">
+                <span *ngFor="let room of selectedDepartment.location?.roomNumbers" 
+                  class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                  {{room}}
+                </span>
+                <span *ngIf="!selectedDepartment.location?.roomNumbers?.length" class="text-gray-500 italic">
+                  No rooms specified
+                </span>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+        
+        <p-tabPanel header="Schedule" leftIcon="ri-calendar-line">
+          <div class="bg-white p-5 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Working Hours</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="bg-indigo-100 p-2 rounded-full mr-3">
+                    <i class="ri-calendar-check-line text-indigo-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Working Days</p>
+                    <p>{{selectedDepartment.schedule && formatWorkingDays(selectedDepartment.schedule.workingDays)}}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <div class="flex items-start">
+                  <div class="bg-teal-100 p-2 rounded-full mr-3">
+                    <i class="ri-time-line text-teal-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-700">Hours</p>
+                    <p>{{formatWorkingHours(selectedDepartment.schedule?.startTime, selectedDepartment.schedule?.endTime)}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+        
+        <p-tabPanel header="Specialties & Facilities" leftIcon="ri-tools-line">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Specialties</h3>
+              <div class="flex flex-wrap gap-3">
+                <span *ngFor="let specialty of selectedDepartment.specialties" 
+                  class="bg-green-100 text-green-800 text-sm font-medium px-3 py-2 rounded-lg flex items-center">
+                  <i class="ri-stethoscope-line mr-2"></i>
+                  {{specialty}}
+                </span>
+                <span *ngIf="!selectedDepartment.specialties?.length" class="text-gray-500 italic">
+                  No specialties listed
+                </span>
+              </div>
+            </div>
+            
+            <div class="bg-white p-5 rounded-lg shadow-sm">
+              <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Facilities</h3>
+              <div class="flex flex-wrap gap-3">
+                <span *ngFor="let facility of selectedDepartment.facilities" 
+                  class="bg-purple-100 text-purple-800 text-sm font-medium px-3 py-2 rounded-lg flex items-center">
+                  <i class="ri-hospital-line mr-2"></i>
+                  {{facility}}
+                </span>
+                <span *ngIf="!selectedDepartment.facilities?.length" class="text-gray-500 italic">
+                  No facilities listed
+                </span>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel>
+        
+        <!-- <p-tabPanel header="Budget" leftIcon="ri-money-dollar-circle-line">
+          <div class="bg-white p-5 rounded-lg shadow-sm">
+            <h3 class="text-lg font-medium text-gray-800 mb-4 border-b pb-2">Budget Overview</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Allocated Budget:</span>
+                    <span class="font-medium text-gray-800">${{selectedDepartment.budget?.allocated?.toLocaleString() || 0}}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Utilized:</span>
+                    <span class="font-medium text-gray-800">${{selectedDepartment.budget?.utilized?.toLocaleString() || 0}}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-gray-700">Remaining:</span>
+                    <span class="font-medium" [ngClass]="{
+                      'text-red-600': (selectedDepartment.budget?.allocated - selectedDepartment.budget?.utilized) < 0,
+                      'text-green-600': (selectedDepartment.budget?.allocated - selectedDepartment.budget?.utilized) >= 0
+                    }">
+                      ${{(selectedDepartment.budget?.allocated - selectedDepartment.budget?.utilized)?.toLocaleString() || 0}}
+                    </span>
+                  </div>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium text-gray-700 mb-2">Budget Utilization</p>
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-sm text-gray-600">{{getBudgetUtilization(selectedDepartment)}}% Used</span>
+                  </div>
+                  <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      class="h-full rounded-full transition-all duration-500"
+                      [ngClass]="getBudgetUtilizationClass(getBudgetUtilization(selectedDepartment))"
+                      [style.width.%]="getBudgetUtilization(selectedDepartment)">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex items-center justify-center">
+                <div class="text-center p-6 bg-gray-50 rounded-lg w-full shadow-sm">
+                  <i class="ri-funds-line text-6xl text-blue-500 mb-4"></i>
+                  <div class="text-2xl font-bold text-gray-800 mb-1">${{(selectedDepartment.budget?.allocated - selectedDepartment.budget?.utilized)?.toLocaleString() || 0}}</div>
+                  <p class="text-gray-600">Remaining Budget</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabPanel> -->
+      </p-tabView>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <div class="flex justify-between w-full">
+        <p-button 
+          icon="ri-edit-line" 
+          label="Edit Department" 
+          styleClass="p-button-rounded"
+          (onClick)="editDepartment(selectedDepartment!); displayDetailModal = false">
+        </p-button>
+        <div>
+          <p-button 
+            icon="ri-delete-bin-line" 
+            label="Delete" 
+            severity="danger" 
+            styleClass="p-button-rounded mr-2"
+            (onClick)="confirmDelete(selectedDepartment!); displayDetailModal = false">
+          </p-button>
+          <p-button 
+            icon="ri-close-line" 
+            label="Close" 
+            severity="secondary" 
+            styleClass="p-button-rounded"
+            (onClick)="closeModal()">
+          </p-button>
+        </div>
+      </div>
+    </ng-template>
+  </p-dialog>
+  
+  <!-- Delete Confirmation Dialog -->
+  <p-confirmDialog 
+    [style]="{width: '450px'}" 
+    header="Confirm Delete" 
+    icon="ri-error-warning-line"
+    acceptButtonStyleClass="p-button-danger p-button-rounded"
+    rejectButtonStyleClass="p-button-secondary p-button-rounded">
+  </p-confirmDialog>
+</div>

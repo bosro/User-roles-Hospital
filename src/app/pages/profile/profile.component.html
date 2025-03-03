@@ -32,7 +32,7 @@
             class="text-center p-4 rounded-lg transition-colors"
             [ngClass]="'bg-' + stat.color + '-50 hover:bg-' + stat.color + '-100'">
             <h3 class="text-2xl font-bold" [ngClass]="'text-' + stat.color + '-600'">
-              {{userProfile.stats?.[stat.value] || 0}}
+              <!-- {{userProfile?.stats?.[stat.value] || 0}} -->
             </h3>
             <p class="text-gray-600">{{stat.label}}</p>
           </div>
@@ -223,7 +223,7 @@
         </div>
 
         <!-- Two-Factor Authentication -->
-        <div class="p-6 bg-gray-50 rounded-lg">
+        <!-- <div class="p-6 bg-gray-50 rounded-lg">
           <div class="flex items-center justify-between">
             <div>
               <h3 class="text-lg font-medium text-gray-900">Two-Factor Authentication</h3>
@@ -231,10 +231,10 @@
             </div>
             <p-inputSwitch [(ngModel)]="twoFactorEnabled" (onChange)="toggleTwoFactor()"></p-inputSwitch>
           </div>
-        </div>
+        </div> -->
 
         <!-- Login History -->
-        <div class="p-6 bg-gray-50 rounded-lg">
+        <!-- <div class="p-6 bg-gray-50 rounded-lg">
           <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Recent Login Activity</h3>
           <p-timeline [value]="loginHistory" class="w-full">
             <ng-template pTemplate="content" let-login>
@@ -248,7 +248,7 @@
               </div>
             </ng-template>
           </p-timeline>
-        </div>
+        </div> -->
       </div>
     </p-tabPanel>
 
@@ -286,7 +286,7 @@
         </div>
 
         <!-- Display Preferences -->
-        <div class="p-6 bg-gray-50 rounded-lg">
+        <!-- <div class="p-6 bg-gray-50 rounded-lg">
           <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Display Preferences</h3>
           <div class="space-y-4">
             <div class="flex items-center justify-between p-3 hover:bg-gray-100 rounded-lg">
@@ -305,7 +305,7 @@
               <p-inputSwitch [(ngModel)]="preferences.compactView"></p-inputSwitch>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <div class="flex justify-end">
           <p-button label="Save Preferences" icon="ri-save-line" (onClick)="savePreferences()"
@@ -365,7 +365,7 @@
     </div>
   </ng-template>
 
-  <ng-template #scheduleTemplate>
+  <!-- <ng-template #scheduleTemplate>
     <div class="p-4 bg-gray-50 rounded-lg">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-medium text-gray-900">Schedule</h3>
@@ -413,9 +413,9 @@
         </p-table>
       </div>
     </div>
-  </ng-template>
+  </ng-template> -->
 
-  <ng-template #patientsTemplate>
+  <!-- <ng-template #patientsTemplate>
     <div class="p-4 bg-gray-50 rounded-lg">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-medium text-gray-900">My Patients</h3>
@@ -449,7 +449,7 @@
         </div>
       </div>
     </div>
-  </ng-template>
+  </ng-template> -->
 
   <ng-template #prescriptionsTemplate>
     <div class="p-4 bg-gray-50 rounded-lg">

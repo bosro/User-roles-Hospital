@@ -1,59 +1,67 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Doctor,DoctorSchedule, PatientVisit } from '../doctors.model';
+import { Doctor, DoctorSchedule, PatientVisit } from '../doctors.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DoctorService {
-  private apiUrl = `${environment.apiUrl}/doctors`;
+  private apiUrl = `${environment.apiUrl}/admin`;
 
   constructor(private http: HttpClient) {}
 
   getDoctors(): Observable<Doctor[]> {
-    return this.http.get<Doctor[]>(this.apiUrl);
+    return this.http.get<{ success: boolean; message: string; data: Doctor[] }>(`${this.apiUrl}/doctors`)
+      .pipe(map(response => response.data));
   }
 
   getDoctorById(id: string): Observable<Doctor> {
-    return this.http.get<Doctor>(`${this.apiUrl}/${id}`);
+    return this.http.get<{ success: boolean; message: string; data: Doctor }>(`${this.apiUrl}/${id}`)
+      .pipe(map(response => response.data));
   }
 
   createDoctor(doctor: Omit<Doctor, 'id'>): Observable<Doctor> {
-    return this.http.post<Doctor>(this.apiUrl, doctor);
+    return this.http.post<{ success: boolean; message: string; data: Doctor }>(this.apiUrl, doctor)
+      .pipe(map(response => response.data));
   }
 
   updateDoctor(id: string, doctor: Partial<Doctor>): Observable<Doctor> {
-    return this.http.put<Doctor>(`${this.apiUrl}/${id}`, doctor);
+    return this.http.put<{ success: boolean; message: string; data: Doctor }>(`${this.apiUrl}/${id}`, doctor)
+      .pipe(map(response => response.data));
   }
 
   deleteDoctor(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<{ success: boolean; message: string }>(`${this.apiUrl}/${id}`)
+      .pipe(map(() => {}));
   }
 
   getDoctorSchedule(doctorId: string, date: Date): Observable<DoctorSchedule> {
-    return this.http.get<DoctorSchedule>(
+    return this.http.get<{ success: boolean; message: string; data: DoctorSchedule }>(
       `${this.apiUrl}/${doctorId}/schedule?date=${date.toISOString()}`
-    );
+    ).pipe(map(response => response.data));
   }
 
   updateDoctorSchedule(
     doctorId: string, 
     schedule: Partial<DoctorSchedule>
   ): Observable<DoctorSchedule> {
-    return this.http.put<DoctorSchedule>(
+    return this.http.put<{ success: boolean; message: string; data: DoctorSchedule }>(
       `${this.apiUrl}/${doctorId}/schedule`,
       schedule
-    );
+    ).pipe(map(response => response.data));
   }
 
   updateDoctorStatus(id: string, status: Doctor['status']): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/status`, { status });
+    return this.http.patch<{ success: boolean; message: string }>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map(() => {}));
   }
 
   getPatientHistoryStats(doctorId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${doctorId}/patient-history/stats`);
+    return this.http.get<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/${doctorId}/patient-history/stats`)
+      .pipe(map(response => response.data));
   }
 
   getDoctorPatientVisits(doctorId: string, params?: {
@@ -62,25 +70,27 @@ export class DoctorService {
     status?: string;
     type?: string;
   }): Observable<PatientVisit[]> {
-    return this.http.get<PatientVisit[]>(
+    return this.http.get<{ success: boolean; message: string; data: PatientVisit[] }>(
       `${this.apiUrl}/${doctorId}/patient-visits`,
       { params: this.createQueryParams(params) }
-    );
+    ).pipe(map(response => response.data));
   }
 
   getPatientAnalytics(doctorId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${doctorId}/patient-analytics`);
+    return this.http.get<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/${doctorId}/patient-analytics`)
+      .pipe(map(response => response.data));
   }
 
   getPatientMedicalRecords(visitId: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/patient-visits/${visitId}/medical-records`);
+    return this.http.get<{ success: boolean; message: string; data: any }>(`${this.apiUrl}/patient-visits/${visitId}/medical-records`)
+      .pipe(map(response => response.data));
   }
 
   scheduleFollowUp(visitId: string, appointment: any): Observable<any> {
-    return this.http.post(
+    return this.http.post<{ success: boolean; message: string; data: any }>(
       `${this.apiUrl}/patient-visits/${visitId}/follow-up`,
       appointment
-    );
+    ).pipe(map(response => response.data));
   }
 
   private createQueryParams(params: any): { [key: string]: string } {

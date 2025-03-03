@@ -3,7 +3,7 @@ export type AppointmentStatus = 'Scheduled' | 'Confirmed' | 'In Progress' | 'Com
                                'scheduled' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled' | 'no-show';
 export type AppointmentType = 'Regular' | 'Follow-up' | 'Emergency' | 'Consultation' | 'Procedure' |
                              'regular' | 'follow-up' | 'emergency' | 'consultation' | 'procedure';
-                            //  export type AppointmentStatus = 'scheduled' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled' | 'no-show';
+
 export interface Patient {
   _id: string;
   firstName: string;

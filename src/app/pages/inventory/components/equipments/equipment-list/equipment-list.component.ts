@@ -1,9 +1,6 @@
-type ConditionType = 'new' | 'good' | 'fair' | 'poor';
-type TagSeverityType = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | undefined;
-
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Table, TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
@@ -11,8 +8,13 @@ import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { MessageService } from 'primeng/api';
 import { Equipment } from '../../../models/inventory.model';
 import { InventoryService } from '../../../services/inventory.service';
+import { MaintenanceFormComponent } from '../Maintenanceform';
+
+type ConditionType = 'new' | 'good' | 'fair' | 'poor';
+type TagSeverityType = 'success' | 'secondary' | 'info' | 'warn' | 'danger' | 'contrast' | undefined;
 
 @Component({
   selector: 'app-equipment-list',
@@ -26,8 +28,10 @@ import { InventoryService } from '../../../services/inventory.service';
     ToastModule,
     TagModule,
     DialogModule,
-    InputTextModule
+    InputTextModule,
+    MaintenanceFormComponent
   ],
+  providers: [MessageService],
   templateUrl: 'equipment-list.component.html'
 })
 export class EquipmentListComponent implements OnInit {
@@ -44,7 +48,11 @@ export class EquipmentListComponent implements OnInit {
     'poor': 'danger'
   };
 
-  constructor(private inventoryService: InventoryService) {}
+  constructor(
+    private inventoryService: InventoryService,
+    private router: Router,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit() {
     this.loadEquipment();
@@ -59,16 +67,25 @@ export class EquipmentListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading equipment:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load equipment'
+        });
         this.loading = false;
       }
     });
   }
 
   getConditionSeverity(condition: string): TagSeverityType {
-    return this.severities[condition as ConditionType] || 'info';
+    // Normalize condition to lowercase to match keys in severities object
+    const normalizedCondition = condition?.toLowerCase() as ConditionType;
+    return this.severities[normalizedCondition] || 'info';
   }
 
   getMaintenanceClass(date: string | Date): string {
+    if (!date) return 'text-gray-500';
+    
     const daysToMaintenance = Math.ceil(
       (new Date(date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -90,15 +107,19 @@ export class EquipmentListComponent implements OnInit {
   }
 
   viewDetails(equipment: Equipment) {
-    // Navigate to details view
+    this.router.navigate(['/inventory/equipment/view', equipment._id]);
   }
 
   editEquipment(equipment: Equipment) {
-    // Navigate to edit form
+    this.router.navigate(['/inventory/equipment/edit', equipment._id]);
   }
 
   scheduleMaintenance(equipment: Equipment) {
     this.selectedEquipment = equipment;
     this.showMaintenanceDialog = true;
+  }
+  
+  onMaintenanceScheduled() {
+    this.loadEquipment();
   }
 }

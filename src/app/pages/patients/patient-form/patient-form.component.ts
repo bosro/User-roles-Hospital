@@ -33,6 +33,7 @@ import { ChipModule } from "primeng/chip";
 export class PatientFormComponent implements OnInit {
   patientForm!: FormGroup;
   isEditMode = false;
+  patientId: string = '';
   saving = false;
   today = new Date();
 
@@ -67,6 +68,7 @@ export class PatientFormComponent implements OnInit {
     const id = this.route.snapshot.params['id'];
     if (id) {
       this.isEditMode = true;
+      this.patientId = id;
       this.loadPatient(id);
     }
   }
@@ -88,10 +90,10 @@ export class PatientFormComponent implements OnInit {
         medications: [[]]
       }),
       insurance: this.fb.group({
-        provider: ['', [Validators.required]],
-        policyNumber: ['', [Validators.required]],
+        provider: [''],
+        policyNumber: [''],
         groupNumber: [''],
-        expiryDate: [null, [Validators.required]]
+        expiryDate: [null]
       })
     });
   }
@@ -99,7 +101,9 @@ export class PatientFormComponent implements OnInit {
   addItem(field: string, value: string) {
     if (!value.trim()) return;
     const currentValues = this.patientForm.get(`medicalHistory.${field}`)?.value || [];
-    this.patientForm.get(`medicalHistory.${field}`)?.setValue([...currentValues, value.trim()]);
+    if (!currentValues.includes(value.trim())) {
+      this.patientForm.get(`medicalHistory.${field}`)?.setValue([...currentValues, value.trim()]);
+    }
   }
   
   removeItem(field: string, value: string) {
@@ -112,9 +116,12 @@ export class PatientFormComponent implements OnInit {
   private loadPatient(id: string) {
     this.patientService.getPatientById(id).subscribe({
       next: (patient) => {
+        console.log('Loaded patient data:', patient);
+        // Patch the form with the patient data
         this.patientForm.patchValue(patient);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading patient:', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -132,19 +139,36 @@ export class PatientFormComponent implements OnInit {
         if (control?.invalid) {
           control.markAsTouched();
         }
+        if (key === 'medicalHistory' || key === 'insurance') {
+          Object.keys((this.patientForm.get(key) as FormGroup)?.controls || {}).forEach(nestedKey => {
+            const nestedControl = this.patientForm.get(`${key}.${nestedKey}`);
+            if (nestedControl?.invalid) {
+              nestedControl.markAsTouched();
+            }
+          });
+        }
       });
+      
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Validation Error',
+        detail: 'Please fill all required fields correctly'
+      });
+      
       return;
     }
 
     this.saving = true;
     const patientData = this.patientForm.value;
+    console.log('Submitting patient data:', patientData);
 
     const operation = this.isEditMode
-      ? this.patientService.updatePatient(this.route.snapshot.params['id'], patientData)
+      ? this.patientService.updatePatient(this.patientId, patientData)
       : this.patientService.createPatient(patientData);
 
     operation.subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Save response:', response);
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
@@ -152,7 +176,8 @@ export class PatientFormComponent implements OnInit {
         });
         this.router.navigate(['/patients/list']);
       },
-      error: () => {
+      error: (err) => {
+        console.error('Save error:', err);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

@@ -14,10 +14,10 @@
             [value]="medicines" 
             [rows]="10" 
             [paginator]="true"
-            [globalFilterFields]="['name', 'brand', 'batchNumber', 'manufacturer']"
+            [globalFilterFields]="['name', 'manufacturer', 'batchNumber', 'code']"
             [tableStyle]="{'min-width': '75rem'}"
             [loading]="loading"
-            dataKey="id"
+            dataKey="_id"
             [rowHover]="true">
 
             <ng-template pTemplate="caption">
@@ -36,7 +36,7 @@
             <ng-template pTemplate="header">
                 <tr>
                     <th pSortableColumn="name">Name <p-sortIcon field="name"></p-sortIcon></th>
-                    <th pSortableColumn="brand">Brand/Details <p-sortIcon field="brand"></p-sortIcon></th>
+                    <th pSortableColumn="manufacturer">Brand/Details <p-sortIcon field="manufacturer"></p-sortIcon></th>
                     <th pSortableColumn="quantity">Stock Level <p-sortIcon field="quantity"></p-sortIcon></th>
                     <th pSortableColumn="expiryDate">Expiry Date <p-sortIcon field="expiryDate"></p-sortIcon></th>
                     <th>Status</th>
@@ -48,15 +48,15 @@
                 <tr>
                     <td>
                         <div class="font-medium">{{medicine.name}}</div>
-                        <div class="text-sm text-gray-500">{{medicine.batchNumber}}</div>
+                        <div class="text-sm text-gray-500">{{medicine.code}}</div>
                     </td>
                     <td>
-                        <div>{{medicine.brand}}</div>
+                        <div>{{medicine.dosageForm}} - {{medicine.strength}}</div>
                         <div class="text-sm text-gray-500">{{medicine.manufacturer}}</div>
                     </td>
                     <td>
                         <div [class]="getStockLevelClass(medicine)">
-                            {{medicine.quantity}} units
+                            {{medicine.quantity}} {{medicine.unit}}
                             <div class="text-sm text-gray-500">
                                 Reorder at: {{medicine.reorderLevel}}
                             </div>
@@ -94,15 +94,21 @@
                     </td>
                 </tr>
             </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center p-4">No medicines found</td>
+                </tr>
+            </ng-template>
         </p-table>
     </p-card>
 
-    <!-- Stock Adjustment Dialog -->
-    <p-dialog 
-        [(visible)]="showStockDialog" 
-        [header]="'Adjust Stock - ' + selectedMedicine?.name"
-        [modal]="true"
-        [style]="{width: '450px'}">
-        <!-- Stock adjustment form will go here -->
-    </p-dialog>
+    <!-- Stock Adjustment Component -->
+    <app-stock-adjustment 
+        [medicine]="selectedMedicine"
+        [(visible)]="showStockDialog"
+        (stockUpdated)="onStockUpdated()">
+    </app-stock-adjustment>
 </div>
+
+<p-toast position="top-right"></p-toast>

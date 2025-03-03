@@ -7,12 +7,12 @@ import { Injectable } from "@angular/core";
     providedIn: 'root'
   })
   export class ProfileService {
-    private apiUrl = `${environment.apiUrl}/profile`;
+    private apiUrl = `${environment.apiUrl}/admin`;
 
     constructor(private http: HttpClient) {}
 
-    getUserProfile(): Observable<any> {
-      return this.http.get(this.apiUrl);
+    getUserProfile(id:string): Observable<any> {
+      return this.http.get(`${this.apiUrl}/get/${id}`);
     }
 
     updateProfile(data: any): Observable<any> {

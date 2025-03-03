@@ -5,9 +5,10 @@ import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
+import { TableModule } from 'primeng/table';
 import { MessageService } from 'primeng/api';
 import { InventoryService } from '../../../services/inventory.service';
-import { TableModule } from 'primeng/table';
+import { Medicine, StockMovement } from '../../../models/inventory.model';
 
 type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
 
@@ -23,11 +24,12 @@ type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contr
     ToastModule,
     TableModule
   ],
+  providers: [MessageService],
   templateUrl: 'medicine-details.component.html'
 })
 export class MedicineDetailsComponent implements OnInit {
-  medicine: any;
-  stockMovements: any[] = [];
+  medicine: Medicine | null = null;
+  stockMovements: StockMovement[] = [];
   loading = false;
 
   constructor(
@@ -50,7 +52,7 @@ export class MedicineDetailsComponent implements OnInit {
           this.medicine = data;
           this.loadStockMovements(id);
         },
-        error: () => {
+        error: (error) => {
           this.messageService.add({
             severity: 'error',
             summary: 'Error',
@@ -65,10 +67,10 @@ export class MedicineDetailsComponent implements OnInit {
   private loadStockMovements(medicineId: string) {
     this.inventoryService.getMedicineStockMovements(medicineId).subscribe({
       next: (data) => {
-        this.stockMovements = data;
+        // this.stockMovements = data;
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',

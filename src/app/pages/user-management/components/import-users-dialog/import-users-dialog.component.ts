@@ -36,23 +36,23 @@ export class ImportUsersDialogComponent {
     const reader = new FileReader();
     reader.readAsText(file);
     reader.onload = () => {
-      this.processCSV(reader.result as string);
+      // this.processCSV(reader.result as string);
     };
   }
 
-  private processCSV(csv: string) {
-    this.userService.importUsers(csv).subscribe({
-      next: (results) => {
-        this.importResults = results;
-        this.uploadProgress = 100;
-        this.fileUpload.clear();
-      },
-      error: (error) => {
-        this.errorMessage = error.message;
-        this.uploadProgress = 0;
-      }
-    });
-  }
+  // private processCSV(csv: string) {
+  //   this.userService.importUsers(csv).subscribe({
+  //     next: (results) => {
+  //       this.importResults = results;
+  //       this.uploadProgress = 100;
+  //       this.fileUpload.clear();
+  //     },
+  //     error: (error) => {
+  //       this.errorMessage = error.message;
+  //       this.uploadProgress = 0;
+  //     }
+  //   });
+  // }
 
   downloadTemplate(event: Event) {
     event.preventDefault();

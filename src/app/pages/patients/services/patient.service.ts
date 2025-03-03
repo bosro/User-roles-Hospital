@@ -1,4 +1,4 @@
-import { Observable } from "rxjs";
+import { map, Observable } from "rxjs";
 import { Appointment, Patient, Prescription } from "../models/patients.model";
 import { HttpClient } from "@angular/common/http";
 import { environment } from "../../../environments/environment";
@@ -28,21 +28,110 @@ export class PatientService {
 
   constructor(private http: HttpClient) {}
 
-  getPatients(params?: any): Observable<Patient[]> {
-    return this.http.get<Patient[]>(this.apiUrl, { params });
+  getPatients(params: any): Observable<any[]> {
+    return this.http.get<any>(`${this.apiUrl}/all`, { params }).pipe(
+      map((response: any) => {
+        // Transform the API response to match the expected format in the component
+        if (response.success && response.data) {
+          return response.data.map((patient: any) => {
+            // Add missing properties required by the template
+            return {
+              ...patient,
+              bloodGroup: patient.bloodGroup || 'O+', // Default value
+              lastVisit: patient.lastVisit || new Date(patient.updatedAt).toISOString(), // Use updatedAt as lastVisit
+              status: patient.admitted ? 'active' : 'inactive' // Determine status based on admitted field
+            };
+          });
+        }
+        return [];
+      })
+    );
   }
 
-  getPatientById(id: string): Observable<Patient> {
-    return this.http.get<Patient>(`${this.apiUrl}/${id}`);
+  getPatientById(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/get/${id}`).pipe(
+      map((response: any) => {
+        if (response.success && response.data) {
+          const patient = response.data;
+          
+          // Transform the API response to match the form structure
+          return {
+            firstName: patient.firstName,
+            lastName: patient.lastName,
+            dateOfBirth: new Date(patient.dateOfBirth),
+            gender: patient.gender?.toLowerCase(),
+            bloodGroup: patient.bloodGroup || '',
+            phone: patient.contactInfo?.phone || '',
+            email: patient.contactInfo?.email || '',
+            address: patient.contactInfo?.address || '',
+            medicalHistory: {
+              allergies: patient.allergies || [],
+              conditions: patient.medicalHistory?.map((h: any) => h.condition) || [],
+              surgeries: patient.surgeries || [],
+              medications: patient.medications?.map((m: any) => m.name) || []
+            },
+            insurance: {
+              provider: patient.insurance?.provider || '',
+              policyNumber: patient.insurance?.policyNumber || '',
+              groupNumber: patient.insurance?.groupNumber || '',
+              expiryDate: patient.insurance?.validTill ? new Date(patient.insurance.validTill) : null
+            }
+          };
+        }
+        return {};
+      })
+    );
   }
 
-  createPatient(patient: Omit<Patient, 'id'>): Observable<Patient> {
-    return this.http.post<Patient>(this.apiUrl, patient);
+  createPatient(patientData: any): Observable<any> {
+    // Transform the form data to match the API expected format
+    const apiPatient = this.transformPatientForApi(patientData);
+    return this.http.post<any>(`${this.apiUrl}/add`, apiPatient);
   }
 
-  updatePatient(id: string, patient: Partial<Patient>): Observable<Patient> {
-    return this.http.put<Patient>(`${this.apiUrl}/${id}`, patient);
+  updatePatient(id: string, patientData: any): Observable<any> {
+    // Transform the form data to match the API expected format
+    const apiPatient = this.transformPatientForApi(patientData);
+    return this.http.put<any>(`${this.apiUrl}/edit/${id}`, apiPatient);
   }
+
+
+
+
+  private transformPatientForApi(formData: any): any {
+    // Transform form data structure to API expected structure
+    return {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      dateOfBirth: formData.dateOfBirth?.toISOString(),
+      gender: formData.gender,
+      bloodGroup: formData.bloodGroup,
+      contactInfo: {
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address
+      },
+      allergies: formData.medicalHistory?.allergies || [],
+      medicalHistory: (formData.medicalHistory?.conditions || []).map((condition: string) => ({
+        condition: condition,
+        diagnosedOn: new Date().toISOString(),
+        status: 'Active'
+      })),
+      medications: (formData.medicalHistory?.medications || []).map((name: string) => ({
+        name: name,
+        dosage: '',
+        prescribedBy: ''
+      })),
+      surgeries: formData.medicalHistory?.surgeries || [],
+      insurance: {
+        provider: formData.insurance?.provider,
+        policyNumber: formData.insurance?.policyNumber,
+        groupNumber: formData.insurance?.groupNumber,
+        validTill: formData.insurance?.expiryDate?.toISOString()
+      }
+    };
+  }
+
 
   getPatientAppointments(id: string): Observable<Appointment[]> {
     return this.http.get<Appointment[]>(`${this.apiUrl}/${id}/appointments`);
@@ -53,6 +142,10 @@ export class PatientService {
       `${this.apiUrl}/${appointment.patientId}/appointments`, 
       appointment
     );
+  }
+
+  deletePatient(patientId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/delete/${patientId}`);
   }
 
   updateAppointment(patientId: string, appointmentId: string, appointment: Partial<Appointment>): Observable<Appointment> {

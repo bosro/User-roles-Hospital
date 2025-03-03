@@ -31,8 +31,17 @@ export class HeaderComponent {
     this.currentUser = this.authService.currentUserValue;
   }
 
+  // logout() {
+  //   this.authService.logout();
+  //   this.router.navigate(['/login']);
+  // }
+
   logout() {
-    this.authService.logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    // this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
+  
 }

@@ -31,7 +31,7 @@ import { Appointment, AppointmentStatus } from '../models/appointment.model';
     TagModule
   ],
   providers: [MessageService, ConfirmationService],
-  templateUrl: 'appointment-list.component.html'
+  templateUrl: './appointment-list.component.html'
 })
 export class AppointmentListComponent implements OnInit {
   appointments: Appointment[] = [];
@@ -40,6 +40,9 @@ export class AppointmentListComponent implements OnInit {
   searchQuery = '';
   selectedStatus = '';
   selectedDepartment = '';
+  currentPage = 1;
+  pageSize = 10;
+  totalRecords = 0;
 
   statusFilters = [
     { label: 'All Statuses', value: '' },
@@ -73,17 +76,22 @@ export class AppointmentListComponent implements OnInit {
 
   loadAppointments() {
     this.loading = true;
-    this.appointmentService.getAppointments().subscribe({
+    this.appointmentService.getAppointments(this.currentPage, this.pageSize).subscribe({
       next: (appointments) => {
         this.appointments = appointments;
         this.filterAppointments();
         this.loading = false;
+        
+        // Get total from the first response (assuming pagination info is available)
+        if (appointments.length > 0 && 'pagination' in appointments[0]) {
+          this.totalRecords = (appointments[0] as any).pagination?.total || 0;
+        }
       },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load appointments'
+          detail: 'Failed to load appointments: ' + (error.message || 'Unknown error')
         });
         this.loading = false;
       }
@@ -93,43 +101,45 @@ export class AppointmentListComponent implements OnInit {
   filterAppointments() {
     this.filteredAppointments = this.appointments.filter(appointment => {
       const matchesSearch = !this.searchQuery || 
-        appointment.patientName.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        appointment.doctorName.toLowerCase().includes(this.searchQuery.toLowerCase());
+        (appointment.patientName?.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+         appointment.doctorName?.toLowerCase().includes(this.searchQuery.toLowerCase()));
       
       const matchesStatus = !this.selectedStatus || 
-        appointment.status === this.selectedStatus;
+        appointment.status.toLowerCase() === this.selectedStatus.toLowerCase();
       
       const matchesDepartment = !this.selectedDepartment || 
-        appointment.department === this.selectedDepartment;
+        appointment.department?.toLowerCase() === this.selectedDepartment.toLowerCase();
 
       return matchesSearch && matchesStatus && matchesDepartment;
     });
   }
 
-getStatusSeverity(status: AppointmentStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-  const severities: Record<AppointmentStatus, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
-    'scheduled': 'info',
-    'confirmed': 'success',
-    'in-progress': 'warn',
-    'completed': 'success',
-    'cancelled': 'danger',
-    'no-show': 'secondary'
-  };
-  return severities[status] || 'info';
-}
+  getStatusSeverity(status: AppointmentStatus): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    const statusLower = status.toLowerCase() as 'scheduled' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled' | 'no-show';
+    
+    const severities: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {
+      'scheduled': 'info',
+      'confirmed': 'success',
+      'in-progress': 'warn',
+      'completed': 'success',
+      'cancelled': 'danger',
+      'no-show': 'secondary'
+    };
+    return severities[statusLower] || 'info';
+  }
+
   navigateToNewAppointment() {
     this.router.navigate(['../add'], { relativeTo: this.route });
   }
 
-
-
   editAppointment(appointment: Appointment) {
-    if (!appointment.id) return;
-    this.router.navigate(['../edit', appointment.id], { relativeTo: this.route });
+    if (!appointment.id && !appointment._id) return;
+    this.router.navigate(['../view', appointment.id || appointment._id], { relativeTo: this.route });
   }
 
   confirmDelete(appointment: Appointment) {
-    if (!appointment.id) {
+    const id = appointment.id || appointment._id;
+    if (!id) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -140,8 +150,10 @@ getStatusSeverity(status: AppointmentStatus): 'success' | 'info' | 'warn' | 'dan
   
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete this appointment?',
+      header: 'Confirm Deletion',
+      icon: 'pi pi-exclamation-triangle',
       accept: () => {
-        this.appointmentService.deleteAppointment(appointment.id!).subscribe({
+        this.appointmentService.deleteAppointment(id).subscribe({
           next: () => {
             this.messageService.add({
               severity: 'success',
@@ -150,15 +162,21 @@ getStatusSeverity(status: AppointmentStatus): 'success' | 'info' | 'warn' | 'dan
             });
             this.loadAppointments();
           },
-          error: () => {
+          error: (error) => {
             this.messageService.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Failed to delete appointment'
+              detail: 'Failed to delete appointment: ' + (error.message || 'Unknown error')
             });
           }
         });
       }
     });
+  }
+
+  onPageChange(event: any) {
+    this.currentPage = event.page + 1;
+    this.pageSize = event.rows;
+    this.loadAppointments();
   }
 }

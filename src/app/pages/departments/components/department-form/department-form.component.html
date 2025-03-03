@@ -1,302 +1,240 @@
-<div class="p-4">
-  <p-card>
+<div class="p-4 max-w-7xl mx-auto">
+  <p-toast></p-toast>
+
+  <p-card [style]="{'border-radius': '8px', 'box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)'}">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">{{isEditMode ? 'Edit' : 'New'}} Department</h2>
-      <div class="flex gap-2">
-        <p-button label="Cancel" icon="ri-close-line" severity="secondary" (onClick)="cancel()">
-        </p-button>
-        <p-button label="Save" icon="ri-save-line" (onClick)="onSubmit()" [loading]="loading"
-          [disabled]="departmentForm.invalid">
-        </p-button>
-      </div>
+      <h2 class="text-2xl font-bold text-gray-800">
+        {{isEditMode ? 'Edit Department' : 'Add New Department'}}
+      </h2>
+      <p-button icon="ri-arrow-left-line" label="Back" severity="secondary" (onClick)="goBack()" [style]="{'border-radius': '4px'}"></p-button>
     </div>
 
-    <form [formGroup]="departmentForm" class="space-y-8">
+    <div *ngIf="loading" class="flex justify-center p-10">
+      <i class="ri-loader-4-line animate-spin text-4xl text-gray-500"></i>
+    </div>
+
+    <form *ngIf="!loading" [formGroup]="departmentForm" (ngSubmit)="onSubmit()" class="space-y-6">
       <!-- Basic Information -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-information-line mr-2"></i>Basic Information
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Department Name <span class="text-red-500">*</span>
             </label>
-            <input pInputText formControlName="name" class="w-full" placeholder="Enter department name" />
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('name')?.invalid && departmentForm.get('name')?.touched">
+            <input pInputText formControlName="name" class="w-full" 
+                   [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('name')}" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('name')">
               Department name is required
             </small>
           </div>
 
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Department Code <span class="text-red-500">*</span>
             </label>
-            <input pInputText formControlName="code" class="w-full" placeholder="Enter department code" />
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('code')?.invalid && departmentForm.get('code')?.touched">
+            <input pInputText formControlName="code" class="w-full" placeholder="e.g. CARD, ORTH, PEDI"
+                   [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('code')}" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('code')">
               Department code is required
             </small>
           </div>
 
           <div class="field md:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Description
             </label>
-            <textarea pInputTextarea formControlName="description"
-              class="w-full min-h-[100px] border border-gray-300 rounded-md p-3"
-              placeholder="Enter department description">
-            </textarea>
+            <textarea pInputTextarea formControlName="description" rows="3" class="w-full resize-none"></textarea>
           </div>
-        </div>
-      </div>
 
-      <!-- Head of Department -->
-      <div formGroupName="headOfDepartment" class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Head of Department</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Select Doctor <span class="text-red-500">*</span>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Head of Department <span class="text-red-500">*</span>
             </label>
-            <p-dropdown [options]="doctors" formControlName="id" optionLabel="name" optionValue="id"
-              placeholder="Select a doctor" [style]="{'width':'100%'}" (onChange)="onHeadOfDepartmentChange($event)">
-            </p-dropdown>
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('headOfDepartment.id')?.invalid && departmentForm.get('headOfDepartment.id')?.touched">
+            <input pInputText formControlName="headOfDepartment" class="w-full"
+                   [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('headOfDepartment')}" />
+            <small class="text-red-500" *ngIf="isFieldInvalid('headOfDepartment')">
               Head of department is required
             </small>
           </div>
-
-          <!-- Read-only fields for selected doctor's info -->
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input pInputText formControlName="email" class="w-full bg-gray-50" readonly />
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-            <input pInputText formControlName="phone" class="w-full bg-gray-50" readonly />
-          </div>
         </div>
       </div>
 
-      <!-- Location Information -->
-      <div formGroupName="location" class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Location</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Building <span class="text-red-500">*</span>
-            </label>
-            <input pInputText formControlName="building" class="w-full" placeholder="Enter building" />
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('location.building')?.invalid && departmentForm.get('location.building')?.touched">
-              Building is required
-            </small>
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Floor <span class="text-red-500">*</span>
-            </label>
-            <p-inputNumber formControlName="floor" [showButtons]="false" inputStyleClass="w-full"
-              placeholder="Enter floor number">
-            </p-inputNumber>
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('location.floor')?.invalid && departmentForm.get('location.floor')?.touched">
-              Floor number is required
-            </small>
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Room Numbers
-            </label>
-            <p-multiSelect formControlName="roomNumbers" [options]="[]" defaultLabel="Select rooms"
-              [style]="{'width':'100%'}">
-            </p-multiSelect>
-          </div>
-        </div>
-      </div>
-
-      <!-- Capacity Information -->
-      <div formGroupName="capacity" class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Capacity</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Total Beds <span class="text-red-500">*</span>
-            </label>
-            <p-inputNumber formControlName="beds" [showButtons]="true" [min]="0" styleClass="w-full"
-              placeholder="Enter total beds">
-            </p-inputNumber>
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Current Occupancy
-            </label>
-            <p-inputNumber formControlName="currentOccupancy" [showButtons]="true" [min]="0"
-              [max]="departmentForm.get('capacity.beds')?.value" styleClass="w-full"
-              placeholder="Enter current occupancy">
-            </p-inputNumber>
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Staff Count
-            </label>
-            <p-inputNumber formControlName="staffCount" [showButtons]="true" [min]="0" styleClass="w-full"
-              placeholder="Enter staff count">
-            </p-inputNumber>
-          </div>
-        </div>
-      </div>
-
-      <!-- Schedule Information -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Schedule</h3>
-
-        <!-- Working Days -->
-        <div class="field mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Working Days <span class="text-red-500">*</span>
-          </label>
-          <p-multiSelect [options]="workingDays" formControlName="workingDays" defaultLabel="Select working days"
-            [style]="{'width':'100%'}" [panelStyle]="{'width':'100%'}" styleClass="w-full">
-          </p-multiSelect>
-          <small class="text-red-500"
-            *ngIf="departmentForm.get('workingDays')?.invalid && departmentForm.get('workingDays')?.touched">
-            Working days are required
-          </small>
-        </div>
-
-        <!-- Operating Hours -->
-        <div formGroupName="operatingHours" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Start Time <span class="text-red-500">*</span>
-            </label>
-            <p-calendar formControlName="start" [timeOnly]="true" [showTime]="true" [showSeconds]="false"
-              [style]="{'width':'100%'}" inputStyleClass="w-full">
-            </p-calendar>
-          </div>
-
-          <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              End Time <span class="text-red-500">*</span>
-            </label>
-            <p-calendar formControlName="end" [timeOnly]="true" [showTime]="true" [showSeconds]="false"
-              [style]="{'width':'100%'}" inputStyleClass="w-full">
-            </p-calendar>
-          </div>
-        </div>
-      </div>
+      <p-divider styleClass="my-4"></p-divider>
 
       <!-- Contact Information -->
-      <div formGroupName="contactInfo" class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div formGroupName="contactInfo" class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-contacts-line mr-2"></i>Contact Information
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Email <span class="text-red-500">*</span>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Email
             </label>
-            <input pInputText formControlName="email" class="w-full" placeholder="Enter department email" />
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('contactInfo.email')?.invalid && departmentForm.get('contactInfo.email')?.touched">
-              Valid email is required
+            <input pInputText formControlName="email" class="w-full" type="email" />
+            <small class="text-red-500" *ngIf="departmentForm.get('contactInfo.email')?.invalid && departmentForm.get('contactInfo.email')?.touched">
+              Please enter a valid email
             </small>
           </div>
 
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Phone <span class="text-red-500">*</span>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Phone
             </label>
-            <input pInputText formControlName="phone" class="w-full" placeholder="Enter contact number" />
-            <small class="text-red-500"
-              *ngIf="departmentForm.get('contactInfo.phone')?.invalid && departmentForm.get('contactInfo.phone')?.touched">
-              Phone number is required
-            </small>
+            <input pInputText formControlName="phone" class="w-full" placeholder="e.g. +1 (555) 123-4567" />
           </div>
 
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
               Emergency Contact
             </label>
-            <input pInputText formControlName="emergencyContact" class="w-full" placeholder="Enter emergency contact" />
+            <input pInputText formControlName="emergencyContact" class="w-full" placeholder="e.g. +1 (555) 987-6543" />
           </div>
         </div>
       </div>
 
-      <!-- Additional Features -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Additional Features</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <p-divider styleClass="my-4"></p-divider>
+
+      <!-- Location Information -->
+      <div formGroupName="location" class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-map-pin-line mr-2"></i>Location
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Facilities
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Building
             </label>
-            <p-multiSelect formControlName="facilities" [options]="[]" defaultLabel="Select facilities"
-              [style]="{'width':'100%'}">
-            </p-multiSelect>
+            <input pInputText formControlName="building" class="w-full" placeholder="e.g. Main Building" />
           </div>
 
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Specialties
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Floor
             </label>
-            <p-multiSelect formControlName="specialties" [options]="[]" defaultLabel="Select specialties"
-              [style]="{'width':'100%'}">
-            </p-multiSelect>
+            <p-inputNumber formControlName="floor" [showButtons]="false" class="w-full" inputStyleClass="w-full" placeholder="e.g. 3"></p-inputNumber>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Room Numbers
+            </label>
+            <p-chips formControlName="roomNumbers" separator="," placeholder="Add rooms and press Enter" class="w-full"></p-chips>
           </div>
         </div>
+      </div>
+
+      <p-divider styleClass="my-4"></p-divider>
+
+      <!-- Capacity Information -->
+      <div formGroupName="capacity" class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-hospital-line mr-2"></i>Capacity
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Total Beds <span class="text-red-500">*</span>
+            </label>
+            <p-inputNumber formControlName="totalBeds" [showButtons]="true" [min]="0" class="w-full" inputStyleClass="w-full"
+                           [ngClass]="{'ng-invalid ng-dirty': isNestedFieldInvalid('capacity', 'totalBeds')}"></p-inputNumber>
+            <small class="text-red-500" *ngIf="isNestedFieldInvalid('capacity', 'totalBeds')">
+              Total beds is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Current Occupancy <span class="text-red-500">*</span>
+            </label>
+            <p-inputNumber formControlName="currentOccupancy" [showButtons]="true" [min]="0" class="w-full" inputStyleClass="w-full"
+                           [ngClass]="{'ng-invalid ng-dirty': isNestedFieldInvalid('capacity', 'currentOccupancy')}"></p-inputNumber>
+            <small class="text-red-500" *ngIf="isNestedFieldInvalid('capacity', 'currentOccupancy')">
+              Current occupancy is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Staff Count <span class="text-red-500">*</span>
+            </label>
+            <p-inputNumber formControlName="staffCount" [showButtons]="true" [min]="0" class="w-full" inputStyleClass="w-full"
+                           [ngClass]="{'ng-invalid ng-dirty': isNestedFieldInvalid('capacity', 'staffCount')}"></p-inputNumber>
+            <small class="text-red-500" *ngIf="isNestedFieldInvalid('capacity', 'staffCount')">
+              Staff count is required
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <p-divider styleClass="my-4"></p-divider>
+
+      <!-- Schedule Information -->
+      <div formGroupName="schedule" class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-calendar-line mr-2"></i>Schedule
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Working Days
+            </label>
+            <p-multiSelect formControlName="workingDays" [options]="workingDays" optionLabel="label" optionValue="value" 
+                          class="w-full" placeholder="Select working days"></p-multiSelect>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Start Time
+            </label>
+            <p-calendar formControlName="startTime" [timeOnly]="true" hourFormat="12" [showTime]="true" 
+                      inputStyleClass="w-full" [showIcon]="true"></p-calendar>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              End Time
+            </label>
+            <p-calendar formControlName="endTime" [timeOnly]="true" hourFormat="12" [showTime]="true" 
+                      inputStyleClass="w-full" [showIcon]="true"></p-calendar>
+          </div>
+        </div>
+      </div>
+
+      <p-divider styleClass="my-4"></p-divider>
+
+      <!-- Facilities and Specialties -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-medium mb-4 text-gray-700">
+          <i class="ri-service-line mr-2"></i>Facilities & Specialties
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Facilities
+            </label>
+            <p-chips formControlName="facilities" separator="," placeholder="Add facilities and press Enter" class="w-full"></p-chips>
+            <small class="text-gray-500">e.g. X-Ray, MRI, Lab, ICU</small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Specialties
+            </label>
+            <p-chips formControlName="specialties" separator="," placeholder="Add specialties and press Enter" class="w-full"></p-chips>
+            <small class="text-gray-500">e.g. Cardiology, Orthopedics, Pediatrics</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-6">
+        <p-button label="Cancel" severity="secondary" (onClick)="goBack()" icon="ri-close-line" [style]="{'border-radius': '4px'}"></p-button>
+        <p-button label="{{isEditMode ? 'Update' : 'Save'}} Department" type="submit" [loading]="submitting" 
+                icon="{{isEditMode ? 'ri-save-line' : 'ri-add-line'}}" [style]="{'border-radius': '4px'}"></p-button>
       </div>
     </form>
   </p-card>
 </div>
-
-<p-toast position="top-right"></p-toast>
-
-
-
-
-
-
-
-<!-- <div class="field">
-    <label class="block text-sm font-medium text-gray-700 mb-1">
-      Room Numbers
-    </label>
-    <p-multiSelect
-      formControlName="roomNumbers"
-      [options]="[]"
-      defaultLabel="Select rooms"
-      [style]="{'width':'100%'}">
-    </p-multiSelect>
-  </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="field">
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Facilities
-              </label>
-              <p-multiSelect
-                formControlName="facilities"
-                [options]="[]"
-                defaultLabel="Select facilities"
-                [style]="{'width':'100%'}">
-              </p-multiSelect>
-            </div>
-    
-            <div class="field">
-              <label class="block text-sm font-medium text-gray-700 mb-1">
-                Specialties
-              </label>
-              <p-multiSelect
-                formControlName="specialties"
-                [options]="[]"
-                defaultLabel="Select specialties"
-                [style]="{'width':'100%'}">
-              </p-multiSelect>
-            </div>
-          </div> -->

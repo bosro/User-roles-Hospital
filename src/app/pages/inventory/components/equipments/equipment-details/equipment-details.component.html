@@ -1,154 +1,167 @@
 <div class="p-4">
-    <p-card>
-      <!-- Header Actions -->
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Equipment Details</h2>
-        <div class="flex gap-2">
-          <p-button 
-            label="Schedule Maintenance" 
-            icon="ri-tools-line"
-            severity="warn"
-            (onClick)="scheduleMaintenance()">
-          </p-button>
-          <p-button 
-            label="Edit" 
-            icon="ri-edit-line"
-            severity="secondary"
-            [routerLink]="['../../edit', equipment?.id]">
-          </p-button>
-          <p-button 
-            label="Back" 
-            icon="ri-arrow-left-line"
-            severity="secondary"
-            (onClick)="goBack()">
-          </p-button>
+  <p-card>
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">Equipment Details</h2>
+      <div class="flex gap-2">
+        <p-button 
+          label="Schedule Maintenance" 
+          icon="ri-tools-line"
+          severity="warn"
+          (onClick)="scheduleMaintenance()">
+        </p-button>
+        <p-button 
+          label="Edit" 
+          icon="ri-edit-line"
+          severity="secondary"
+          [routerLink]="['../../edit', equipment?._id]">
+        </p-button>
+        <p-button 
+          label="Back" 
+          icon="ri-arrow-left-line"
+          severity="secondary"
+          (onClick)="goBack()">
+        </p-button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Basic Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
+        <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Name</div>
+            <div class="font-medium">{{equipment?.name}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Model</div>
+            <div class="font-medium">{{equipment?.model}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Serial Number</div>
+            <div class="font-medium">{{equipment?.serialNumber}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Manufacturer</div>
+            <div class="font-medium">{{equipment?.manufacturer}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Current Status</div>
+            <div>
+              <p-tag 
+                [value]="equipment?.condition"
+                [severity]="getConditionSeverity(equipment?.condition)">
+              </p-tag>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Basic Information -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">Basic Information</h3>
-          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Name</div>
-              <div class="font-medium">{{equipment?.name}}</div>
+      <!-- Maintenance Information -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900">Maintenance Information</h3>
+        <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Next Maintenance Due</div>
+            <div [class]="getMaintenanceClass(equipment?.maintenanceDue)">
+              {{equipment?.maintenanceDue | date}}
             </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Model</div>
-              <div class="font-medium">{{equipment?.model}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Calibration Due</div>
+            <div [class]="getCalibrationClass(equipment?.calibrationDue)">
+              {{equipment?.calibrationDue ? (equipment.calibrationDue | date) : 'Not set'}}
             </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Serial Number</div>
-              <div class="font-medium">{{equipment?.serialNumber}}</div>
+          </div>
+          <div class="grid grid-cols-2">
+            <div class="text-sm text-gray-500">Warranty Expiry</div>
+            <div [class]="getWarrantyClass(equipment?.warrantyExpiry)">
+              {{equipment?.warrantyExpiry ? (equipment.warrantyExpiry | date) : 'Not set'}}
             </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Manufacturer</div>
-              <div class="font-medium">{{equipment?.manufacturer}}</div>
-            </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Current Status</div>
-              <div>
-                <p-tag 
-                  [value]="equipment?.condition"
-                  [severity]="getConditionSeverity(equipment?.condition)">
-                </p-tag>
-              </div>
+          </div>
+          <div class="grid grid-cols-2" *ngIf="maintenanceHistory.length > 0">
+            <div class="text-sm text-gray-500">Last Maintenance</div>
+            <div class="font-medium">
+              {{maintenanceHistory[0]?.date | date}}
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Maintenance Information -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">Maintenance Information</h3>
-          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Next Maintenance Due</div>
-              <div [class]="getMaintenanceClass(equipment?.maintenanceDue)">
-                {{equipment?.maintenanceDue | date}}
-              </div>
-            </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Calibration Due</div>
-              <div [class]="getCalibrationClass(equipment?.calibrationDue)">
-                {{equipment?.calibrationDue | date}}
-              </div>
-            </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Warranty Expiry</div>
-              <div [class]="getWarrantyClass(equipment?.warrantyExpiry)">
-                {{equipment?.warrantyExpiry | date}}
-              </div>
-            </div>
-            <div class="grid grid-cols-2">
-              <div class="text-sm text-gray-500">Last Maintenance</div>
-              <div class="font-medium">
-                {{equipment?.lastMaintenance | date}}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Location and Additional Information -->
-        <div class="space-y-4 md:col-span-2">
-          <h3 class="text-lg font-medium text-gray-900">Location and Additional Information</h3>
-          <div class="bg-gray-50 p-4 rounded-lg space-y-3">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div class="text-sm text-gray-500">Location</div>
-                <div class="font-medium">{{equipment?.location}}</div>
-              </div>
-              <div>
-                <div class="text-sm text-gray-500">Purchase Price</div>
-                <div class="font-medium">${{equipment?.price | number:'1.2-2'}}</div>
-              </div>
+      <!-- Location and Additional Information -->
+      <div class="space-y-4 md:col-span-2">
+        <h3 class="text-lg font-medium text-gray-900">Location and Additional Information</h3>
+        <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <div class="text-sm text-gray-500">Location</div>
+              <div class="font-medium">{{equipment?.location}}</div>
             </div>
             <div>
-              <div class="text-sm text-gray-500">Notes</div>
-              <div class="font-medium whitespace-pre-line">{{equipment?.notes || 'No notes available'}}</div>
+              <div class="text-sm text-gray-500">Purchase Price</div>
+              <div class="font-medium">${{equipment?.price | number:'1.2-2'}}</div>
             </div>
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Notes</div>
+            <div class="font-medium whitespace-pre-line">{{equipment?.notes || 'No notes available'}}</div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Maintenance History -->
-      <div class="mt-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Maintenance History</h3>
-        <p-table 
-          [value]="maintenanceHistory" 
-          [rows]="5" 
-          [paginator]="true"
-          styleClass="p-datatable-sm">
-          <ng-template pTemplate="header">
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Performed By</th>
-              <th>Status</th>
-              <th>Notes</th>
-            </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-record>
-            <tr>
-              <td>{{record.date | date:'medium'}}</td>
-              <td>
-                <p-tag 
-                  [value]="record.type"
-                  [severity]="getMaintenanceTypeSeverity(record.type)">
-                </p-tag>
-              </td>
-              <td>{{record.performedBy}}</td>
-              <td>
-                <p-tag 
-                  [value]="record.status"
-                  [severity]="getMaintenanceStatusSeverity(record.status)">
-                </p-tag>
-              </td>
-              <td>{{record.notes}}</td>
-            </tr>
-          </ng-template>
-        </p-table>
-      </div>
-    </p-card>
-  </div>
-  <p-toast></p-toast>
+    <!-- Maintenance History -->
+    <div class="mt-6">
+      <h3 class="text-lg font-medium text-gray-900 mb-4">Maintenance History</h3>
+      <p-table 
+        [value]="maintenanceHistory" 
+        [rows]="5" 
+        [paginator]="true"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Performed By</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-record>
+          <tr>
+            <td>{{record.date | date:'medium'}}</td>
+            <td>
+              <p-tag 
+                [value]="record.type"
+                [severity]="getMaintenanceTypeSeverity(record.type)">
+              </p-tag>
+            </td>
+            <td>{{record.performedBy}}</td>
+            <td>
+              <p-tag 
+                [value]="record.status"
+                [severity]="getMaintenanceStatusSeverity(record.status)">
+              </p-tag>
+            </td>
+            <td>{{record.notes}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center p-4">No maintenance history available</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </p-card>
+
+  <!-- Maintenance Form Dialog -->
+  <!-- <app-maintenance-form
+    [equipment]="equipment"
+    [(visible)]="showMaintenanceDialog"
+    (maintenanceScheduled)="onMaintenanceScheduled()">
+  </app-maintenance-form> -->
+</div>
+
+<p-toast></p-toast>

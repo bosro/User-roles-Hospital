@@ -8,7 +8,7 @@
             label="Edit" 
             icon="ri-edit-line"
             severity="secondary"
-            [routerLink]="['../../edit', medicine?.id]">
+            [routerLink]="['../../edit', medicine?._id]">
           </p-button>
           <p-button 
             label="Back" 
@@ -63,7 +63,7 @@
             </div>
             <div class="grid grid-cols-2">
               <div class="text-sm text-gray-500">Expiry Date</div>
-              <div [class]="getExpiryClass(medicine?.expiryDate)">
+              <div [class]="medicine?.expiryDate ? getExpiryClass(medicine?.expiryDate?.toString() ?? '') : ''">
                 {{medicine?.expiryDate | date}}
               </div>
             </div>
