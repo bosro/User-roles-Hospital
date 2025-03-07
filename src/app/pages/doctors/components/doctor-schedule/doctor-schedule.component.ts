@@ -116,7 +116,7 @@ export class DoctorScheduleComponent implements OnInit {
     this.doctorService.getDoctors().subscribe({
       next: (doctors) => {
         this.doctors = doctors.map(d => ({
-          value: d.id,
+          value: d._id,
           label: `${d.prefix} ${d.firstName} ${d.lastName}`,
           ...d
         }));

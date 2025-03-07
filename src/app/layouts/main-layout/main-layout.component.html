@@ -22,74 +22,78 @@
       <div class="flex-1 flex flex-col overflow-y-auto bg-white border-r border-gray-200 shadow-sm">
         <nav class="flex-1 py-4 space-y-1">
           <ng-container *ngFor="let item of menuItems">
-            <!-- Menu Item -->
-            <div class="menu-item px-3" [class.active]="item.path === currentPath">
-              <div class="flex items-center">
-                <a [routerLink]="item.path" 
-                   class="group flex items-center py-2 text-sm font-medium rounded-md transition-all duration-200 w-full"
-                   [class.px-3]="!isSidebarCollapsed"
-                   [class.justify-center]="isSidebarCollapsed"
-                   [class.text-gray-600]="item.path !== currentPath" 
-                   [class.hover:bg-gray-50]="item.path !== currentPath"
-                   [class.hover:text-gray-900]="item.path !== currentPath" 
-                   [class.bg-blue-100]="item.path === currentPath"
-                   [class.text-blue-700]="item.path === currentPath"
-                   title="{{isSidebarCollapsed ? item.title : ''}}"
-                   placement="right">
-                  <svg class="h-6 w-6 flex-shrink-0" 
-                       [class.mr-3]="!isSidebarCollapsed"
-                       [class.text-gray-400]="item.path !== currentPath"
-                       [class.group-hover:text-gray-500]="item.path !== currentPath"
-                       [class.text-blue-700]="item.path === currentPath" 
-                       xmlns="http://www.w3.org/2000/svg" 
-                       fill="none"
-                       viewBox="0 0 24 24" 
-                       stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
-                  </svg>
-                  <span [class.hidden]="isSidebarCollapsed">{{item.title}}</span>
-                </a>
-                <button *ngIf="item.children && !isSidebarCollapsed" 
-                        (click)="item.isExpanded = !item.isExpanded" 
-                        class="ml-auto p-2 text-gray-400 hover:text-gray-500">
-                  <svg class="h-4 w-4 transition-transform duration-200" 
-                       [class.rotate-180]="item.isExpanded"
-                       xmlns="http://www.w3.org/2000/svg" 
-                       fill="none" 
-                       viewBox="0 0 24 24" 
-                       stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+            <!-- Menu Item - Added hasAccess check -->
+            <ng-container *ngIf="hasAccess(item)">
+              <div class="menu-item px-3" [class.active]="item.path === currentPath">
+                <div class="flex items-center">
+                  <a [routerLink]="item.path" 
+                     class="group flex items-center py-2 text-sm font-medium rounded-md transition-all duration-200 w-full"
+                     [class.px-3]="!isSidebarCollapsed"
+                     [class.justify-center]="isSidebarCollapsed"
+                     [class.text-gray-600]="item.path !== currentPath" 
+                     [class.hover:bg-gray-50]="item.path !== currentPath"
+                     [class.hover:text-gray-900]="item.path !== currentPath" 
+                     [class.bg-blue-100]="item.path === currentPath"
+                     [class.text-blue-700]="item.path === currentPath"
+                     title="{{isSidebarCollapsed ? item.title : ''}}"
+                     placement="right">
+                    <svg class="h-6 w-6 flex-shrink-0" 
+                         [class.mr-3]="!isSidebarCollapsed"
+                         [class.text-gray-400]="item.path !== currentPath"
+                         [class.group-hover:text-gray-500]="item.path !== currentPath"
+                         [class.text-blue-700]="item.path === currentPath" 
+                         xmlns="http://www.w3.org/2000/svg" 
+                         fill="none"
+                         viewBox="0 0 24 24" 
+                         stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                    </svg>
+                    <span [class.hidden]="isSidebarCollapsed">{{item.title}}</span>
+                  </a>
+                  <button *ngIf="item.children && !isSidebarCollapsed" 
+                          (click)="item.isExpanded = !item.isExpanded" 
+                          class="ml-auto p-2 text-gray-400 hover:text-gray-500">
+                    <svg class="h-4 w-4 transition-transform duration-200" 
+                         [class.rotate-180]="item.isExpanded"
+                         xmlns="http://www.w3.org/2000/svg" 
+                         fill="none" 
+                         viewBox="0 0 24 24" 
+                         stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <!-- Submenu Items -->
-            <div *ngIf="item.children && item.isExpanded && !isSidebarCollapsed" 
-                 class="ml-8 space-y-1 mt-1 mb-2">
-              <a *ngFor="let child of item.children" 
-                 [routerLink]="child.path"
-                 [class.bg-blue-50]="child.path === currentPath"
-                 [class.text-blue-700]="child.path === currentPath"
-                 class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200">
-                <svg class="mr-3 h-5 w-5" 
-                     [class.text-gray-400]="child.path !== currentPath"
+              <!-- Submenu Items - Added hasAccess check for child items -->
+              <div *ngIf="item.children && item.isExpanded && !isSidebarCollapsed" 
+                   class="ml-8 space-y-1 mt-1 mb-2">
+                <ng-container *ngFor="let child of item.children">
+                  <a *ngIf="hasAccess(child)" 
+                     [routerLink]="child.path"
+                     [class.bg-blue-50]="child.path === currentPath"
                      [class.text-blue-700]="child.path === currentPath"
-                     xmlns="http://www.w3.org/2000/svg"
-                     fill="none" 
-                     viewBox="0 0 24 24" 
-                     stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon" />
-                </svg>
-                {{child.title}}
-              </a>
-            </div>
-            
-            <!-- Icon-only submenu indicator for collapsed sidebar -->
-            <div *ngIf="item.children && isSidebarCollapsed && item.path === currentPath" 
-                 class="flex justify-center mt-1">
-              <div class="h-1 w-1 rounded-full bg-blue-700"></div>
-            </div>
+                     class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200">
+                    <svg class="mr-3 h-5 w-5" 
+                         [class.text-gray-400]="child.path !== currentPath"
+                         [class.text-blue-700]="child.path === currentPath"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="none" 
+                         viewBox="0 0 24 24" 
+                         stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon" />
+                    </svg>
+                    {{child.title}}
+                  </a>
+                </ng-container>
+              </div>
+              
+              <!-- Icon-only submenu indicator for collapsed sidebar -->
+              <div *ngIf="item.children && isSidebarCollapsed && item.path === currentPath" 
+                   class="flex justify-center mt-1">
+                <div class="h-1 w-1 rounded-full bg-blue-700"></div>
+              </div>
+            </ng-container>
           </ng-container>
         </nav>
 
@@ -198,60 +202,65 @@
           <div class="mt-5 flex-1 h-0 overflow-y-auto">
             <nav class="px-2 space-y-1">
               <ng-container *ngFor="let item of menuItems">
-                <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-base font-medium rounded-md transition-colors duration-200"
-                  [class.text-gray-600]="item.path !== currentPath" 
-                  [class.hover:bg-gray-50]="item.path !== currentPath"
-                  [class.hover:text-gray-900]="item.path !== currentPath" 
-                  [class.bg-blue-100]="item.path === currentPath"
-                  [class.text-blue-700]="item.path === currentPath">
-                  <svg class="mr-4 h-6 w-6" 
-                    [class.text-gray-400]="item.path !== currentPath"
-                    [class.group-hover:text-gray-500]="item.path !== currentPath"
-                    [class.text-blue-700]="item.path === currentPath" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none"
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
-                  </svg>
-                  {{item.title}}
-                </a>
-                
-                <!-- Mobile Submenu Toggle -->
-                <div *ngIf="item.children" class="flex items-center px-2 py-1">
-                  <button (click)="item.isExpanded = !item.isExpanded" 
-                    class="w-full flex items-center justify-between text-sm text-gray-500 hover:text-gray-700">
-                    <span>Show submenu</span>
-                    <svg class="h-4 w-4 transition-transform duration-200" 
-                      [class.rotate-180]="item.isExpanded"
+                <!-- Added hasAccess check for mobile menu items -->
+                <ng-container *ngIf="hasAccess(item)">
+                  <a [routerLink]="item.path" class="group flex items-center px-2 py-2 text-base font-medium rounded-md transition-colors duration-200"
+                    [class.text-gray-600]="item.path !== currentPath" 
+                    [class.hover:bg-gray-50]="item.path !== currentPath"
+                    [class.hover:text-gray-900]="item.path !== currentPath" 
+                    [class.bg-blue-100]="item.path === currentPath"
+                    [class.text-blue-700]="item.path === currentPath">
+                    <svg class="mr-4 h-6 w-6" 
+                      [class.text-gray-400]="item.path !== currentPath"
+                      [class.group-hover:text-gray-500]="item.path !== currentPath"
+                      [class.text-blue-700]="item.path === currentPath" 
                       xmlns="http://www.w3.org/2000/svg" 
-                      fill="none" 
+                      fill="none"
                       viewBox="0 0 24 24" 
                       stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
                     </svg>
-                  </button>
-                </div>
-                
-                <!-- Mobile Submenu -->
-                <div *ngIf="item.children && item.isExpanded" class="ml-8 space-y-1 mt-1 mb-2">
-                  <a *ngFor="let child of item.children" 
-                    [routerLink]="child.path"
-                    [class.bg-blue-50]="child.path === currentPath"
-                    [class.text-blue-700]="child.path === currentPath"
-                    class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200">
-                    <svg class="mr-3 h-5 w-5" 
-                      [class.text-gray-400]="child.path !== currentPath"
-                      [class.text-blue-700]="child.path === currentPath"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon" />
-                    </svg>
-                    {{child.title}}
+                    {{item.title}}
                   </a>
-                </div>
+                  
+                  <!-- Mobile Submenu Toggle -->
+                  <div *ngIf="item.children" class="flex items-center px-2 py-1">
+                    <button (click)="item.isExpanded = !item.isExpanded" 
+                      class="w-full flex items-center justify-between text-sm text-gray-500 hover:text-gray-700">
+                      <span>Show submenu</span>
+                      <svg class="h-4 w-4 transition-transform duration-200" 
+                        [class.rotate-180]="item.isExpanded"
+                        xmlns="http://www.w3.org/2000/svg" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <!-- Mobile Submenu - Added hasAccess check for submenu items -->
+                  <div *ngIf="item.children && item.isExpanded" class="ml-8 space-y-1 mt-1 mb-2">
+                    <ng-container *ngFor="let child of item.children">
+                      <a *ngIf="hasAccess(child)" 
+                        [routerLink]="child.path"
+                        [class.bg-blue-50]="child.path === currentPath"
+                        [class.text-blue-700]="child.path === currentPath"
+                        class="group flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md transition-colors duration-200">
+                        <svg class="mr-3 h-5 w-5" 
+                          [class.text-gray-400]="child.path !== currentPath"
+                          [class.text-blue-700]="child.path === currentPath"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="child.icon" />
+                        </svg>
+                        {{child.title}}
+                      </a>
+                    </ng-container>
+                  </div>
+                </ng-container>
               </ng-container>
             </nav>
           </div>

@@ -6,15 +6,27 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { CardModule } from 'primeng/card';
-import { Button } from 'primeng/button';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { PasswordModule } from 'primeng/password';
 
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, CardModule, Button],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule, 
+    RouterLink, 
+    CardModule, 
+    ButtonModule,
+    InputTextModule,
+    PasswordModule
+  ],
   templateUrl: './forgot-password.component.html',
 })
 export class ForgotPasswordComponent {
@@ -26,7 +38,19 @@ export class ForgotPasswordComponent {
   constructor(private fb: FormBuilder, private authService: AuthService) {
     this.forgotPasswordForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required]]
+    }, {
+      validators: this.passwordMatchValidator
     });
+  }
+
+  // Password match validator
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const newPassword = control.get('newPassword')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
+
+    return newPassword === confirmPassword ? null : { passwordMismatch: true };
   }
 
   onSubmit(): void {
@@ -35,19 +59,20 @@ export class ForgotPasswordComponent {
       this.errorMessage = '';
       this.successMessage = '';
 
-      this.authService
-        .forgotPassword(this.forgotPasswordForm.value.email)
-        .subscribe({
-          next: () => {
-            this.successMessage =
-              'Reset password link has been sent to your email';
-            this.isLoading = false;
-          },
-          error: (error) => {
-            this.errorMessage = error.message || 'An error occurred';
-            this.isLoading = false;
-          },
-        });
+      const { email, newPassword } = this.forgotPasswordForm.value;
+
+      console.log(email,newPassword)
+
+      this.authService.forgotPassword(email, newPassword).subscribe({
+        next: () => {
+          this.successMessage = 'Your password has been reset successfully!';
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.errorMessage = error.message || 'An error occurred';
+          this.isLoading = false;
+        },
+      });
     }
   }
 }

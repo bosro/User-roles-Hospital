@@ -63,6 +63,24 @@ export class UserService {
     return this.http.put<ApiResponse<any>>(`${this.apiUrl}/users/${id}`, user);
   }
 
+    // Specific block user endpoint
+    blockUser(userId: string): Observable<any> {
+      return this.http.put(`${this.apiUrl}/block/${userId}`, {});
+    }
+
+    updateUserRole(userId: string, role: string): Observable<any> {
+      return this.http.patch(`${this.apiUrl}/users/${userId}/role`, { role });
+    }
+
+    resetUserPassword(userId: string, newPassword: string): Observable<any> {
+      return this.http.post(`${this.apiUrl}/users/${userId}/reset-password`, { newPassword });
+    }
+  
+    // Specific unblock user endpoint
+    unblockUser(userId: string): Observable<any> {
+      return this.http.put(`${this.apiUrl}/unblock/${userId}`, {});
+    }
+
   deleteUser(id: string): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/users/${id}`);
   }

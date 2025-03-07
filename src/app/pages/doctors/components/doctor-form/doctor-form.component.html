@@ -29,6 +29,9 @@
             <p-dropdown [options]="prefixes" formControlName="prefix" [style]="{'width':'100%'}"
               placeholder="Select Prefix">
             </p-dropdown>
+            <small *ngIf="doctorForm.get('prefix')?.invalid && doctorForm.get('prefix')?.touched" class="text-red-500">
+              Prefix is required
+            </small>
           </div>
 
           <div class="field">
@@ -36,6 +39,9 @@
               License Number <span class="text-red-500">*</span>
             </label>
             <input pInputText formControlName="licenseNumber" class="w-full" />
+            <small *ngIf="doctorForm.get('licenseNumber')?.invalid && doctorForm.get('licenseNumber')?.touched" class="text-red-500">
+              License number is required
+            </small>
           </div>
 
           <div class="field">
@@ -43,6 +49,9 @@
               First Name <span class="text-red-500">*</span>
             </label>
             <input pInputText formControlName="firstName" class="w-full" />
+            <small *ngIf="doctorForm.get('firstName')?.invalid && doctorForm.get('firstName')?.touched" class="text-red-500">
+              First name is required
+            </small>
           </div>
 
           <div class="field">
@@ -50,6 +59,9 @@
               Last Name <span class="text-red-500">*</span>
             </label>
             <input pInputText formControlName="lastName" class="w-full" />
+            <small *ngIf="doctorForm.get('lastName')?.invalid && doctorForm.get('lastName')?.touched" class="text-red-500">
+              Last name is required
+            </small>
           </div>
         </div>
       </div>
@@ -65,6 +77,9 @@
             <p-dropdown [options]="specializations" formControlName="specialization" [style]="{'width':'100%'}"
               placeholder="Select Specialization">
             </p-dropdown>
+            <small *ngIf="doctorForm.get('specialization')?.invalid && doctorForm.get('specialization')?.touched" class="text-red-500">
+              Specialization is required
+            </small>
           </div>
 
           <div class="field">
@@ -74,6 +89,9 @@
             <p-dropdown [options]="departments" formControlName="department" [style]="{'width':'100%'}"
               placeholder="Select Department">
             </p-dropdown>
+            <small *ngIf="doctorForm.get('department')?.invalid && doctorForm.get('department')?.touched" class="text-red-500">
+              Department is required
+            </small>
           </div>
 
           <div class="field">
@@ -82,6 +100,9 @@
             </label>
             <p-inputNumber formControlName="experience" [showButtons]="true" [min]="0" styleClass="w-full">
             </p-inputNumber>
+            <small *ngIf="doctorForm.get('experience')?.invalid && doctorForm.get('experience')?.touched" class="text-red-500">
+              Experience is required and must be a positive number
+            </small>
           </div>
 
           <div class="field">
@@ -89,6 +110,9 @@
               Qualification <span class="text-red-500">*</span>
             </label>
             <input pInputText formControlName="qualification" class="w-full" />
+            <small *ngIf="doctorForm.get('qualification')?.invalid && doctorForm.get('qualification')?.touched" class="text-red-500">
+              Qualification is required
+            </small>
           </div>
 
           <div class="field">
@@ -111,9 +135,13 @@
             <p-inputNumber formControlName="consultationFee" mode="currency" currency="USD" [minFractionDigits]="2"
               styleClass="w-full">
             </p-inputNumber>
+            <small *ngIf="doctorForm.get('consultationFee')?.invalid && doctorForm.get('consultationFee')?.touched" class="text-red-500">
+              Consultation fee is required and must be a positive number
+            </small>
           </div>
         </div>
       </div>
+      
       <!-- Contact Information -->
       <div class="space-y-4">
         <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
@@ -123,17 +151,23 @@
               Email <span class="text-red-500">*</span>
             </label>
             <input pInputText type="email" formControlName="email" class="w-full" />
+            <small *ngIf="doctorForm.get('email')?.invalid && doctorForm.get('email')?.touched" class="text-red-500">
+              Valid email is required
+            </small>
+          </div>
+
+          <div class="field">
+            <label class="block text-sm font-medium text-gray-700">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input pInputText formControlName="phone" class="w-full" />
+            <small *ngIf="doctorForm.get('phone')?.invalid && doctorForm.get('phone')?.touched" class="text-red-500">
+              Phone number is required
+            </small>
           </div>
         </div>
 
         <div class="field">
-          <label class="block text-sm font-medium text-gray-700">
-            Phone <span class="text-red-500">*</span>
-          </label>
-          <input pInputText formControlName="phone" class="w-full" />
-        </div>
-
-        <div class="field md:col-span-2">
           <label class="block text-sm font-medium text-gray-700">Address</label>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4" formGroupName="address">
             <input pInputText formControlName="street" placeholder="Street" class="w-full" />
@@ -141,6 +175,20 @@
             <input pInputText formControlName="state" placeholder="State" class="w-full" />
             <input pInputText formControlName="zipCode" placeholder="Zip Code" class="w-full" />
           </div>
+        </div>
+      </div>
+
+      <!-- Status Selection -->
+      <div class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Status</h3>
+        <div class="field">
+          <label class="block text-sm font-medium text-gray-700">Doctor Status</label>
+          <p-dropdown [options]="[
+            {label: 'Active', value: 'active'},
+            {label: 'Inactive', value: 'inactive'},
+            {label: 'On Leave', value: 'on-leave'}
+          ]" formControlName="status" [style]="{'width':'100%'}" styleClass="w-full md:w-1/3">
+          </p-dropdown>
         </div>
       </div>
 
@@ -155,6 +203,9 @@
             <p-multiSelect [options]="workingDays" formControlName="workingDays" [style]="{'width':'100%'}"
               defaultLabel="Select Working Days">
             </p-multiSelect>
+            <small *ngIf="doctorForm.get('workingDays')?.invalid && doctorForm.get('workingDays')?.touched" class="text-red-500">
+              Working days are required
+            </small>
           </div>
 
           <div class="field">
@@ -164,6 +215,9 @@
             <p-calendar formControlName="startTime" [timeOnly]="true" [showTime]="true" [showSeconds]="false"
               inputId="timeonly" [style]="{'width':'100%'}" styleClass="w-full">
             </p-calendar>
+            <small *ngIf="doctorForm.get('startTime')?.invalid && doctorForm.get('startTime')?.touched" class="text-red-500">
+              Start time is required
+            </small>
           </div>
 
           <div class="field">
@@ -173,6 +227,9 @@
             <p-calendar formControlName="endTime" [timeOnly]="true" [showTime]="true" [showSeconds]="false"
               inputId="timeonly" [style]="{'width':'100%'}" styleClass="w-full">
             </p-calendar>
+            <small *ngIf="doctorForm.get('endTime')?.invalid && doctorForm.get('endTime')?.touched" class="text-red-500">
+              End time is required
+            </small>
           </div>
         </div>
       </div>
@@ -186,7 +243,7 @@
             <textarea pInputTextarea formControlName="about" rows="4"
               class="w-full min-h-[120px] border border-gray-300 rounded-md p-2"
               placeholder="Enter doctor's background and experience">
-              </textarea>
+            </textarea>
           </div>
 
           <div class="field">
@@ -208,8 +265,7 @@
       <div class="flex justify-end space-x-2 pt-4 border-t">
         <p-button label="Cancel" severity="secondary" icon="ri-close-line" (onClick)="cancel()">
         </p-button>
-        <p-button [label]="isEditMode ? 'Update' : 'Save'" icon="ri-save-line" type="submit" [loading]="loading"
-          [disabled]="doctorForm.invalid || loading">
+        <p-button [label]="isEditMode ? 'Update' : 'Save'" icon="ri-save-line" type="submit" [loading]="loading">
         </p-button>
       </div>
     </form>

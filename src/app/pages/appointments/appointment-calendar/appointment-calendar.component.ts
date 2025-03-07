@@ -10,10 +10,9 @@ import { CardModule } from 'primeng/card';
 import { DropdownModule } from 'primeng/dropdown';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DatePicker } from 'primeng/datepicker';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { AppointmentService } from '../services/appointment.service';
-import { Appointment, AppointmentStatus } from '../models/appointment.model';
+import { Appointment, AppointmentStatus, AppointmentType } from '../models/appointment.model';
 import { FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -41,37 +40,23 @@ import interactionPlugin from '@fullcalendar/interaction';
 })
 export class AppointmentCalendarComponent implements OnInit {
   calendarOptions: CalendarOptions;
-  appointments: Appointment[] = [];
-  upcomingAppointments: Appointment[] = [];
+  appointments: any[] = [];
+  upcomingAppointments: any[] = [];
   selectedAppointment: Appointment | null = null;
   displayEventDialog = false;
   selectedDepartment: string = '';
+  currentPage = 1;
+  pageSize = 100; // Increased to get more appointments for calendar
+  loading = false;
 
-  private statusMap: { [key in AppointmentStatus]: string } = {
-    Scheduled: 'scheduled',
-    Confirmed: 'confirmed',
-    'In Progress': 'in-progress',
-    Completed: 'completed',
-    Cancelled: 'cancelled',
-    'No Show': 'no-show',
-    scheduled: '',
-    confirmed: '',
-    'in-progress': '',
-    completed: '',
-    cancelled: '',
-    'no-show': ''
-  };
-
-  getStatusClass(status: AppointmentStatus): string {
-    return this.statusMap[status];
-  }
-  
   departments = [
     { label: 'All Departments', value: '' },
-    { label: 'Cardiology', value: 'cardiology' },
-    { label: 'Neurology', value: 'neurology' },
-    { label: 'Orthopedics', value: 'orthopedics' },
-    { label: 'Pediatrics', value: 'pediatrics' }
+    { label: 'Cardiology', value: 'Cardiology' },
+    { label: 'Neurology', value: 'Neurology' },
+    { label: 'Orthopedics', value: 'Orthopedics' },
+    { label: 'Pediatrics', value: 'Pediatrics' },
+    { label: 'General', value: 'General' },
+    { label: 'Follow-up', value: 'Follow-up' }
   ];
 
   constructor(
@@ -94,45 +79,107 @@ export class AppointmentCalendarComponent implements OnInit {
       editable: true,
       selectable: true,
       selectMirror: true,
-      dayMaxEvents: true
+      dayMaxEvents: true,
+      height: 'auto',
+      allDaySlot: false,
+      slotMinTime: '08:00:00',
+      slotMaxTime: '20:00:00'
     };
   }
 
   ngOnInit() {
-    this.initializeCalendar();
     this.loadAppointments();
   }
 
-  private initializeCalendar() {
-    this.calendarOptions = {
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+  loadAppointments() {
+    this.loading = true;
+    this.appointmentService.getAppointments(this.currentPage, this.pageSize).subscribe({
+      next: (response: any) => {
+        if (response && response.success && response.data) {
+          // Map the API response data to your Appointment interface
+          this.appointments = response.data.map((item: any) => {
+            // Handle time slot and date formatting
+            let appointmentDate = new Date(item.date);
+            const today = new Date();
+            
+            // If date is invalid, use today's date
+            if (isNaN(appointmentDate.getTime())) {
+              appointmentDate = today;
+            }
+            
+            // Format as YYYY-MM-DD
+            const formattedDate = appointmentDate.toISOString().split('T')[0];
+            
+            // Process time slot
+            let startTime = '09:00:00';
+            let endTime = '10:00:00';
+            
+            if (item.timeSlot && item.timeSlot !== 'undefined - undefined') {
+              const parts = item.timeSlot.split('-').map((t :any)=> t.trim());
+              if (parts[0] && parts[0] !== 'undefined') {
+                startTime = parts[0].includes(':') ? parts[0] : `${parts[0]}:00`;
+                // Make sure time has seconds
+                if (startTime.split(':').length === 2) {
+                  startTime = `${startTime}:00`;
+                }
+              }
+              if (parts.length > 1 && parts[1] !== 'undefined') {
+                endTime = parts[1].includes(':') ? parts[1] : `${parts[1]}:00`;
+                // Make sure time has seconds
+                if (endTime.split(':').length === 2) {
+                  endTime = `${endTime}:00`;
+                }
+              }
+            }
+            
+            // Create the appointment object
+            return {
+              id: item._id,
+              _id: item._id,
+              patient: item.patient || null,
+              doctor: item.doctor || null,
+              patientId: item.patient?._id,
+              doctorId: item.doctor?._id,
+              patientName: item.patient ? `${item.patient.firstName} ${item.patient.lastName}` : 'No Patient',
+              doctorName: item.doctor ? `${item.doctor.firstName} ${item.doctor.lastName}` : 'No Doctor',
+              department: item.doctor?.specialty || item.type || 'General',
+              date: formattedDate,
+              fullDate: appointmentDate,
+              timeSlot: item.timeSlot && item.timeSlot !== 'undefined - undefined' ? 
+                item.timeSlot : `${startTime.split(':')[0]}:${startTime.split(':')[1]} - ${endTime.split(':')[0]}:${endTime.split(':')[1]}`,
+              startTime: startTime,
+              endTime: endTime,
+              type: item.type as AppointmentType || 'Consultation',
+              status: item.status as AppointmentStatus || 'Scheduled',
+              notes: item.notes || '',
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt
+            };
+          });
+          
+          console.log('Processed appointments:', this.appointments);
+          
+          // Update the calendar and sidebar
+          this.updateCalendarEvents();
+          this.updateUpcomingAppointments();
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Invalid response format from server'
+          });
+          this.appointments = [];
+        }
+        this.loading = false;
       },
-      eventClick: this.handleEventClick.bind(this),
-      events: [],
-      editable: true,
-      selectable: true,
-      selectMirror: true,
-      dayMaxEvents: true
-    };
-  }
-
-  private loadAppointments() {
-    this.appointmentService.getAppointments().subscribe({
-      next: (appointments) => {
-        this.appointments = appointments;
-        this.updateCalendarEvents();
-        this.updateUpcomingAppointments();
-      },
-      error: () => {
+      error: (error) => {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to load appointments'
+          detail: 'Failed to load appointments: ' + (error.message || 'Unknown error')
         });
+        this.loading = false;
+        this.appointments = [];
       }
     });
   }
@@ -140,27 +187,55 @@ export class AppointmentCalendarComponent implements OnInit {
   private updateCalendarEvents() {
     const events = this.appointments
       .filter(app => !this.selectedDepartment || app.department === this.selectedDepartment)
-      .map(app => ({
-        id: app.id,
-        title: `${app.patientName} - ${app.doctorName}`,
-        start: new Date(`${app.date}T${app.startTime}`),
-        end: new Date(`${app.date}T${app.endTime}`),
-        backgroundColor: this.getStatusColor(app.status)
-      }));
+      .map(app => {
+        // Create proper start and end datetime strings
+        const startDateTime = `${app.date}T${app.startTime}`;
+        const endDateTime = `${app.date}T${app.endTime}`;
+        
+        return {
+          id: app.id,
+          title: `${app.patientName} - ${app.type}`,
+          start: startDateTime,
+          end: endDateTime,
+          backgroundColor: this.getStatusColor(app.status),
+          borderColor: this.getStatusColor(app.status),
+          textColor: '#FFFFFF',
+          extendedProps: {
+            doctor: app.doctorName,
+            department: app.department,
+            status: app.status
+          }
+        };
+      });
     
-    this.calendarOptions.events = events;
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      events: events
+    };
+    
+    console.log('Calendar events updated:', events);
   }
 
   private updateUpcomingAppointments() {
     const now = new Date();
     this.upcomingAppointments = this.appointments
-      .filter(app => new Date(app.date) > now)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .filter(app => {
+        const appDate = new Date(`${app.date}T${app.startTime}`);
+        return appDate > now;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(`${a.date}T${a.startTime}`);
+        const dateB = new Date(`${b.date}T${b.startTime}`);
+        return dateA.getTime() - dateB.getTime();
+      })
       .slice(0, 5);
+    
+    console.log('Upcoming appointments:', this.upcomingAppointments);
   }
 
   handleEventClick(info: any) {
-    const appointment = this.appointments.find(app => app.id === info.event.id);
+    const appointmentId = info.event.id;
+    const appointment = this.appointments.find(app => app.id === appointmentId);
     if (appointment) {
       this.selectedAppointment = appointment;
       this.displayEventDialog = true;
@@ -190,6 +265,7 @@ export class AppointmentCalendarComponent implements OnInit {
               detail: 'Appointment deleted successfully'
             });
             this.loadAppointments();
+            this.displayEventDialog = false;
           },
           error: () => {
             this.messageService.add({
@@ -207,28 +283,33 @@ export class AppointmentCalendarComponent implements OnInit {
     this.updateCalendarEvents();
   }
 
-  private classes = {
-    'scheduled': 'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium',
-    'confirmed': 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium',
-    'in-progress': 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium',
-    'completed': 'bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium',
-    'cancelled': 'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium',
-    'no-show': 'bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium'
-  };
-
-  // getStatusClass(status: keyof typeof this.classes): string {
-  //   return this.classes[status];
-  // }
+  getStatusClass(status: AppointmentStatus): string {
+    if (!status) return '';
+    
+    const statusMap: {[key: string]: string} = {
+      'Scheduled': 'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium',
+      'Confirmed': 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium',
+      'In Progress': 'bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium',
+      'Completed': 'bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium',
+      'Cancelled': 'bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium',
+      'No Show': 'bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium'
+    };
+    
+    return statusMap[status] || 'bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium';
+  }
 
   getStatusColor(status: AppointmentStatus): string {
-    const colors = {
-      'scheduled': '#3B82F6',
-      'confirmed': '#10B981',
-      'in-progress': '#F59E0B',
-      'completed': '#8B5CF6',
-      'cancelled': '#EF4444',
-      'no-show': '#6B7280'
+    if (!status) return '#3B82F6'; // Default blue
+    
+    const statusColorMap: {[key: string]: string} = {
+      'Scheduled': '#3B82F6', // Blue
+      'Confirmed': '#10B981', // Green
+      'In Progress': '#F59E0B', // Amber
+      'Completed': '#8B5CF6', // Purple
+      'Cancelled': '#EF4444', // Red
+      'No Show': '#6B7280'   // Gray
     };
-    return colors['scheduled'];
+    
+    return statusColorMap[status] || '#3B82F6';
   }
 }

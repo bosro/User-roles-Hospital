@@ -69,7 +69,7 @@ export class AppointmentFormComponent implements OnInit {
     { label: 'Cancelled', value: 'Cancelled' },
     { label: 'No Show', value: 'No Show' },
   ];
-  filters: any;
+  filters: any = {}; // Initialize filters object
 
   constructor(
     private fb: FormBuilder,
@@ -103,6 +103,10 @@ export class AppointmentFormComponent implements OnInit {
   private getFilterParams(): any {
     const params: any = {};
 
+    if (!this.filters) {
+      return params;
+    }
+
     if (this.filters.search) {
       params.search = this.filters.search;
     }
@@ -134,7 +138,7 @@ export class AppointmentFormComponent implements OnInit {
 
   private loadInitialData() {
     this.loading = true;
-    const params= filter
+    const params = this.getFilterParams(); // Fixed: Use getFilterParams instead of filter
     
     // Load patients
     this.patientService.getPatients(params).subscribe({
@@ -161,9 +165,9 @@ export class AppointmentFormComponent implements OnInit {
       next: (doctors) => {
         this.doctors = doctors.map(doctor => ({
           label: `${doctor.firstName} ${doctor.lastName}`,
-          value: doctor.id,
+          value: doctor._id,
           name: `${doctor.firstName} ${doctor.lastName}`,
-          id: doctor.id,
+          id: doctor._id,
           department: doctor.department
         }));
       },
@@ -337,19 +341,29 @@ export class AppointmentFormComponent implements OnInit {
 
     this.loading = true;
     const formValue = this.appointmentForm.value;
-    const timeSlot = formValue.timeSlot;
+    
+    // Fixed: Properly extract patientId, doctorId, and timeSlot values
+    const patientId = typeof formValue.patientId === 'object' ? 
+      formValue.patientId.id || formValue.patientId.value : 
+      formValue.patientId;
+    
+    const doctorId = typeof formValue.doctorId === 'object' ? 
+      formValue.doctorId.id || formValue.doctorId.value : 
+      formValue.doctorId;
+    
+    const timeSlot = typeof formValue.timeSlot === 'object' ?
+      `${formValue.timeSlot.startTime} - ${formValue.timeSlot.endTime}` :
+      formValue.timeSlot;
     
     const appointment: Partial<Appointment> = {
-      patientId: formValue.patientId.value,
-      doctorId: formValue.doctorId.doctor.id,
+      patientId: patientId,
+      doctorId: doctorId,
       date: formValue.date,
-      timeSlot: timeSlot.startTime,
+      timeSlot: timeSlot,
       type: formValue.type,
       status: formValue.status,
       notes: formValue.notes || '',
     };
-
-    console.log(appointment)
 
     const operation = this.isEditMode
       ? this.appointmentService.updateAppointment({
@@ -359,7 +373,9 @@ export class AppointmentFormComponent implements OnInit {
       : this.appointmentService.createAppointment(appointment);
 
     operation
-      .pipe(finalize(() => this.loading = false))
+      .pipe(finalize(() => {
+        this.loading = false; // Ensure loading is set to false when done
+      }))
       .subscribe({
         next: () => {
           this.messageService.add({

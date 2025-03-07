@@ -18,6 +18,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 
 import { Department } from '../../department.model';
 import { DepartmentService } from '../../services/department.service';
+import { DoctorService } from '../../../doctors/services/doctor.service';
 
 @Component({
   selector: 'app-department-form',
@@ -48,6 +49,7 @@ export class DepartmentFormComponent implements OnInit {
   loading = false;
   submitting = false;
   formErrors: any = {};
+  doctors: any
 
   workingDays = [
     { label: 'Monday', value: 'Monday' },
@@ -64,7 +66,8 @@ export class DepartmentFormComponent implements OnInit {
     private departmentService: DepartmentService,
     private messageService: MessageService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private doctorService: DoctorService
   ) {
     this.initForm();
   }
@@ -74,28 +77,12 @@ export class DepartmentFormComponent implements OnInit {
     if (this.departmentId) {
       this.isEditMode = true;
       this.loadDepartment();
+      this.getdoctors()
     }
   }
 
 
-  this.doctorService.getDoctors().subscribe({
-    next: (doctors) => {
-      this.doctors = doctors.map(doctor => ({
-        label: `${doctor.firstName} ${doctor.lastName}`,
-        value: doctor.id,
-        name: `${doctor.firstName} ${doctor.lastName}`,
-        id: doctor.id,
-        department: doctor.department
-      }));
-    },
-    error: (error) => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: 'Failed to load doctors: ' + (error.message || 'Unknown error')
-      });
-    }
-  });
+
 
 
 
@@ -150,6 +137,31 @@ export class DepartmentFormComponent implements OnInit {
     }
     return null;
   }
+
+
+  getdoctors=()=>{
+    this.doctorService.getDoctors().subscribe({
+      next: (doctors) => {
+        this.doctors = doctors.map(doctor => ({
+          label: `${doctor.firstName} ${doctor.lastName}`,
+          value: doctor._id,
+          name: `${doctor.firstName} ${doctor.lastName}`,
+          id: doctor._id,
+          department: doctor.department
+        }));
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to load doctors: ' + (error.message || 'Unknown error')
+        });
+      }
+    });
+
+  }
+
+
 
   private loadDepartment() {
     this.loading = true;

@@ -1,70 +1,94 @@
-export interface Invoice {
-    id?: string;
-    invoiceNumber: string;
-    patientId: string;
-    patientName: string;
-    doctorId: string;
-    doctorName: string;
-    department: string;
-    dateIssued: Date;
-    dueDate: Date;
-    status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
-    items: InvoiceItem[];
-    subtotal: number;
-    tax: number;
-    discount: number;
-    total: number;
-    paidAmount: number;
-    balance: number;
-    paymentTerms?: string;
-    notes?: string;
-    insuranceClaim?: {
-      provider: string;
-      policyNumber: string;
-      status: 'pending' | 'approved' | 'rejected';
-      coverageAmount: number;
-    };
-  }
-  
-  export interface InvoiceItem {
-    id?: string;
-    description: string;
-    quantity: number;
-    unitPrice: number;
-    amount: number;
-    type: 'consultation' | 'procedure' | 'medicine' | 'lab' | 'other';
-    code?: string;
-  }
-  
-  export interface Payment {
-    id?: string;
-    invoiceId: string;
-    invoiceNumber: string;
-    patientId: string;
-    patientName: string;
-    amount: number;
-    paymentDate: Date;
-    paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'insurance';
-    transactionId?: string;
-    status: 'completed' | 'pending' | 'failed';
-    notes?: string;
-  }
-  
-  export interface InsuranceClaim {
-    id?: string;
-    invoiceId: string;
-    patientId: string;
-    patientName: string;
+// billing.model.ts
+
+export interface Patient {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  contactInfo?: {
+    phone: string;
+    email: string;
+    address: string;
+  };
+  insurance?: {
     provider: string;
     policyNumber: string;
-    claimNumber: string;
-    dateSubmitted: Date;
-    status: 'pending' | 'approved' | 'rejected';
-    amount: number;
-    approvedAmount?: number;
-    rejectionReason?: string;
-    documents?: string[];
-    notes?: string;
-  }
-  
-  
+    validTill: Date;
+  };
+  status?: string;
+  gender?: string;
+  dateOfBirth?: Date;
+  bloodGroup?: string;
+}
+
+export interface Doctor {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  department: string;
+  email?: string;
+  available?: boolean;
+  status?: string;
+}
+
+export interface InvoiceItem {
+  _id?: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+  type?: 'consultation' | 'procedure' | 'medicine' | 'lab' | 'other';
+  code?: string;
+}
+
+export interface InsuranceClaim {
+  id?: string;
+  invoiceId: string;
+  provider: string;
+  policyNumber: string;
+  claimNumber?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  coverageAmount: number;
+  submissionDate: Date;
+  responseDate?: Date;
+  notes?: string;
+}
+
+export interface Invoice {
+  id?: string;
+  _id?: string;
+  invoiceNumber: string;
+  patient?: Patient;
+  doctor?: Doctor;
+  patientId?: string;  
+  doctorId?: string;
+  dateIssued: Date;
+  dueDate: Date;
+  issueDate?: Date;  // Alternative field name
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  discount: number;
+  total?: number;
+  totalAmount?: number;  // Alternative field name
+  balance: number;
+  status: 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled' | 'Draft' | 'Pending' | 'Paid' | 'Overdue' | 'Cancelled';
+  notes?: string;
+  insuranceClaim?: InsuranceClaim;
+  category?: string;
+}
+
+export interface Payment {
+  id?: string;
+  _id?: string;
+  invoiceId: string;
+  invoiceNumber?: string;
+  patientId?: string;
+  patientName?: string;
+  amount: number;
+  paymentDate: Date;
+  paymentMethod: 'cash' | 'credit_card' | 'debit_card' | 'card' | 'insurance' | 'bank_transfer';
+  reference?: string;
+  transactionId?: string;
+  status?: 'completed' | 'pending' | 'failed';
+  notes?: string;
+}

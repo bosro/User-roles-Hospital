@@ -49,7 +49,7 @@
       <p-button 
         label="Add Doctor" 
         icon="ri-user-add-line"
-        routerLink="/doctors/add">
+        routerLink="../add">
       </p-button>
     </div>
 
@@ -58,7 +58,7 @@
       [value]="doctors" 
       [rows]="10" 
       [paginator]="true"
-      [globalFilterFields]="['firstName', 'lastName', 'specialization', 'department']"
+      [globalFilterFields]="['firstName', 'lastName', 'specialization', 'department', 'email']"
       [tableStyle]="{'min-width': '75rem'}"
       [loading]="loading"
       dataKey="_id"
@@ -113,14 +113,14 @@
           <td>
             <div class="flex items-center">
               <p-avatar 
-              [image]="doctor.profilePhoto" 
-              shape="circle"
-              [style]="{'width': '40px', 'height': '40px'}"
-              [attr.alt]="doctor.firstName + ' ' + doctor.lastName">
-            </p-avatar>
+                [image]="doctor.profilePhoto || 'assets/images/default-avatar.png'" 
+                shape="circle"
+                [style]="{'width': '40px', 'height': '40px'}"
+                [attr.alt]="doctor.firstName + ' ' + doctor.lastName">
+              </p-avatar>
               <div class="ml-3">
                 <div class="font-medium">
-                  {{doctor.prefix}} {{doctor.firstName}} {{doctor.lastName}}
+                  {{doctor.prefix || ''}} {{doctor.firstName}} {{doctor.lastName}}
                 </div>
                 <div class="text-sm text-gray-500">
                   {{doctor.email}}
@@ -128,8 +128,8 @@
               </div>
             </div>
           </td>
-          <td>{{doctor.specialization}}</td>
-          <td>{{doctor.department}}</td>
+          <td>{{doctor.specialization || 'Not specified'}}</td>
+          <td>{{doctor.department || 'Not specified'}}</td>
           <td>
             <p-tag 
               [value]="doctor.status"
@@ -138,9 +138,9 @@
           </td>
           <td>
             <div class="text-sm">
-              <div>{{doctor.startTime}} - {{doctor.endTime}}</div>
+              <div>{{doctor.startTime || 'N/A'}} - {{doctor.endTime || 'N/A'}}</div>
               <div class="text-gray-500">
-                {{formatWorkingDays(doctor.workingDays)}}
+                {{formatWorkingDays(doctor.workingDays || [])}}
               </div>
             </div>
           </td>
@@ -172,7 +172,7 @@
                 severity="danger"
                 tooltipPosition="top"
                 pTooltip="Delete Doctor"
-                (onClick)="confirmDelete(doctor)">
+                (onClick)="deleteDoctor(doctor); displayViewDialog = false " >
               </p-button>
             </div>
           </td>

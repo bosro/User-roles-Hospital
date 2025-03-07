@@ -19,12 +19,12 @@ export class DoctorService {
   }
 
   getDoctorById(id: string): Observable<Doctor> {
-    return this.http.get<{ success: boolean; message: string; data: Doctor }>(`${this.apiUrl}/${id}`)
+    return this.http.get<{ success: boolean; message: string; data: Doctor }>(`${this.apiUrl}/get/${id}`)
       .pipe(map(response => response.data));
   }
 
-  createDoctor(doctor: Omit<Doctor, 'id'>): Observable<Doctor> {
-    return this.http.post<{ success: boolean; message: string; data: Doctor }>(this.apiUrl, doctor)
+  createDoctor(doctor: Partial<Doctor>): Observable<Doctor> {
+    return this.http.post<{ success: boolean; message: string; data: Doctor }>(`${this.apiUrl}/admin/register`, doctor)
       .pipe(map(response => response.data));
   }
 
@@ -34,7 +34,7 @@ export class DoctorService {
   }
 
   deleteDoctor(id: string): Observable<void> {
-    return this.http.delete<{ success: boolean; message: string }>(`${this.apiUrl}/${id}`)
+    return this.http.delete<{ success: boolean; message: string }>(`${this.apiUrl}/delete/${id}`)
       .pipe(map(() => {}));
   }
 

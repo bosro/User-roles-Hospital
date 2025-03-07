@@ -7,13 +7,16 @@ import { CalendarModule } from "primeng/calendar";
 import { CardModule } from "primeng/card";
 import { ConfirmDialogModule } from "primeng/confirmdialog";
 import { DropdownModule } from "primeng/dropdown";
+import { DialogModule } from "primeng/dialog";
 import { InputTextModule } from "primeng/inputtext";
 import { TableModule } from "primeng/table";
 import { ToastModule } from "primeng/toast";
 import { BillingService } from "../../services/billing.service";
-import { Invoice } from "../../billing.model";
-import { FormsModule } from "@angular/forms";
-import { Dialog } from "primeng/dialog";
+import { Invoice, Payment } from "../../billing.model";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { InputNumberModule } from "primeng/inputnumber";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+// import { InputTextareaModule } from "primeng/inputtextarea";
 
 type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled';
 type InsuranceStatus = 'pending' | 'approved' | 'rejected';
@@ -41,6 +44,11 @@ interface DepartmentOption {
   value: string;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
 @Component({
   selector: 'app-invoice-list',
   standalone: true,
@@ -56,7 +64,10 @@ interface DepartmentOption {
     InputTextModule,
     CalendarModule,
     FormsModule,
-    Dialog
+    ReactiveFormsModule,
+    DialogModule,
+    InputNumberModule,
+    // InputTextareaModule
   ],
   templateUrl: 'invoice-list.component.html'
 })
@@ -64,7 +75,19 @@ export class InvoiceListComponent implements OnInit {
   invoices: Invoice[] = [];
   loading = false;
   showPaymentDialog = false;
+  showViewDialog = false;
+  showEditDialog = false;
   selectedInvoice: Invoice | null = null;
+  paymentForm: FormGroup;
+  editForm: FormGroup;
+  
+  paymentMethods: PaymentMethod[] = [
+    { label: 'Cash', value: 'cash' },
+    { label: 'Credit Card', value: 'credit_card' },
+    { label: 'Debit Card', value: 'debit_card' },
+    { label: 'Insurance', value: 'insurance' },
+    { label: 'Bank Transfer', value: 'bank_transfer' }
+  ];
 
   filters: FilterOptions = {
     status: null,
@@ -105,8 +128,26 @@ export class InvoiceListComponent implements OnInit {
   constructor(
     private billingService: BillingService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService
-  ) {}
+    private confirmationService: ConfirmationService,
+    private fb: FormBuilder
+  ) {
+    this.paymentForm = this.fb.group({
+      amount: [0, [Validators.required, Validators.min(0.01)]],
+      paymentDate: [new Date(), Validators.required],
+      paymentMethod: ['cash', Validators.required],
+      reference: [''],
+      notes: ['']
+    });
+    
+    this.editForm = this.fb.group({
+      issueDate: [null, Validators.required],
+      dueDate: [null, Validators.required],
+      status: ['', Validators.required],
+      notes: [''],
+      discount: [0, [Validators.min(0)]],
+      tax: [0, [Validators.min(0)]]
+    });
+  }
 
   ngOnInit() {
     this.loadInvoices();
@@ -115,9 +156,18 @@ export class InvoiceListComponent implements OnInit {
   private loadInvoices() {
     this.loading = true;
     this.billingService.getInvoices(this.filters).subscribe({
-      next: (data) => {
-        this.invoices = data;
-        this.loading = false;
+      next: (response: ApiResponse<Invoice[]>) => {
+        if (response.success) {
+          this.invoices = this.processInvoices(response.data);
+          this.loading = false;
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Failed to load invoices'
+          });
+          this.loading = false;
+        }
       },
       error: () => {
         this.messageService.add({
@@ -130,13 +180,68 @@ export class InvoiceListComponent implements OnInit {
     });
   }
 
+  // Process the invoice data to match our component model
+  private processInvoices(data: any[]): Invoice[] {
+    return data.map(invoice => {
+      // Handle date formats
+      const dateIssued = invoice.issueDate || invoice.dateIssued;
+      const total = invoice.totalAmount || invoice.total;
+      
+      return {
+        id: invoice._id,
+        _id: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        patient: invoice.patient,
+        doctor: invoice.doctor,
+        dateIssued: new Date(dateIssued),
+        dueDate: new Date(invoice.dueDate),
+        total: total,
+        totalAmount: total,
+        balance: this.calculateBalance(invoice), // Calculate based on payments
+        status: invoice.status,
+        notes: invoice.notes,
+        items: invoice.items,
+        subtotal: invoice.subtotal,
+        tax: invoice.tax,
+        discount: invoice.discount,
+        insuranceClaim: invoice.insuranceClaim || null // Insurance claim if exists
+      };
+    });
+  }
+
+  // Get patient full name - handles both nested object and ID
+  getPatientFullName(invoice: Invoice): string {
+    if (invoice.patient) {
+      return `${invoice.patient.firstName} ${invoice.patient.lastName}`;
+    } else {
+      return 'Unknown Patient';
+    }
+  }
+
+  // Get doctor full name - handles both nested object and ID
+  getDoctorFullName(invoice: Invoice): string {
+    if (invoice.doctor) {
+      return `${invoice.doctor.firstName} ${invoice.doctor.lastName}`;
+    } else {
+      return 'Unknown Doctor';
+    }
+  }
+
+  // Calculate balance - replace with actual implementation
+  private calculateBalance(invoice: any): number {
+    // This would calculate the remaining balance based on payments
+    // For now, return the total amount
+    return invoice.totalAmount || invoice.total || 0;
+  }
+
   applyFilters() {
     this.loadInvoices();
   }
 
   getStatusClass(status: string): string {
+    const normalizedStatus = status.toLowerCase() as InvoiceStatus;
     return `px-2 py-1 rounded-full text-xs font-medium ${
-      this.statusClasses[status as InvoiceStatus] || ''
+      this.statusClasses[normalizedStatus] || ''
     }`;
   }
 
@@ -160,9 +265,10 @@ export class InvoiceListComponent implements OnInit {
   }
 
   deleteInvoice(invoice: Invoice) {
-    if (!invoice.id) return;
+    if (!invoice.id && !invoice._id) return;
     
-    this.billingService.deleteInvoice(invoice.id).subscribe({
+    const id = invoice.id || invoice._id;
+    this.billingService.deleteInvoice(id as string).subscribe({
       next: () => {
         this.messageService.add({
           severity: 'success',
@@ -181,13 +287,106 @@ export class InvoiceListComponent implements OnInit {
     });
   }
 
+  viewInvoice(invoice: Invoice) {
+    this.selectedInvoice = invoice;
+    this.showViewDialog = true;
+  }
+
+  editInvoice(invoice: Invoice) {
+    this.selectedInvoice = invoice;
+    this.editForm.patchValue({
+      issueDate: new Date(invoice.dateIssued),
+      dueDate: new Date(invoice.dueDate),
+      status: invoice.status.toLowerCase(),
+      notes: invoice.notes,
+      discount: invoice.discount,
+      tax: invoice.tax
+    });
+    this.showEditDialog = true;
+  }
+
+  saveInvoiceEdit() {
+    if (!this.selectedInvoice || (!this.selectedInvoice.id && !this.selectedInvoice._id) || !this.editForm.valid) return;
+    
+    const updatedInvoice = {
+      issueDate: this.editForm.value.issueDate,
+      dueDate: this.editForm.value.dueDate,
+      status: this.editForm.value.status,
+      notes: this.editForm.value.notes,
+      discount: this.editForm.value.discount,
+      tax: this.editForm.value.tax
+    };
+    
+    const id = this.selectedInvoice.id || this.selectedInvoice._id;
+    this.billingService.updateInvoice(id as string, updatedInvoice).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Invoice updated successfully'
+        });
+        this.showEditDialog = false;
+        this.loadInvoices();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update invoice'
+        });
+      }
+    });
+  }
+
   recordPayment(invoice: Invoice) {
     this.selectedInvoice = invoice;
+    this.paymentForm.patchValue({
+      amount: invoice.balance,
+      paymentDate: new Date()
+    });
     this.showPaymentDialog = true;
   }
 
+  submitPayment() {
+    if (!this.selectedInvoice || (!this.selectedInvoice.id && !this.selectedInvoice._id) || !this.paymentForm.valid) return;
+    
+    const payment: Omit<any, '_id'> = {
+      invoiceId: this.selectedInvoice.id || this.selectedInvoice._id,
+      invoiceNumber: this.selectedInvoice.invoiceNumber,
+      patientId: this.selectedInvoice.patient?._id || this.selectedInvoice.patientId,
+      patientName: this.selectedInvoice.patient ? 
+        `${this.selectedInvoice.patient.firstName} ${this.selectedInvoice.patient.lastName}` : 
+        'Unknown Patient',
+      amount: this.paymentForm.value.amount,
+      paymentDate: this.paymentForm.value.paymentDate,
+      paymentMethod: this.paymentForm.value.paymentMethod,
+      reference: this.paymentForm.value.reference,
+      status: 'completed',
+      notes: this.paymentForm.value.notes
+    };
+    
+    this.billingService.createPayment(payment).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Success',
+          detail: 'Payment recorded successfully'
+        });
+        this.showPaymentDialog = false;
+        this.loadInvoices();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to record payment'
+        });
+      }
+    });
+  }
+
   getTotalAmount(): number {
-    return this.invoices.reduce((sum, inv) => sum + inv.total, 0);
+    return this.invoices.reduce((sum, inv) => sum + (inv.total || inv.totalAmount || 0), 0);
   }
 
   getOutstandingAmount(): number {

@@ -62,8 +62,8 @@ export class DoctorProfileComponent implements OnInit {
   }
 
   private loadSchedule(date: Date) {
-    if (this.doctor?.id) {
-      this.doctorService.getDoctorSchedule(this.doctor.id, date).subscribe({
+    if (this.doctor?._id) {
+      this.doctorService.getDoctorSchedule(this.doctor._id, date).subscribe({
         next: (schedule) => {
           this.availableSlots = schedule.slots;
         }
@@ -76,13 +76,13 @@ export class DoctorProfileComponent implements OnInit {
   }
 
   editProfile() {
-    this.router.navigate(['../edit', this.doctor?.id], { relativeTo: this.route });
+    this.router.navigate(['../edit', this.doctor?._id], { relativeTo: this.route });
   }
 
   viewSchedule() {
     this.router.navigate(['../schedule'], { 
       relativeTo: this.route,
-      queryParams: { doctorId: this.doctor?.id }
+      queryParams: { doctorId: this.doctor?._id }
     });
   }
 

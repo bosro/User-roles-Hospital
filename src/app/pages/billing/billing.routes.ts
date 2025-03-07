@@ -36,12 +36,12 @@ export const BILLING_ROUTES: Routes = [
               .then(m => m.InvoiceFormComponent),
             data: { breadcrumb: 'Edit Invoice' }
           },
-          {
-            path: 'view/:id',
-            loadComponent: () => import('./components/invoice-details/invoice-details.component')
-              .then(m => m.InvoiceDetailsComponent),
-            data: { breadcrumb: 'Invoice Details' }
-          }
+          // {
+          //   path: 'view/:id',
+          //   loadComponent: () => import('./components/invoice-details/invoice-details.component')
+          //     .then(m => m.InvoiceDetailsComponent),
+          //   data: { breadcrumb: 'Invoice Details' }
+          // }
         ]
       },
       {

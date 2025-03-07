@@ -22,14 +22,14 @@
           styleClass="w-full md:w-auto"
           [style]="{'min-width':'200px'}"
         ></p-dropdown>
-        <!-- <p-dropdown 
+        <p-dropdown 
           [options]="departments" 
           [(ngModel)]="selectedDepartment" 
           (onChange)="filterAppointments()"
           placeholder="Filter by department"
           styleClass="w-full md:w-auto"
           [style]="{'min-width':'200px'}"
-        ></p-dropdown> -->
+        ></p-dropdown>
       </div>
       <p-button 
         label="New Appointment" 
@@ -60,7 +60,7 @@
         <tr>
           <th pSortableColumn="patientName">Patient <p-sortIcon field="patientName"></p-sortIcon></th>
           <th pSortableColumn="doctorName">Doctor <p-sortIcon field="doctorName"></p-sortIcon></th>
-          <!-- <th pSortableColumn="department">Department <p-sortIcon field="department"></p-sortIcon></th> -->
+          <th pSortableColumn="department">Department <p-sortIcon field="department"></p-sortIcon></th>
           <th pSortableColumn="date">Date & Time <p-sortIcon field="date"></p-sortIcon></th>
           <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
           <th style="width: 100px">Actions</th>
@@ -80,7 +80,7 @@
               <span class="text-sm text-gray-500">{{appointment.department || "N/A"}}</span>
             </div>
           </td>
-          <!-- <td>{{appointment.department}}</td> -->
+          <td>{{appointment.department || "N/A"}}</td>
           <td>
             <div class="flex flex-col">
               <span>{{appointment.date | date:'MMM d, y'}}</span>

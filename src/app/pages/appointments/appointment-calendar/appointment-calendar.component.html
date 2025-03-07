@@ -1,68 +1,133 @@
 <div class="p-4">
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-      <!-- Calendar Sidebar -->
-      <div class="lg:col-span-1">
-        <p-card>
-          <div class="space-y-4">
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Quick Actions</h3>
-              <div class="space-y-2">
-                <p-button 
-                  label="New Appointment" 
-                  icon="ri-add-line" 
-                  styleClass="w-full"
-                  (onClick)="navigateToNewAppointment()">
-                </p-button>
-                <p-button 
-                  label="View List" 
-                  icon="ri-list-check" 
-                  styleClass="w-full"
-                  severity="secondary"
-                  routerLink="../list">
-                </p-button>
-              </div>
-            </div>
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500 border-solid"></div>
+  </div>
 
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Filter By Department</h3>
-              <p-dropdown 
-                [options]="departments" 
-                [(ngModel)]="selectedDepartment"
-                (onChange)="filterAppointments()"
-                styleClass="w-full">
-              </p-dropdown>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <!-- Calendar Sidebar -->
+    <div class="lg:col-span-1">
+      <p-card styleClass="h-full">
+        <div class="space-y-6">
+          <!-- Quick Actions -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-slate-800 border-b pb-2">Quick Actions</h3>
+            <div class="space-y-2">
+              <p-button 
+                label="New Appointment" 
+                icon="ri-add-line" 
+                styleClass="w-full p-button-raised"
+                (onClick)="navigateToNewAppointment()">
+              </p-button>
+              <p-button 
+                label="View List" 
+                icon="ri-list-check" 
+                styleClass="w-full"
+                severity="secondary"
+                routerLink="../list">
+              </p-button>
             </div>
+          </div>
 
-            <div>
-              <h3 class="text-lg font-semibold mb-2">Upcoming Appointments</h3>
-              <div class="space-y-2">
-                <div *ngFor="let appointment of upcomingAppointments" 
-                     class="p-3 bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <p class="font-medium">{{appointment.patientName}}</p>
-                      <p class="text-sm text-gray-600">{{appointment.date | date:'shortTime'}}</p>
-                    </div>
-                    <span [class]="getStatusClass(appointment.status)">
-                      {{appointment.status}}
-                    </span>
+          <!-- Department Filter -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-slate-800 border-b pb-2">Filter By Department</h3>
+            <p-dropdown 
+              [options]="departments" 
+              [(ngModel)]="selectedDepartment"
+              (onChange)="filterAppointments()"
+              styleClass="w-full"
+              placeholder="Select Department">
+            </p-dropdown>
+          </div>
+
+          <!-- Upcoming Appointments -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-slate-800 border-b pb-2">Upcoming Appointments</h3>
+            <div *ngIf="upcomingAppointments.length === 0" class="text-center py-4 text-gray-500">
+              No upcoming appointments
+            </div>
+            <div class="space-y-3">
+              <div *ngFor="let appointment of upcomingAppointments" 
+                   class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1 min-w-0 mr-2">
+                    <p class="font-medium text-slate-800 truncate">{{appointment.patientName || "N/A"}}</p>
+                    <p class="text-sm text-slate-600">
+                      <i class="ri-user-heart-line mr-1"></i>{{appointment.doctorName || "N/A"}}
+                    </p>
+                    <p class="text-sm text-slate-500">
+                      <i class="ri-calendar-line mr-1"></i>
+                      {{appointment.date | date:'MMM d'}}
+                      <span class="mx-1">•</span>
+                      {{appointment.startTime.substring(0,5)}}
+                    </p>
                   </div>
+                  <span [class]="getStatusClass(appointment.status)">
+                    {{appointment.status || "N/A"}}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
-        </p-card>
-      </div>
 
-      <!-- Main Calendar -->
-      <div class="lg:col-span-3">
-<!-- Main Calendar -->
-<div class="lg:col-span-3">
-  <p-card>
-    <full-calendar [options]="calendarOptions"></full-calendar>
-  </p-card>
-</div>
-      </div>
+          <!-- Calendar Legend -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-slate-800 border-b pb-2">Status Legend</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #3B82F6;"></div>
+                <span class="text-sm">Scheduled</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #10B981;"></div>
+                <span class="text-sm">Confirmed</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #F59E0B;"></div>
+                <span class="text-sm">In Progress</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #8B5CF6;"></div>
+                <span class="text-sm">Completed</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #EF4444;"></div>
+                <span class="text-sm">Cancelled</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full" style="background-color: #6B7280;"></div>
+                <span class="text-sm">No Show</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <!-- Main Calendar -->
+    <div class="lg:col-span-3">
+      <p-card styleClass="h-full">
+        <ng-template pTemplate="header">
+          <div class="flex justify-between items-center px-3 py-1">
+            <h2 class="text-xl font-bold text-slate-800">Appointment Calendar</h2>
+            <div class="flex items-center">
+              <span *ngIf="appointments.length > 0" class="text-sm text-slate-600">
+                Showing {{appointments.length}} appointment(s)
+              </span>
+            </div>
+          </div>
+        </ng-template>
+        
+        <div *ngIf="appointments.length === 0 && !loading" class="text-center py-8">
+          <i class="ri-calendar-line text-5xl text-gray-300 mb-4"></i>
+          <p class="text-xl font-medium mb-2">No appointments found</p>
+          <p class="text-gray-500 mb-4">Start by creating a new appointment</p>
+          <p-button label="Create Appointment" icon="ri-add-line" (onClick)="navigateToNewAppointment()"></p-button>
+        </div>
+        
+        <full-calendar *ngIf="appointments.length > 0 || loading" [options]="calendarOptions"></full-calendar>
+      </p-card>
     </div>
   </div>
 
@@ -70,50 +135,73 @@
   <p-dialog 
     [(visible)]="displayEventDialog" 
     [modal]="true" 
-    [style]="{width: '450px'}"
+    [style]="{width: '500px'}"
+    [dismissableMask]="true"
+    [closeOnEscape]="true"
     header="Appointment Details">
-    <div *ngIf="selectedAppointment" class="space-y-4">
+    <div *ngIf="selectedAppointment" class="space-y-5">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xl font-semibold">{{selectedAppointment.type}} Appointment</h3>
+        <span [class]="getStatusClass(selectedAppointment.status)">
+          {{selectedAppointment.status}}
+        </span>
+      </div>
+      
       <div class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700">Patient</label>
-          <p class="mt-1">{{selectedAppointment.patientName}}</p>
+          <p class="mt-1 font-medium">{{selectedAppointment.patientName}}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700">Doctor</label>
-          <p class="mt-1">{{selectedAppointment.doctorName}}</p>
+          <p class="mt-1 font-medium">{{selectedAppointment.doctorName}}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Department</label>
+          <p class="mt-1">{{selectedAppointment.department}}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700">Date & Time</label>
-          <p class="mt-1">{{selectedAppointment.date | date:'medium'}}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Status</label>
           <p class="mt-1">
-            <span [class]="getStatusClass(selectedAppointment.status)">
-              {{selectedAppointment.status}}
-            </span>
+            {{selectedAppointment.date | date:'EEE, MMM d, y'}} • 
+            <!-- {{selectedAppointment.startTime.substring(0,5)}} - {{selectedAppointment.endTime.substring(0,5)}} -->
           </p>
         </div>
       </div>
+      
       <div>
         <label class="block text-sm font-medium text-gray-700">Notes</label>
-        <p class="mt-1">{{selectedAppointment.notes}}</p>
+        <p class="mt-1 p-3 bg-gray-50 rounded min-h-[60px]">
+          {{selectedAppointment.notes || 'No notes provided'}}
+        </p>
       </div>
     </div>
     <ng-template pTemplate="footer">
-      <p-button 
-        icon="ri-edit-line" 
-        label="Edit" 
-        (onClick)="editAppointment(selectedAppointment!)">
-      </p-button>
-      <p-button 
-        icon="ri-delete-bin-line" 
-        label="Delete" 
-        severity="danger"
-        (onClick)="confirmDelete(selectedAppointment!)">
-      </p-button>
+      <div class="flex justify-between w-full">
+        <p-button 
+          icon="ri-delete-bin-line" 
+          label="Delete" 
+          severity="danger"
+          styleClass="p-button-outlined"
+          (onClick)="confirmDelete(selectedAppointment!)">
+        </p-button>
+        
+        <div class="flex gap-2">
+          <p-button 
+            label="Close"
+            severity="secondary"
+            (onClick)="displayEventDialog = false">
+          </p-button>
+          <p-button 
+            icon="ri-edit-line" 
+            label="Edit" 
+            (onClick)="editAppointment(selectedAppointment!)">
+          </p-button>
+        </div>
+      </div>
     </ng-template>
   </p-dialog>
 
   <p-confirmDialog></p-confirmDialog>
   <p-toast></p-toast>
+</div>

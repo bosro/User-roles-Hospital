@@ -50,9 +50,24 @@
           </div>
 
           <div class="field">
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Head of Department <span class="text-red-500">*</span>
-            </label>
+            <p-dropdown
+            [options]="doctors"
+            formControlName="doctorId"
+            styleClass="w-full"
+            [filter]="true"
+            placeholder="Select Doctor"
+            [showClear]="true"
+            optionLabel="label"
+            [filterBy]="'label'"
+          
+          >
+            <ng-template pTemplate="item" let-doctor>
+              <div>
+                <div class="font-medium">{{ doctor.name }}</div>
+
+              </div>
+            </ng-template>
+          </p-dropdown>
             <input pInputText formControlName="headOfDepartment" class="w-full"
                    [ngClass]="{'ng-invalid ng-dirty': isFieldInvalid('headOfDepartment')}" />
             <small class="text-red-500" *ngIf="isFieldInvalid('headOfDepartment')">

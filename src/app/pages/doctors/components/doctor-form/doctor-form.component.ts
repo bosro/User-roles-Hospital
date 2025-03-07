@@ -1,4 +1,3 @@
-// src/app/pages/doctors/components/doctor-form/doctor-form.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
@@ -42,15 +41,17 @@ import { MessageService } from 'primeng/api';
     FileUploadModule,
     ToastModule,
   ],
-  templateUrl: 'doctor-form.component.html',
+  templateUrl: './doctor-form.component.html',
 })
 export class DoctorFormComponent implements OnInit {
   doctorForm!: FormGroup;
   isEditMode = false;
   loading = false;
+  doctorId: string = '';
 
   imagePreview: string | null = null;
-
+  imageBase64: string | null = null;
+  
   prefixes = [
     { label: 'Dr.', value: 'Dr.' },
     { label: 'Prof.', value: 'Prof.' },
@@ -65,6 +66,9 @@ export class DoctorFormComponent implements OnInit {
     { label: 'Pediatrics', value: 'Pediatrics' },
     { label: 'Orthopedics', value: 'Orthopedics' },
     { label: 'Dermatology', value: 'Dermatology' },
+    { label: 'Ophthalmology', value: 'Ophthalmology' },
+    { label: 'Psychiatry', value: 'Psychiatry' },
+    { label: 'Gynecology', value: 'Gynecology' },
   ];
 
   departments = [
@@ -72,16 +76,19 @@ export class DoctorFormComponent implements OnInit {
     { label: 'Inpatient', value: 'Inpatient' },
     { label: 'Emergency', value: 'Emergency' },
     { label: 'Surgery', value: 'Surgery' },
+    { label: 'Intensive Care', value: 'Intensive Care' },
+    { label: 'Radiology', value: 'Radiology' },
+    { label: 'Laboratory', value: 'Laboratory' },
   ];
 
   workingDays = [
-    { label: 'Monday', value: 'monday' },
-    { label: 'Tuesday', value: 'tuesday' },
-    { label: 'Wednesday', value: 'wednesday' },
-    { label: 'Thursday', value: 'thursday' },
-    { label: 'Friday', value: 'friday' },
-    { label: 'Saturday', value: 'saturday' },
-    { label: 'Sunday', value: 'sunday' },
+    { label: 'Monday', value: 'Monday' },
+    { label: 'Tuesday', value: 'Tuesday' },
+    { label: 'Wednesday', value: 'Wednesday' },
+    { label: 'Thursday', value: 'Thursday' },
+    { label: 'Friday', value: 'Friday' },
+    { label: 'Saturday', value: 'Saturday' },
+    { label: 'Sunday', value: 'Sunday' },
   ];
 
   constructor(
@@ -100,7 +107,8 @@ export class DoctorFormComponent implements OnInit {
 
   private initializeForm() {
     this.doctorForm = this.fb.group({
-      prefix: ['', Validators.required],
+      profilePhoto: [''],
+      prefix: ['Dr.', Validators.required],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
       licenseNumber: ['', Validators.required],
@@ -112,6 +120,7 @@ export class DoctorFormComponent implements OnInit {
       consultationFee: [0, [Validators.required, Validators.min(0)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.required],
+      status: ['active'],
       address: this.fb.group({
         street: [''],
         city: [''],
@@ -123,25 +132,52 @@ export class DoctorFormComponent implements OnInit {
       endTime: [null, Validators.required],
       about: [''],
       expertise: [[]],
+      available: [true],
+      role: ['DOCTOR']
     });
   }
 
   private checkEditMode() {
-    const id = this.route.snapshot.params['id'];
-    if (id) {
+    this.doctorId = this.route.snapshot.params['id'];
+    if (this.doctorId) {
       this.isEditMode = true;
-      this.loadDoctor(id);
+      this.loadDoctor(this.doctorId);
     }
   }
 
   private loadDoctor(id: string) {
     this.loading = true;
     this.doctorService.getDoctorById(id).subscribe({
-      next: (doctor) => {
-        this.doctorForm.patchValue(doctor);
+      next: (doctor:any) => {
+        // Handle the image preview if it exists
+        if (doctor.profilePhoto) {
+          this.imagePreview = doctor.profilePhoto;
+          this.imageBase64 = doctor.profilePhoto;
+        }
+        
+        // Create date objects for the time fields
+        // const startTime = doctor.startTime ? this.parseTimeString(doctor.startTime) : null;
+        // const endTime = doctor.endTime ? this.parseTimeString(doctor.endTime) : null;
+        
+        // Update languages and expertise from string to array if needed
+        const languages = Array.isArray(doctor.languages) ? doctor.languages : [];
+        const expertise = typeof doctor.expertise === 'string' 
+          ? doctor.expertise.split(', ') 
+          : (Array.isArray(doctor.expertise) ? doctor.expertise : []);
+        
+        // Set values to form
+        this.doctorForm.patchValue({
+          ...doctor,
+          languages,
+          expertise,
+          // startTime,
+          // endTime
+        });
+        
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error loading doctor:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -153,36 +189,55 @@ export class DoctorFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.doctorForm.invalid) return;
+    if (this.doctorForm.invalid) {
+      this.markFormGroupTouched(this.doctorForm);
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Validation',
+        detail: 'Please fill all required fields',
+      });
+      return;
+    }
 
     this.loading = true;
-    const doctorData = {
-      ...this.doctorForm.value,
-      workingHours: {
-        start: this.formatTime(this.doctorForm.value.startTime),
-        end: this.formatTime(this.doctorForm.value.endTime),
-      },
+    
+    // Format the data for submission
+    const formData = this.doctorForm.value;
+    
+    // Format time values
+    const startTime = formData.startTime ? this.formatTime(formData.startTime) : null;
+    const endTime = formData.endTime ? this.formatTime(formData.endTime) : null;
+    
+    // Format expertise if it's an array
+    const expertise = Array.isArray(formData.expertise) 
+      ? formData.expertise.join(', ') 
+      : formData.expertise;
+    
+    // Prepare the doctor data
+    const doctorData: Partial<Doctor> = {
+      ...formData,
+      profilePhoto: this.imageBase64,
+      startTime,
+      endTime,
+      expertise
     };
-
+    
+    // Perform the API operation (create or update)
     const operation = this.isEditMode
-      ? this.doctorService.updateDoctor(
-          this.route.snapshot.params['id'],
-          doctorData
-        )
+      ? this.doctorService.updateDoctor(this.doctorId, doctorData)
       : this.doctorService.createDoctor(doctorData);
 
     operation.subscribe({
-      next: () => {
+      next: (result) => {
         this.messageService.add({
           severity: 'success',
           summary: 'Success',
-          detail: `Doctor ${
-            this.isEditMode ? 'updated' : 'created'
-          } successfully`,
+          detail: `Doctor ${this.isEditMode ? 'updated' : 'created'} successfully`,
         });
-        this.router.navigate(['../'], { relativeTo: this.route });
+        this.router.navigate(['/doctors/list']);
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error saving doctor:', error);
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
@@ -196,31 +251,52 @@ export class DoctorFormComponent implements OnInit {
   onPhotoSelect(event: any) {
     const file = event.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.imagePreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      this.convertToBase64(file);
     }
   }
 
   onPhotoUpload(event: any) {
-    const file = event.files[0];
-    // Handle the file upload to your server here
-    // You can keep the preview or update it based on the server response
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Success',
-      detail: 'Photo uploaded successfully',
-    });
+    // This is already handled in onPhotoSelect
+    // Clear the upload input to allow new uploads
+    event.files = [];
+  }
+
+  convertToBase64(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imagePreview = e.target.result;
+      this.imageBase64 = e.target.result;
+      this.doctorForm.patchValue({
+        profilePhoto: this.imageBase64
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  private parseTimeString(timeString: string): Date {
+    try {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      const date = new Date();
+      date.setHours(hours);
+      date.setMinutes(minutes);
+      date.setSeconds(0);
+      return date;
+    } catch (e) {
+      console.error('Error parsing time string:', e);
+      return new Date();
+    }
   }
 
   private formatTime(date: Date): string {
-    return date.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    if (!date) return '';
+    try {
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    } catch (e) {
+      console.error('Error formatting time:', e);
+      return '';
+    }
   }
 
   addLanguage(event: any) {
@@ -266,6 +342,16 @@ export class DoctorFormComponent implements OnInit {
   }
 
   cancel() {
-    this.router.navigate(['../'], { relativeTo: this.route });
+    this.router.navigate(['/doctors/list']);
+  }
+
+  // Utility method to mark all form controls as touched for validation display
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.values(formGroup.controls).forEach(control => {
+      control.markAsTouched();
+      if ((control as any).controls) {
+        this.markFormGroupTouched(control as FormGroup);
+      }
+    });
   }
 }

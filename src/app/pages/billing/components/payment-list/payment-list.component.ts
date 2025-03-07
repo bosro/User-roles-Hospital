@@ -76,7 +76,7 @@ export class PaymentListComponent implements OnInit {
     this.loading = true;
     this.billingService.getPayments(this.filters).subscribe({
       next: (data) => {
-        this.payments = data;
+        // this.payments = data;
         this.loading = false;
       },
       error: () => {

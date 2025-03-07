@@ -103,16 +103,16 @@ export class BillingDashboardComponent implements OnInit {
 
   private loadDashboardData() {
     this.billingService.getBillingStats().subscribe({
-      next: (stats: BillingStats) => {
-        this.stats = stats;
-        this.insuranceStats = stats.insurance;
-      }
+      // next: (stats: BillingStats) => {
+      //   this.stats = stats;
+      //   this.insuranceStats = stats.insurance;
+      // }
     });
 
     this.billingService.getBillingTrends().subscribe({
-      next: (trends: BillingTrends) => {
-        this.updateChartData(trends);
-      }
+      // next: (trends: BillingTrends) => {
+      //   this.updateChartData(trends);
+      // }
     });
 
     this.loadRecentInvoices();
@@ -184,7 +184,7 @@ export class BillingDashboardComponent implements OnInit {
     this.billingService.getInvoices({ limit: 5, sort: 'dateIssued:desc' })
       .subscribe({
         next: (invoices) => {
-          this.recentInvoices = invoices;
+          // this.recentInvoices = invoices;
         }
       });
   }
@@ -196,10 +196,10 @@ export class BillingDashboardComponent implements OnInit {
       sort: 'dueDate:asc' 
     }).subscribe({
       next: (invoices) => {
-        this.upcomingPayments = invoices.map(invoice => ({
-          ...invoice,
-          daysLeft: this.calculateDaysLeft(invoice.dueDate)
-        }));
+        // this.upcomingPayments = invoices.map(invoice => ({
+        //   ...invoice,
+        //   daysLeft: this.calculateDaysLeft(invoice.dueDate)
+        // }));
       }
     });
   }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, catchError, map, throwError } from 'rxjs';
 import { Appointment, AppointmentResponse, DoctorSchedule } from '../types';
 import { environment } from '../../../environments/environment';
 
@@ -12,12 +12,16 @@ export class AppointmentService {
 
   constructor(private http: HttpClient) {}
 
-  getAppointments(page: number = 1, limit: number = 10): Observable<Appointment[]> {
-    return this.http.get<AppointmentResponse>(`${this.apiUrl}/get?page=${page}&limit=${limit}`)
+  getAppointments(page: number = 1, limit: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    
+    return this.http.get<any>(`${this.apiUrl}/get`, { params })
       .pipe(
-        map(response => {
-          // Transform data to match our client-side model
-          return response.data.map(appointment => this.transformAppointment(appointment));
+        catchError(error => {
+          console.error('Error fetching appointments:', error);
+          return throwError(() => new Error('Failed to fetch appointments: ' + (error.message || 'Unknown error')));
         })
       );
   }
